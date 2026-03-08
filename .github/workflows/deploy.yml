@@ -29,8 +29,6 @@ jobs:
 
       - name: Build client
         run: npx vite build
-        env:
-          VITE_BASE_PATH: /${{ github.event.repository.name }}/
 
       - uses: actions/upload-pages-artifact@v3
         with:
