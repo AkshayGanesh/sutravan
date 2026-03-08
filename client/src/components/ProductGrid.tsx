@@ -38,7 +38,7 @@ export default function ProductGrid() {
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-background">
       <div className="text-center mb-16">
-        <h2 className="font-serif text-4xl md:text-5xl text-primary mb-4">Curated Essentials</h2>
+        <h2 className="font-sans font-bold text-4xl md:text-5xl text-primary mb-4">Curated Essentials</h2>
         <div className="w-16 h-0.5 bg-secondary mx-auto mb-6"></div>
         <p className="text-foreground/70 max-w-2xl mx-auto">
           Our introductory collection of earthen luxury. Each formulation is carefully 
@@ -66,7 +66,7 @@ export default function ProductGrid() {
             
             <div className="text-center">
               <p className="text-xs uppercase tracking-widest text-foreground/50 mb-2">{product.category}</p>
-              <h3 className="font-serif text-xl text-primary mb-2 group-hover:text-secondary transition-colors duration-300">{product.name}</h3>
+              <h3 className="font-sans font-medium text-xl text-primary mb-2 group-hover:text-secondary transition-colors duration-300">{product.name}</h3>
               <p className="text-sm font-medium">{product.price}</p>
             </div>
           </div>

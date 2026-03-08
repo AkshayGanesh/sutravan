@@ -7,7 +7,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center">
             <Link href="/" className="flex flex-col items-start cursor-pointer">
-              <span className="font-serif text-2xl font-semibold text-primary tracking-wide">SUTRAVAN</span>
+              <span className="font-serif text-2xl text-primary tracking-wide">sutravan</span>
               <span className="text-[0.65rem] tracking-[0.2em] text-foreground/70 uppercase uppercase mt-0.5">Forest Formulations</span>
             </Link>
           </div>

@@ -31,8 +31,8 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
   
-  --font-sans: 'Montserrat', sans-serif;
-  --font-serif: 'Cormorant Garamond', serif;
+  --font-sans: 'Poppins', sans-serif;
+  --font-serif: 'Samarkan', serif;
 }
 
 :root {
@@ -80,7 +80,10 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1 {
     @apply font-serif;
+  }
+  h2, h3, h4, h5, h6 {
+    @apply font-sans font-bold;
   }
 }

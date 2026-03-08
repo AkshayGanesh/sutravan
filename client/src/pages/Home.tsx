@@ -13,7 +13,7 @@ export default function Home() {
         {/* Brand Philosophy Section */}
         <section className="py-24 px-4 bg-card text-center flex flex-col items-center justify-center">
           <div className="max-w-3xl mx-auto">
-            <h2 className="font-serif text-3xl md:text-5xl text-primary mb-8 leading-tight">
+            <h2 className="font-sans font-bold text-3xl md:text-5xl text-primary mb-8 leading-tight">
               "We believe that true luxury lies in nature's untouched simplicity."
             </h2>
             <p className="text-foreground/80 leading-relaxed font-light mb-8">
