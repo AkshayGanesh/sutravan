@@ -1,9 +1,8 @@
 import soapImg from '../assets/images/product-soap.png';
 import scrubImg from '../assets/images/product-scrub.png';
 import creamImg from '../assets/images/product-cream.png';
-import tonerImg from '../assets/images/product-toner.png';
 
-export type Category = 'soap' | 'scrub' | 'cream' | 'toner';
+export type Category = 'soap' | 'scrub' | 'cream';
 
 export interface Product {
   id: string;
@@ -45,19 +44,12 @@ export const categories: CategoryInfo[] = [
     description: 'Nourishing moisturizers crafted from fresh, natural ingredients.',
     image: creamImg,
   },
-  {
-    id: 'toner',
-    label: 'Toners',
-    description: 'Refreshing skin toners made from homemade herbal waters.',
-    image: tonerImg,
-  },
 ];
 
 const categoryImages: Record<Category, string> = {
   soap: soapImg,
   scrub: scrubImg,
   cream: creamImg,
-  toner: tonerImg,
 };
 
 const BATCH_NOTE = 'Freshly handmade in small batches.';
@@ -698,188 +690,6 @@ export const products: Product[] = [
     image: categoryImages.cream,
   },
 
-  // ─── TONERS ──────────────────────────────────────────────
-  {
-    id: 'toner-rose-water',
-    name: 'Rose Water Toner',
-    subtitle: 'For hydration & redness',
-    category: 'toner',
-    price: 'Rs. 175',
-    benefits: [
-      'Hydrates & refreshes skin',
-      'Reduces redness',
-      'Mild pore tightening',
-    ],
-    ingredients: [
-      'Natural Homemade Gulab Jal (Rose Water)',
-      'Fresh Aloe vera gel',
-      'Vitamin E oil (optional)',
-    ],
-    tips: ['Store in fridge', 'Use daily'],
-    shelfLife: 'Best enjoyed within 1 month',
-    batchNote: BATCH_NOTE,
-    image: categoryImages.toner,
-  },
-  {
-    id: 'toner-rice-water',
-    name: 'Rice Water Toner',
-    subtitle: 'For glow & pore tightening',
-    category: 'toner',
-    price: 'Rs. 175',
-    benefits: [
-      'Improves skin glow',
-      'Tightens pores',
-      'Reduces dullness',
-      'Helps mild pigmentation',
-    ],
-    ingredients: [
-      'Rice Water',
-      'Natural Homemade Gulab Jal (Rose Water)',
-      'Fresh Aloe vera gel (dry skin)',
-      'Vitamin E oil (optional)',
-    ],
-    tips: ['Store in fridge', 'Use only once daily'],
-    shelfLife: 'Best enjoyed within 1 month',
-    batchNote: BATCH_NOTE,
-    image: categoryImages.toner,
-  },
-  {
-    id: 'toner-neem',
-    name: 'Neem Toner',
-    subtitle: 'For acne & oily skin',
-    category: 'toner',
-    price: 'Rs. 175',
-    benefits: [
-      'Controls acne',
-      'Antibacterial',
-      'Reduces excess oil',
-      'Calms inflamed skin',
-    ],
-    ingredients: [
-      'Homemade Neem water',
-      'Natural Homemade Gulab Jal (Rose Water)',
-      'Fresh Aloe vera gel (dry skin)',
-      'Tea Tree oil (optional)',
-    ],
-    tips: ['Store in fridge', 'Use only once daily'],
-    shelfLife: 'Best enjoyed within 1 month',
-    batchNote: BATCH_NOTE,
-    image: categoryImages.toner,
-  },
-  {
-    id: 'toner-green-tea',
-    name: 'Green Tea Toner',
-    subtitle: 'For anti-aging & oil control',
-    category: 'toner',
-    price: 'Rs. 175',
-    benefits: [
-      'Rich in antioxidants',
-      'Controls oil',
-      'Slows signs of aging',
-    ],
-    ingredients: [
-      'Homemade Brewed Green Tea',
-      'Natural Homemade Gulab Jal (Rose Water)',
-      'Fresh Aloe vera gel (dry skin)',
-    ],
-    tips: ['Store in fridge', 'Use only once daily'],
-    shelfLife: 'Best enjoyed within 1 month',
-    batchNote: BATCH_NOTE,
-    image: categoryImages.toner,
-  },
-  {
-    id: 'toner-cucumber',
-    name: 'Cucumber Toner',
-    subtitle: 'For cooling & hydration',
-    category: 'toner',
-    price: 'Rs. 175',
-    benefits: [
-      'Cooling effect',
-      'Reduces puffiness',
-      'Hydrates skin',
-      'Tightens pores',
-    ],
-    ingredients: [
-      'Fresh cucumber juice',
-      'Natural Homemade Gulab Jal (Rose Water)',
-      'Fresh Aloe vera gel (optional)',
-    ],
-    tips: ['Store in fridge', 'Use daily'],
-    shelfLife: 'Best enjoyed within 1 month',
-    batchNote: BATCH_NOTE,
-    image: categoryImages.toner,
-  },
-  {
-    id: 'toner-orange',
-    name: 'Orange Toner',
-    subtitle: 'For glow & oil control',
-    category: 'toner',
-    price: 'Rs. 175',
-    benefits: [
-      'Rich in Vitamin C (natural glow boost)',
-      'Controls excess oil',
-      'Tightens pores',
-      'Refreshes tired skin',
-    ],
-    ingredients: [
-      'Homemade Orange peel water',
-      'Natural Homemade Gulab Jal (Rose Water)',
-      'Fresh Aloe vera gel (sensitive skin)',
-      'Glycerine (dry skin)',
-      'Vitamin E oil (optional)',
-    ],
-    tips: ['Store in fridge', 'Use only once daily at night'],
-    shelfLife: 'Best enjoyed within 1 month',
-    batchNote: BATCH_NOTE,
-    image: categoryImages.toner,
-  },
-  {
-    id: 'toner-lemon',
-    name: 'Lemon Toner',
-    subtitle: 'For dark spots & oil control',
-    category: 'toner',
-    price: 'Rs. 175',
-    benefits: [
-      'Natural astringent',
-      'Helps fade dark spots',
-      'Controls oil',
-      'Antibacterial properties',
-    ],
-    ingredients: [
-      'Homemade Lemon peel water',
-      'Natural Homemade Gulab Jal (Rose Water)',
-      'Fresh Aloe vera gel (sensitive skin)',
-      'Glycerine (dry skin)',
-      'Vitamin E oil (optional)',
-    ],
-    tips: ['Store in fridge', 'Use only once daily at night'],
-    shelfLife: 'Best enjoyed within 1 month',
-    batchNote: BATCH_NOTE,
-    image: categoryImages.toner,
-  },
-  {
-    id: 'toner-rose-lemon',
-    name: 'Rose + Lemon Toner',
-    subtitle: 'For dark spots & skin freshness',
-    category: 'toner',
-    price: 'Rs. 175',
-    benefits: [
-      'Natural astringent',
-      'Helps fade dark spots',
-      'Controls oil',
-      'Antibacterial properties',
-    ],
-    ingredients: [
-      'Fresh Rose petals',
-      'Fresh Aloe vera gel',
-      'Fresh Lemon juice',
-      'Vitamin E oil (optional)',
-    ],
-    tips: ['Store in fridge', 'Use only once daily'],
-    shelfLife: 'Best enjoyed within 1 month',
-    batchNote: BATCH_NOTE,
-    image: categoryImages.toner,
-  },
 ];
 
 export function getProductsByCategory(category: Category): Product[] {

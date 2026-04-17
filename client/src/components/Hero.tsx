@@ -23,8 +23,7 @@ export default function Hero() {
         </h1>
         <p className="text-background/90 text-lg md:text-xl font-light tracking-wide mb-4 max-w-2xl mx-auto drop-shadow animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 fill-mode-both">
           Experience earthen luxury with our handcrafted botanical skincare.
-          Nourishing soaps, revitalizing scrubs, rich creams, and balancing
-          toners.
+          Nourishing soaps, revitalizing scrubs, and rich creams.
         </p>
         <p className="text-background/70 text-sm md:text-base tracking-wider mb-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 fill-mode-both">
           Simple Ingredients. Honest Formulations. Real Skin Care.

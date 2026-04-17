@@ -50,7 +50,7 @@ export default function Home() {
           <div className="w-16 h-0.5 bg-secondary mx-auto mb-6" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((cat) => (
             <Link
               key={cat.id}
