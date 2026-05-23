@@ -2,6 +2,19 @@ import soapImg from '../assets/images/product-soap.png';
 import scrubImg from '../assets/images/product-scrub.png';
 import creamImg from '../assets/images/product-cream.png';
 
+const _soapGlob = import.meta.glob<{ default: string }>(
+  '../assets/images/products/Soap/**/*.jpg',
+  { eager: true }
+);
+
+function getSoapImages(folder: string): string[] {
+  const imgs = Object.entries(_soapGlob)
+    .filter(([path]) => path.includes(`/Soap/${folder}/`))
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, mod]) => mod.default);
+  return imgs.length > 0 ? imgs : [soapImg];
+}
+
 export type Category = 'soap' | 'scrub' | 'cream';
 
 export interface Product {
@@ -15,7 +28,7 @@ export interface Product {
   tips?: string[];
   shelfLife: string;
   batchNote: string;
-  image: string;
+  images: string[];
 }
 
 export interface CategoryInfo {
@@ -46,22 +59,16 @@ export const categories: CategoryInfo[] = [
   },
 ];
 
-const categoryImages: Record<Category, string> = {
-  soap: soapImg,
-  scrub: scrubImg,
-  cream: creamImg,
-};
-
 const BATCH_NOTE = 'Freshly handmade in small batches.';
 
 export const products: Product[] = [
   // ─── SOAPS ───────────────────────────────────────────────
   {
     id: 'soap-neem',
-    name: 'Neem Soap',
+    name: 'Neem',
     subtitle: 'For oily, pimples & acne-prone skin',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Antibacterial & antifungal',
       'Reduces pimples and skin infections',
@@ -69,23 +76,22 @@ export const products: Product[] = [
     ],
     ingredients: [
       'Soap base (goat-milk or glycerin)',
-      'Neem leaves powder',
-      'Tulsi leaves powder',
+      'Natural Neem leaves powder',
       'Dried Haldi powder (Turmeric)',
-      'Fresh Aloe vera gel (optional)',
-      'Coconut or Almond oil (optional)',
+      'Aloe vera gel (optional - as per customisation request)',
+      'Coconut oil (optional - as per customisation request)',
       'Few drops essential oil',
     ],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Neem'),
   },
   {
     id: 'soap-turmeric',
-    name: 'Turmeric Soap',
+    name: 'Turmeric',
     subtitle: 'For dull skin & pigmentation',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Brightens skin',
       'Reduces dark spots',
@@ -95,19 +101,19 @@ export const products: Product[] = [
       'Soap base (goat-milk or glycerin)',
       'Dried Haldi powder (Turmeric)',
       'Dried Chandan Powder (Sandalwood)',
-      'Dried Multani Mitti Powder (Fuller\'s earth) (optional)',
+      'Dried Multani Mitti Powder (Fuller\'s earth) (optional - as per customisation request)',
       'Few drops essential oil',
     ],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Turmeric'),
   },
   {
     id: 'soap-aloe-vera',
-    name: 'Aloe Vera Soap',
+    name: 'Aloe Vera',
     subtitle: 'For sensitive & dry skin',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Deep hydration',
       'Soothes irritation',
@@ -117,19 +123,18 @@ export const products: Product[] = [
       'Soap base (goat-milk or glycerin)',
       'Fresh Aloe vera gel',
       'Vitamin E oil',
-      'Milk powder (optional)',
       'Few drops essential oil',
     ],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('AloeVera'),
   },
   {
     id: 'soap-multani-mitti',
-    name: 'Multani Mitti Soap',
+    name: 'Multani Mitti',
     subtitle: 'For oily & combination skin',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Absorbs excess oil',
       'Tightens pores',
@@ -139,19 +144,19 @@ export const products: Product[] = [
       'Soap base (goat-milk or glycerin)',
       'Multani Mitti (Fuller\'s earth)',
       'Dried Chandan Powder (Sandalwood)',
-      'Natural Homemade Gulab Jal (Rose Water) (optional)',
+      'Natural Homemade Gulab Jal (Rose Water) (optional - as per customisation request)',
       'Few drops essential oil',
     ],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Fuller_s Earth'),
   },
   {
     id: 'soap-orange-peel',
-    name: 'Orange Peel Soap',
-    subtitle: 'For tanned & uneven skin',
+    name: 'Orange Peel',
+    subtitle: 'For tanned & uneven skin - Seasonal',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Natural exfoliation',
       'Removes tan',
@@ -166,14 +171,14 @@ export const products: Product[] = [
     tips: ['Best for cold climate', 'Not ideal for dry or sensitive skin'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Orange'),
   },
   {
     id: 'soap-sandalwood',
-    name: 'Sandalwood Soap',
+    name: 'Sandalwood',
     subtitle: 'For normal & sensitive skin',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Calms skin',
       'Reduces redness',
@@ -184,18 +189,18 @@ export const products: Product[] = [
       'Dried Chandan Powder (Sandalwood)',
       'Natural Homemade Gulab Jal (Rose Water)',
       'Few drops essential oil',
-      'Coconut or Almond oil (optional)',
+      'Coconut oil (optional - as per customisation request)',
     ],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Sandalwood'),
   },
   {
     id: 'soap-charcoal',
-    name: 'Charcoal Herbal Soap',
+    name: 'Charcoal Herbal',
     subtitle: 'For deep cleansing',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Deep pore cleansing',
       'Removes toxins',
@@ -204,20 +209,20 @@ export const products: Product[] = [
     ingredients: [
       'Soap base (goat-milk or glycerin)',
       'Activated charcoal powder',
-      'Fresh Aloe vera gel',
+      'Aloe vera gel',
       'Tea tree oil',
     ],
     tips: ['Not ideal for dry or sensitive skin'],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Charcoal'),
   },
   {
     id: 'soap-rose',
-    name: 'Rose Soap',
+    name: 'Rose',
     subtitle: 'For sensitive, normal & dry skin',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Soothes irritation',
       'Reduces redness',
@@ -227,20 +232,19 @@ export const products: Product[] = [
     ingredients: [
       'Soap base (goat-milk or glycerin)',
       'Natural Rose petal powder or dried crushed rose petals',
-      'Natural Homemade Gulab Jal (Rose Water)',
       'Vitamin E oil',
       'Few drops essential oil',
     ],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Rose'),
   },
   {
     id: 'soap-lemon-peel',
-    name: 'Lemon Peel Soap',
-    subtitle: 'For tanned & uneven skin',
+    name: 'Lemon Peel',
+    subtitle: 'For tanned & uneven skin - Seasonal',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Natural exfoliation',
       'Removes tan',
@@ -250,20 +254,20 @@ export const products: Product[] = [
       'Soap base (goat-milk or glycerin)',
       'Dried Lemon peel powder',
       'Dried Haldi powder (Turmeric)',
-      'Dried Chandan Powder (Sandalwood) (optional)',
+      'Dried Chandan Powder (Sandalwood) (optional - as per customisation request)',
       'Few drops essential oil',
     ],
     tips: ['Best for cold climate', 'Not ideal for dry or sensitive skin'],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Lemon'),
   },
   {
     id: 'soap-rice',
-    name: 'Rice Soap',
+    name: 'Rice',
     subtitle: 'For dull skin, uneven tone & mild pigmentation',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Natural skin brightening',
       'Gentle exfoliation',
@@ -273,21 +277,20 @@ export const products: Product[] = [
     ingredients: [
       'Soap base (goat-milk or glycerin)',
       'Rice flour or thick Rice water',
-      'Milk powder',
-      'Coconut oil (optional)',
+      'Coconut oil (optional - as per customisation request)',
       'Few drops essential oil',
     ],
     tips: ['Not ideal for dry skin'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Rice'),
   },
   {
     id: 'soap-milk',
-    name: 'Milk Soap',
+    name: 'Milk',
     subtitle: 'For dull or dry skin',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Deep hydration',
       'Makes skin soft & supple',
@@ -295,20 +298,20 @@ export const products: Product[] = [
     ingredients: [
       'Soap base (goat-milk or glycerin)',
       'Milk powder',
-      'Coconut or Almond oil (optional)',
+      'Coconut oil (optional - as per customisation request)',
       'Few drops essential oil',
     ],
     tips: ['Best for winter or dry climate', 'Not ideal for oily skin'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Milk'),
   },
   {
     id: 'soap-oats',
-    name: 'Oats Soap',
+    name: 'Oats',
     subtitle: 'For sensitive skin',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Gentle exfoliation',
       'Soothes itchy skin',
@@ -317,19 +320,19 @@ export const products: Product[] = [
     ingredients: [
       'Soap base (goat-milk or glycerin)',
       'Finely ground oats',
-      'Milk powder (optional)',
-      'Coconut or Almond oil',
+      'Milk powder (optional - as per customisation request)',
+      'Coconut oil',
     ],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Oats'),
   },
   {
     id: 'soap-coffee',
-    name: 'Coffee Soap',
+    name: 'Coffee',
     subtitle: 'For tan removing and firming',
     category: 'soap',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Removes tan',
       'Improves circulation',
@@ -345,7 +348,7 @@ export const products: Product[] = [
     tips: ['Not ideal for sensitive skin'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.soap,
+    images: getSoapImages('Coffee'),
   },
 
   // ─── SCRUBS ──────────────────────────────────────────────
@@ -354,7 +357,7 @@ export const products: Product[] = [
     name: 'Neem Face Scrub cum Face Pack',
     subtitle: 'For acne & oily skin',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Prevents acne',
       'Antibacterial',
@@ -370,14 +373,14 @@ export const products: Product[] = [
     tips: ['Best to use it with aloe vera gel or rose water'],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
   {
     id: 'scrub-multani-mitti',
     name: 'Multani Mitti Face Scrub cum Face Pack',
     subtitle: 'For oily & acne-prone skin',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Absorbs excess oil',
       'Detoxifies skin',
@@ -394,14 +397,14 @@ export const products: Product[] = [
     tips: ['Best to use it with rose water'],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
   {
     id: 'scrub-orange-peel',
     name: 'Orange Peel Face Scrub cum Face Pack',
     subtitle: 'For dull & oily skin',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Natural vitamin C boost',
       'Controls oil',
@@ -416,14 +419,14 @@ export const products: Product[] = [
     tips: ['Best to use it with curd or rose water'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
   {
     id: 'scrub-sandalwood',
     name: 'Sandalwood Face Scrub cum Face Pack',
     subtitle: 'For pigmentation & dull skin',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Brightens complexion',
       'Reduces pigmentation',
@@ -439,14 +442,14 @@ export const products: Product[] = [
     tips: ['Best to use it with fresh milk cream (dry skin) or rose water (oily skin)'],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
   {
     id: 'scrub-lemon-peel',
     name: 'Lemon Peel Face Scrub cum Face Pack',
     subtitle: 'For dull & oily skin',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Natural vitamin C boost',
       'Controls oil',
@@ -461,14 +464,14 @@ export const products: Product[] = [
     tips: ['Best to use it with curd or rose water'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
   {
     id: 'scrub-rice',
     name: 'Rice Face Scrub cum Face Pack',
     subtitle: 'For pigmentation & uneven skin',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Gentle exfoliation',
       'Reduces pigmentation',
@@ -485,14 +488,14 @@ export const products: Product[] = [
     tips: ['Best to use it with rose water (oily skin) or raw milk (dry skin) or aloe vera (sensitive skin)'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
   {
     id: 'scrub-coffee-face',
     name: 'Coffee Face Scrub cum Face Pack',
     subtitle: 'For tan & rough skin',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Removes tan',
       'Removes dead skin',
@@ -508,14 +511,14 @@ export const products: Product[] = [
     tips: ['Best to use it with rose water (oily skin) or oil (dry skin)'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
   {
     id: 'scrub-mix',
     name: 'Mix Face Scrub cum Face Pack',
     subtitle: 'For rough & textured skin',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Improves circulation',
       'Reduces rough skin',
@@ -533,14 +536,14 @@ export const products: Product[] = [
     tips: ['Best to use it with rose water'],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
   {
     id: 'scrub-coffee-body',
     name: 'Coffee Body Scrub',
     subtitle: 'For tan & rough body skin',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Removes tan',
       'Improves blood circulation',
@@ -553,17 +556,17 @@ export const products: Product[] = [
       'Fine grounded white sugar',
       'Few drops essential oil',
     ],
-    tips: ['Best 2\u20133 times/week'],
+    tips: ['Best 2–3 times/week'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
   {
     id: 'scrub-lip',
     name: 'Sugar and Honey Lip Scrub',
     subtitle: 'For tan & dry lips',
     category: 'scrub',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Natural exfoliation',
       'Removes tan',
@@ -574,10 +577,10 @@ export const products: Product[] = [
       'Coconut oil',
       'Honey',
     ],
-    tips: ['Best 2\u20133 times/week'],
+    tips: ['Best 2–3 times/week'],
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
-    image: categoryImages.scrub,
+    images: [scrubImg],
   },
 
   // ─── CREAMS ──────────────────────────────────────────────
@@ -586,7 +589,7 @@ export const products: Product[] = [
     name: 'Aloe Vera Face Cream',
     subtitle: 'For acne-prone & sensitive skin',
     category: 'cream',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Reduces pimples and skin infections',
       'Soothes irritation',
@@ -600,14 +603,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
-    image: categoryImages.cream,
+    images: [creamImg],
   },
   {
     id: 'cream-aloe-vera-body',
     name: 'Aloe Vera Body Cream',
     subtitle: 'For dry & infection-prone skin',
     category: 'cream',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Antibacterial & antifungal',
       'Reduces skin infections',
@@ -622,14 +625,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    image: categoryImages.cream,
+    images: [creamImg],
   },
   {
     id: 'cream-rice',
     name: 'Rice Face Cream',
     subtitle: 'For dull skin & pigmentation',
     category: 'cream',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Brightens complexion',
       'Reduces pigmentation',
@@ -644,14 +647,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
-    image: categoryImages.cream,
+    images: [creamImg],
   },
   {
     id: 'cream-rose',
     name: 'Rose Cream',
     subtitle: 'For glow & mild toning',
     category: 'cream',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Improves glow',
       'Mild skin toning',
@@ -665,14 +668,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
-    image: categoryImages.cream,
+    images: [creamImg],
   },
   {
     id: 'cream-sandalwood',
     name: 'Sandalwood Cream',
     subtitle: 'For acne & blemishes',
     category: 'cream',
-    price: 'Rs. 175',
+    price: '',
     benefits: [
       'Reduces acne',
       'Lightens blemishes',
@@ -687,7 +690,7 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
-    image: categoryImages.cream,
+    images: [creamImg],
   },
 
 ];

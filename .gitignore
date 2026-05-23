@@ -6,3 +6,4 @@ vite.config.ts.*
 *.tar.gz
 marketing assets
 Skin Health Care Products.md
+.venv/

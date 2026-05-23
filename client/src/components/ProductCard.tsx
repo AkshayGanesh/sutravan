@@ -18,7 +18,7 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
     >
       <div className="relative aspect-square mb-5 overflow-hidden bg-card">
         <img
-          src={product.image}
+          src={product.images[0]}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
