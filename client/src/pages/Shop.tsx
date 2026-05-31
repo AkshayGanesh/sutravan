@@ -3,12 +3,9 @@ import { useParams, useLocation } from "wouter";
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
-import {
-  products,
-  categories,
-  type Product,
-  type Category,
-} from "@/data/products";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useProducts, useCategories } from "@/lib/catalog";
+import type { Product, Category } from "@/data/products";
 
 const allTab = { id: "all" as const, label: "All Products" };
 
@@ -16,8 +13,21 @@ export default function Shop() {
   const params = useParams<{ category?: string }>();
   const [, setLocation] = useLocation();
 
+  const {
+    data: products,
+    isLoading: productsLoading,
+    isError: productsError,
+    refetch: refetchProducts,
+  } = useProducts();
+  const {
+    data: categories,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+    refetch: refetchCategories,
+  } = useCategories();
+
   const initialCategory =
-    params.category && categories.some((c) => c.id === params.category)
+    params.category && categories?.some((c) => c.id === params.category)
       ? (params.category as Category)
       : null;
 
@@ -26,9 +36,17 @@ export default function Shop() {
   );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
+  const isLoading = productsLoading || categoriesLoading;
+  const isError = productsError || categoriesError;
+  const refetch = () => {
+    refetchProducts();
+    refetchCategories();
+  };
+
+  const allProducts = products ?? [];
   const filteredProducts = activeCategory
-    ? products.filter((p) => p.category === activeCategory)
-    : products;
+    ? allProducts.filter((p) => p.category === activeCategory)
+    : allProducts;
 
   const handleCategoryChange = (catId: Category | null) => {
     setActiveCategory(catId);
@@ -40,7 +58,7 @@ export default function Shop() {
   };
 
   const categoryCount = (catId: Category) =>
-    products.filter((p) => p.category === catId).length;
+    allProducts.filter((p) => p.category === catId).length;
 
   return (
     <Layout>
@@ -67,9 +85,9 @@ export default function Shop() {
                 : "bg-transparent text-foreground/70 border-border hover:border-primary hover:text-primary"
             }`}
           >
-            {allTab.label} ({products.length})
+            {allTab.label} ({allProducts.length})
           </button>
-          {categories.map((cat) => (
+          {(categories ?? []).map((cat) => (
             <button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.id)}
@@ -84,21 +102,57 @@ export default function Shop() {
           ))}
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onSelect={setSelectedProduct}
-            />
-          ))}
-        </div>
+        {/* Loading: skeleton grid mirroring the products grid (no layout shift) */}
+        {isLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i}>
+                <Skeleton className="aspect-square mb-5 w-full" />
+                <Skeleton className="h-4 w-3/4 mx-auto" />
+              </div>
+            ))}
+          </div>
+        )}
 
-        {filteredProducts.length === 0 && (
-          <p className="text-center text-foreground/50 py-16">
-            No products found in this category.
-          </p>
+        {/* Error: inline message + Retry, user stays on the page */}
+        {!isLoading && isError && (
+          <div className="text-center py-16">
+            <p className="text-foreground/70 mb-6">
+              We couldn&rsquo;t load the collection. Please try again.
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="inline-block bg-primary text-primary-foreground px-8 py-3.5 text-sm uppercase tracking-wider font-medium hover:bg-secondary hover:text-primary transition-colors duration-300"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Products Grid */}
+        {!isLoading && !isError && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onSelect={setSelectedProduct}
+                />
+              ))}
+            </div>
+
+            {filteredProducts.length === 0 &&
+              (allProducts.length === 0 ? (
+                <p className="text-center text-foreground/50 py-16">
+                  No products available yet.
+                </p>
+              ) : (
+                <p className="text-center text-foreground/50 py-16">
+                  No products found in this category.
+                </p>
+              ))}
+          </>
         )}
 
         {/* Custom formulation CTA */}
