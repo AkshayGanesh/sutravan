@@ -17,22 +17,12 @@
 -- bypassing RLS on profiles → breaks the profiles-recursion cycle. The locked
 -- empty search_path forces every object reference to be fully-qualified,
 -- preventing search_path hijack.
+--
+-- The schema is created up-front, but the function itself is defined at the END
+-- of this migration: it is a `language sql` function whose body references
+-- `public.profiles`, and SQL-language bodies are validated at creation time, so
+-- `public.profiles` must already exist before the function is created.
 create schema if not exists private;
-
-create or replace function private.is_admin()
-returns boolean
-language sql
-security definer            -- runs as creator → bypasses RLS on profiles → no recursion
-set search_path = ''        -- locked: fully-qualify every object, prevents search_path hijack
-stable
-as $$
-  select exists (
-    select 1
-    from public.profiles
-    where id = (select auth.uid())   -- (select ...) initPlan form: perf + recursion-safe
-      and role = 'admin'
-  );
-$$;
 
 -- ──────────────────────────────────────────────────────────────────────────
 -- categories (D-04): FK target for products; carries the URL/display slug
@@ -114,3 +104,25 @@ create table public.wishlists (
   created_at timestamptz default now(),
   primary key (user_id, product_id)
 );
+
+-- ──────────────────────────────────────────────────────────────────────────
+-- private.is_admin() — defined here, after public.profiles exists
+-- ──────────────────────────────────────────────────────────────────────────
+-- See the header comment: this `language sql` function's body references
+-- public.profiles and is validated at creation time, so it must be created
+-- after the profiles table above. SECURITY DEFINER + locked empty search_path
+-- keep it non-recursive and hijack-safe.
+create or replace function private.is_admin()
+returns boolean
+language sql
+security definer            -- runs as creator → bypasses RLS on profiles → no recursion
+set search_path = ''        -- locked: fully-qualify every object, prevents search_path hijack
+stable
+as $$
+  select exists (
+    select 1
+    from public.profiles
+    where id = (select auth.uid())   -- (select ...) initPlan form: perf + recursion-safe
+      and role = 'admin'
+  );
+$$;

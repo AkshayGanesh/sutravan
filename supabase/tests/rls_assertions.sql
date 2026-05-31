@@ -59,7 +59,7 @@ begin
      where schemaname = 'public'
        and tablename  = t
        and cmd        = 'SELECT'
-       and (roles @> array['anon'] or roles @> array['public']);
+       and (roles @> array['anon']::name[] or roles @> array['public']::name[]);
     if v_count < 1 then
       raise exception 'INVARIANT 2 FAILED: no anon-readable SELECT policy on public.%', t;
     end if;
@@ -72,7 +72,7 @@ begin
    where schemaname = 'public'
      and tablename  = 'profiles'
      and cmd        = 'INSERT'
-     and (roles @> array['anon'] or roles @> array['public']);
+     and (roles @> array['anon']::name[] or roles @> array['public']::name[]);
   if v_count <> 0 then
     raise exception 'INVARIANT 3 FAILED: profiles has an anon/public INSERT policy (% found); must stay default-deny', v_count;
   end if;
