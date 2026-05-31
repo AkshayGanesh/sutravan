@@ -1,4 +1,5 @@
 import type { Product } from "@/data/products";
+import { formatPrice } from "@/lib/format";
 
 interface ProductCardProps {
   product: Product;
@@ -39,7 +40,7 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
           {product.name}
         </h3>
         <p className="text-xs text-foreground/60 mb-2">{product.subtitle}</p>
-        <p className="text-sm font-medium">{product.price}</p>
+        <p className="text-sm font-medium">{formatPrice(product.price)}</p>
       </div>
     </div>
   );

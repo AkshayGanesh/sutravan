@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import type { Product } from "@/data/products";
+import { formatPrice } from "@/lib/format";
 import {
   Dialog,
   DialogContent,
@@ -94,7 +95,7 @@ export default function ProductDetail({
               {product.subtitle}
             </p>
             <p className="text-xl font-semibold text-primary mb-4">
-              {product.price}
+              {formatPrice(product.price)}
             </p>
 
             {/* Benefits */}
