@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
+status: executing
 stopped_at: Phase 2 context gathered
-last_updated: "2026-05-31T11:53:40.839Z"
-last_activity: 2026-05-31 -- Phase 01 complete — Supabase foundation live & verified
+last_updated: "2026-05-31T12:23:25.000Z"
+last_activity: 2026-05-31 -- Plan 02-01 paused at blocking checkpoint (service-role key)
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
+  total_plans: 6
   completed_plans: 3
   percent: 20
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-31)
 
 **Core value:** The owner can manage the entire product catalog (products, categories, images, prices) through an admin portal — no code changes, no redeploys.
-**Current focus:** Phase 01 — supabase-foundation-schema-rls-storage
+**Current focus:** Phase 02 — live-catalog-data-migration-public-shop-rewire
 
 ## Current Position
 
-Phase: 01 (supabase-foundation-schema-rls-storage) — COMPLETE ✓
-Plan: 3 of 3 complete — phase verified (5/5 must-haves; live checks proven in-session)
-Status: Phase 01 complete. Supabase backend live (ref wfbnrcnmpcqzeyjlfflv): schema + default-deny RLS + is_admin() + Storage buckets. Ready for Phase 02.
-Last activity: 2026-05-31 -- Phase 01 complete — Supabase foundation live & verified
+Phase: 02 (live-catalog-data-migration-public-shop-rewire) — EXECUTING
+Plan: 1 of 3
+Status: Plan 02-01 paused at blocking human-action checkpoint (Task 2.5) — awaiting `.env.seed.local` with the Supabase service-role key before the seed (Task 3) can run
+Last activity: 2026-05-31 -- Plan 02-01 Tasks 1+2 committed; blocked on service-role key checkpoint
 
 Progress: [██████████] 100%
 
@@ -74,6 +74,9 @@ None yet.
 
 [Issues that affect future work]
 
+ACTIVE (blocking Plan 02-01 Task 3):
+- Owner must create gitignored `.env.seed.local` (repo root) with SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY. The service-role seed cannot run until this is supplied; Claude cannot retrieve the secret. Resume signal: "ready".
+
 Open questions to resolve during phase discussion (from REQUIREMENTS.md):
 
 - Phase 3: First admin bootstrap — manual dashboard role flip (recommended) vs seeded admin
@@ -96,6 +99,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-31T11:53:40.832Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-live-catalog-data-migration-public-shop-rewire/02-CONTEXT.md
+Last session: 2026-05-31T12:23:25.000Z
+Stopped at: Plan 02-01 blocking human-action checkpoint (Task 2.5) — service-role key needed
+Resume file: .planning/phases/02-live-catalog-data-migration-public-shop-rewire/02-01-PLAN.md
