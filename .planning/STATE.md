@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: completed
 stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-05-31T12:52:19.831Z"
-last_activity: 2026-05-31 -- Plan 02-02 Tasks 1-3 committed (b715fd7, 2f8423a, efc4baa)
+last_updated: "2026-05-31T13:58:27.683Z"
+last_activity: 2026-05-31
 progress:
   total_phases: 5
   completed_phases: 2
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 
 ## Current Position
 
-Phase: 02 (live-catalog-data-migration-public-shop-rewire) — EXECUTING
-Plan: 3 of 3
+Phase: 3
+Plan: Not started
 Status: Plan 02-02 COMPLETE — live read-layer foundation built: formatPrice() single render path, catalog.ts (useProducts/useCategories hooks + server-side is_active filter + snake->camel mappers + getPublicUrl image resolution), products.ts refactored glob-free with price number|null. Build green, secret-check PASS. Next: Plan 02-03 (public Shop/Home/ProductGrid/ProductCard/ProductDetail rewire).
-Last activity: 2026-05-31 -- Plan 02-02 Tasks 1-3 committed (b715fd7, 2f8423a, efc4baa)
+Last activity: 2026-05-31
 
 Progress: [█████████░] 100%
 
@@ -36,7 +36,7 @@ Progress: [█████████░] 100%
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 3
 - Average duration: -
 - Total execution time: 0 hours
 
@@ -44,7 +44,7 @@ Progress: [█████████░] 100%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 02 | 3 | - | - |
 
 **Recent Trend:**
 
