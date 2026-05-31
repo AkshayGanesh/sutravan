@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: paused
-stopped_at: Plan 02-01 blocking human-action checkpoint (Task 2.5) — service-role key needed
-last_updated: "2026-05-31T12:40:37.274Z"
-last_activity: 2026-05-31 -- Plan 02-01 Tasks 1+2 committed; blocked on service-role key checkpoint
+status: executing
+stopped_at: Plan 02-02 complete — live read-layer foundation built (formatPrice, catalog.ts hooks, glob-free products.ts). Next: Plan 02-03.
+last_updated: "2026-05-31T13:00:00.000Z"
+last_activity: 2026-05-31 -- Plan 02-02 complete; formatPrice + catalog.ts read layer + products.ts refactor committed
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 20
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 02 (live-catalog-data-migration-public-shop-rewire) — EXECUTING
-Plan: 2 of 3
-Status: Plan 02-01 COMPLETE — live Supabase seeded (28 products / 3 categories / 84 soap images); idempotent re-run verified; is_active published-only filter proven. Next: Plan 02-02.
-Last activity: 2026-05-31 -- Plan 02-01 Task 3 ran the seed against live Supabase; 28/3 verified, idempotent, published-only PASS
+Plan: 3 of 3
+Status: Plan 02-02 COMPLETE — live read-layer foundation built: formatPrice() single render path, catalog.ts (useProducts/useCategories hooks + server-side is_active filter + snake->camel mappers + getPublicUrl image resolution), products.ts refactored glob-free with price number|null. Build green, secret-check PASS. Next: Plan 02-03 (public Shop/Home/ProductGrid/ProductCard/ProductDetail rewire).
+Last activity: 2026-05-31 -- Plan 02-02 Tasks 1-3 committed (b715fd7, 2f8423a, efc4baa)
 
-Progress: [███████░░░] 67%
+Progress: [█████████░] 100%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [███████░░░] 67%
 
 *Updated after each plan completion*
 | Phase 02 P01 | 3min | 3 tasks | 3 files |
+| Phase 02 P02 | 12min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,10 @@ Recent decisions affecting current work:
 - Roadmap: Role stored in `profiles.role` (never user-editable metadata); `is_admin()` is a `plpgsql` SECURITY DEFINER helper to avoid recursive RLS
 - [Phase ?]: Catalog count is 28 products / 3 categories, not 68 — 68 referred to soap images (~84 jpgs); seed asserts 28/3
 - [Phase ?]: Seed idempotent via upsert-on-slug; re-run converges to 28/3 with RLS enabled; service-role key stays in gitignored .env.seed.local, never bundled
+- [Phase 02 P02]: PUB-02 published filter is server-side (.eq('is_active', true) in catalog.ts fetchProducts) — drafts never reach the client; never client-side hide
+- [Phase 02 P02]: snake->camel mapping done ONCE at the catalog.ts data-layer boundary (toProduct/toCategory), not per component
+- [Phase 02 P02]: Product.price changed string -> number | null; formatPrice() is the single render path (null -> "Price on request", 0 -> "₹0")
+- [Phase 02 P02]: Storage image paths resolved only via getPublicUrl (encodes spaces/parens); empty images[] -> exactly one bundled category placeholder (D-03)
 
 ### Pending Todos
 
@@ -103,6 +108,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-31T12:40:19.590Z
-Stopped at: Plan 02-01 blocking human-action checkpoint (Task 2.5) — service-role key needed
-Resume file: .planning/phases/02-live-catalog-data-migration-public-shop-rewire/02-01-PLAN.md
+Last session: 2026-05-31T13:00:00.000Z
+Stopped at: Plan 02-02 complete
+Resume file: .planning/phases/02-live-catalog-data-migration-public-shop-rewire/02-03-PLAN.md

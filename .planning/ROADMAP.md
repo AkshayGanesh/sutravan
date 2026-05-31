@@ -69,7 +69,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 02-02-PLAN.md — Live read-layer foundation: formatPrice + catalog.ts hooks (server-side is_active filter, snake->camel mapper, getPublicUrl image helper) + products.ts glob removal/type adapt (PUB-01, PUB-02)
+- [x] 02-02-PLAN.md — Live read-layer foundation: formatPrice + catalog.ts hooks (server-side is_active filter, snake->camel mapper, getPublicUrl image helper) + products.ts glob removal/type adapt (PUB-01, PUB-02)
 
 **Wave 3** *(blocked on Wave 2)*
 
