@@ -435,7 +435,7 @@ console.log(`OK: ${email} is now admin (idempotent).`);
 | A4 | Wouter's path-based routing + GitHub Pages 404.html preserves the URL hash fragment across the SPA boot so `detectSessionInUrl` sees the recovery token. | Pattern 4 | Medium — fragments are preserved by browsers across client navigation generally; the 404→index hop is a server 404 response whose body is index.html, served at the *same* URL incl. fragment, so it holds. Validate with the live reset round-trip (Validation Architecture). |
 | A5 | supabase-js v2 (JS) default `flowType` is `implicit` and `detectSessionInUrl` defaults true (no explicit `createClient` options needed). | Pattern 4 / State of the Art | Low — documented default; if a future need arises, pass `{ auth: { flowType: 'implicit', detectSessionInUrl: true } }` explicitly. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does this project push `config.toml` auth settings to the hosted project, or are hosted Auth toggles set by hand?** (A2)
    - What we know: `config.toml` has `enable_confirmations=false`, `email_sent=2`, `site_url`/`additional_redirect_urls` (currently localhost). The hosted project is what serves real auth at runtime.

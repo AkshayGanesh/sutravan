@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: completed
 stopped_at: Phase 3 context gathered
-last_updated: "2026-05-31T14:12:01.978Z"
-last_activity: 2026-05-31
+last_updated: "2026-05-31T14:40:00.550Z"
+last_activity: 2026-05-31 -- Phase 03 planning complete
 progress:
   total_phases: 5
   completed_phases: 2
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 Phase: 3
 Plan: Not started
 Status: Plan 02-02 COMPLETE — live read-layer foundation built: formatPrice() single render path, catalog.ts (useProducts/useCategories hooks + server-side is_active filter + snake->camel mappers + getPublicUrl image resolution), products.ts refactored glob-free with price number|null. Build green, secret-check PASS. Next: Plan 02-03 (public Shop/Home/ProductGrid/ProductCard/ProductDetail rewire).
-Last activity: 2026-05-31
+Last activity: 2026-05-31 -- Phase 03 planning complete
 
 Progress: [█████████░] 100%
 
