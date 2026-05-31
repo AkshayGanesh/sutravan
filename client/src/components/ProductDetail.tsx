@@ -43,7 +43,7 @@ export default function ProductDetail({
             <div className="aspect-square relative overflow-hidden">
               <img
                 key={activeIndex}
-                src={images[activeIndex]}
+                src={images[activeIndex] ?? ""}
                 alt={`${product.name} ${activeIndex + 1}`}
                 className="w-full h-full object-cover"
               />

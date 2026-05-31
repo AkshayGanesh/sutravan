@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
@@ -26,15 +26,24 @@ export default function Shop() {
     refetch: refetchCategories,
   } = useCategories();
 
-  const initialCategory =
-    params.category && categories?.some((c) => c.id === params.category)
-      ? (params.category as Category)
-      : null;
-
+  // Seed from the URL param directly so deep links like /shop/soap activate the
+  // right tab on first render (categories load async — we can't validate yet).
   const [activeCategory, setActiveCategory] = useState<Category | null>(
-    initialCategory
+    (params.category as Category | undefined) ?? null
   );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // Once categories load, drop the active filter if the URL param wasn't a real
+  // category (e.g. /shop/bogus) so we fall back to All Products.
+  useEffect(() => {
+    if (
+      activeCategory &&
+      categories &&
+      !categories.some((c) => c.id === activeCategory)
+    ) {
+      setActiveCategory(null);
+    }
+  }, [categories, activeCategory]);
 
   const isLoading = productsLoading || categoriesLoading;
   const isError = productsError || categoriesError;

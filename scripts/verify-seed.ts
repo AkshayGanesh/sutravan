@@ -26,10 +26,13 @@ if (!url || !anonKey) {
 const supabase = createClient(url, anonKey, { auth: { persistSession: false } });
 
 async function main(): Promise<void> {
-  // Anon count: products must be exactly 28.
+  // Anon count: published products must be exactly 28. Mirror the read path's
+  // server-side filter (catalog.ts uses .eq('is_active', true)) so this asserts
+  // what an anonymous visitor actually sees, not the raw row count.
   const { count: productCount, error: prodErr } = await supabase
     .from('products')
-    .select('slug', { count: 'exact', head: true });
+    .select('slug', { count: 'exact', head: true })
+    .eq('is_active', true);
   if (prodErr) {
     console.error(`FAIL: anon select on products errored: ${prodErr.message}`);
     process.exit(1);

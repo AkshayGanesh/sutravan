@@ -7,16 +7,16 @@ import creamImg from '../assets/images/product-cream.png';
 // NOTE: the Vite glob loader and its soap-image helper were removed in Plan
 // 02-02 — image bytes now live in Supabase Storage and resolve at read time
 // via catalog.ts.
-export {
+import {
   BATCH_NOTE,
   categoryMeta,
   productMeta,
   SLUG_TO_SOAP_FOLDER,
 } from './catalog-data';
-export type { Category, ProductMeta, CategoryMeta } from './catalog-data';
+import type { Category, ProductMeta, CategoryMeta } from './catalog-data';
 
-import { BATCH_NOTE } from './catalog-data';
-import type { Category } from './catalog-data';
+export { BATCH_NOTE, categoryMeta, productMeta, SLUG_TO_SOAP_FOLDER };
+export type { Category, ProductMeta, CategoryMeta };
 
 export interface Product {
   id: string;
