@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-05-31T12:23:25.000Z"
-last_activity: 2026-05-31 -- Plan 02-01 paused at blocking checkpoint (service-role key)
+status: paused
+stopped_at: Plan 02-01 blocking human-action checkpoint (Task 2.5) — service-role key needed
+last_updated: "2026-05-31T12:40:37.274Z"
+last_activity: 2026-05-31 -- Plan 02-01 Tasks 1+2 committed; blocked on service-role key checkpoint
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
   percent: 20
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 02 (live-catalog-data-migration-public-shop-rewire) — EXECUTING
-Plan: 1 of 3
-Status: Plan 02-01 paused at blocking human-action checkpoint (Task 2.5) — awaiting `.env.seed.local` with the Supabase service-role key before the seed (Task 3) can run
-Last activity: 2026-05-31 -- Plan 02-01 Tasks 1+2 committed; blocked on service-role key checkpoint
+Plan: 2 of 3
+Status: Plan 02-01 COMPLETE — live Supabase seeded (28 products / 3 categories / 84 soap images); idempotent re-run verified; is_active published-only filter proven. Next: Plan 02-02.
+Last activity: 2026-05-31 -- Plan 02-01 Task 3 ran the seed against live Supabase; 28/3 verified, idempotent, published-only PASS
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [██████████] 100%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 02 P01 | 3min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,8 @@ Recent decisions affecting current work:
 - Roadmap: Supabase-direct architecture (drop Express/Drizzle) — security lives entirely in Postgres RLS
 - Roadmap: Phase order is dependency-driven — foundation/RLS first, then live catalog (value before auth), then auth, then admin portal (core value), then customer features
 - Roadmap: Role stored in `profiles.role` (never user-editable metadata); `is_admin()` is a `plpgsql` SECURITY DEFINER helper to avoid recursive RLS
+- [Phase ?]: Catalog count is 28 products / 3 categories, not 68 — 68 referred to soap images (~84 jpgs); seed asserts 28/3
+- [Phase ?]: Seed idempotent via upsert-on-slug; re-run converges to 28/3 with RLS enabled; service-role key stays in gitignored .env.seed.local, never bundled
 
 ### Pending Todos
 
@@ -74,8 +77,9 @@ None yet.
 
 [Issues that affect future work]
 
-ACTIVE (blocking Plan 02-01 Task 3):
-- Owner must create gitignored `.env.seed.local` (repo root) with SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY. The service-role seed cannot run until this is supplied; Claude cannot retrieve the secret. Resume signal: "ready".
+RESOLVED:
+
+- (2026-05-31) Owner supplied gitignored `.env.seed.local` with SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY. Plan 02-01 Task 3 seed ran successfully (28/3, idempotent). No active blockers.
 
 Open questions to resolve during phase discussion (from REQUIREMENTS.md):
 
@@ -99,6 +103,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-31T12:23:25.000Z
+Last session: 2026-05-31T12:40:19.590Z
 Stopped at: Plan 02-01 blocking human-action checkpoint (Task 2.5) — service-role key needed
 Resume file: .planning/phases/02-live-catalog-data-migration-public-shop-rewire/02-01-PLAN.md

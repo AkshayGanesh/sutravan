@@ -11,7 +11,7 @@ Requirements for this milestone. Each maps to a roadmap phase. E-commerce is exp
 
 - [ ] **DATA-01**: App is wired to a Supabase project via environment-based config (anon key in client)
 - [ ] **DATA-02**: Postgres schema exists for products, categories, site content, customization submissions, profiles, and wishlists, with Row Level Security enabled on every table
-- [ ] **DATA-03**: The 68 existing hardcoded products, categories, and soap images are migrated into Supabase via a one-time seed (run with the service-role key locally, never shipped)
+- [x] **DATA-03**: The 68 existing hardcoded products, categories, and soap images are migrated into Supabase via a one-time seed (run with the service-role key locally, never shipped)
 - [ ] **DATA-04**: The unused Express + Drizzle backend scaffolding is removed
 
 ### Authentication & Access Control
@@ -43,7 +43,7 @@ Requirements for this milestone. Each maps to a roadmap phase. E-commerce is exp
 ### Public Site
 
 - [ ] **PUB-01**: Public Shop reads live products and categories from Supabase instead of the static data file
-- [ ] **PUB-02**: Product detail view renders from Supabase data (only published products shown)
+- [x] **PUB-02**: Product detail view renders from Supabase data (only published products shown)
 
 ## v2 Requirements
 
@@ -85,7 +85,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 |-------------|-------|--------|
 | DATA-01 | Phase 1 | Pending |
 | DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 2 | Pending |
+| DATA-03 | Phase 2 | Complete |
 | DATA-04 | Phase 1 | Pending |
 | AUTH-01 | Phase 3 | Pending |
 | AUTH-02 | Phase 3 | Pending |
@@ -105,14 +105,16 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CUST-03 | Phase 5 | Pending |
 | CUST-04 | Phase 5 | Pending |
 | PUB-01 | Phase 2 | Pending |
-| PUB-02 | Phase 2 | Pending |
+| PUB-02 | Phase 2 | Complete |
 
 **Coverage:**
+
 - v1 requirements: 23 total
 - Mapped to phases: 23 ✓
 - Unmapped: 0
 
 **By phase:**
+
 - Phase 1 (Supabase Foundation): DATA-01, DATA-02, DATA-04 (3)
 - Phase 2 (Live Catalog): DATA-03, PUB-01, PUB-02 (3)
 - Phase 3 (Authentication & Roles): AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05 (5)

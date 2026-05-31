@@ -65,7 +65,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Seed slice: glob-free catalog metadata + idempotent service-role seed + anon verify (28 products / 3 categories, soap images to Storage) (DATA-03, PUB-02)
+- [x] 02-01-PLAN.md — Seed slice: glob-free catalog metadata + idempotent service-role seed + anon verify (28 products / 3 categories, soap images to Storage) (DATA-03, PUB-02)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -141,7 +141,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
-| 2. Live Catalog — Data Migration & Public Shop Rewire | 0/3 | In progress (02-01 paused at service-role-key checkpoint) | - |
+| 2. Live Catalog — Data Migration & Public Shop Rewire | 1/3 | In Progress|  |
 | 3. Authentication & Roles | 0/TBD | Not started | - |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
