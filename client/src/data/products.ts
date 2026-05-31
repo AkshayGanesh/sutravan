@@ -2,27 +2,28 @@ import soapImg from '../assets/images/product-soap.png';
 import scrubImg from '../assets/images/product-scrub.png';
 import creamImg from '../assets/images/product-cream.png';
 
-const _soapGlob = import.meta.glob<{ default: string }>(
-  '../assets/images/products/Soap/**/*.jpg',
-  { eager: true }
-);
+// Re-export the glob-free metadata so there is a single source of catalog
+// metadata (Plan 01 created catalog-data.ts; this is the only metadata source).
+// NOTE: the Vite glob loader and its soap-image helper were removed in Plan
+// 02-02 — image bytes now live in Supabase Storage and resolve at read time
+// via catalog.ts.
+export {
+  BATCH_NOTE,
+  categoryMeta,
+  productMeta,
+  SLUG_TO_SOAP_FOLDER,
+} from './catalog-data';
+export type { Category, ProductMeta, CategoryMeta } from './catalog-data';
 
-function getSoapImages(folder: string): string[] {
-  const imgs = Object.entries(_soapGlob)
-    .filter(([path]) => path.includes(`/Soap/${folder}/`))
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([, mod]) => mod.default);
-  return imgs.length > 0 ? imgs : [soapImg];
-}
-
-export type Category = 'soap' | 'scrub' | 'cream';
+import { BATCH_NOTE } from './catalog-data';
+import type { Category } from './catalog-data';
 
 export interface Product {
   id: string;
   name: string;
   subtitle: string;
   category: Category;
-  price: string;
+  price: number | null;
   benefits: string[];
   ingredients: string[];
   tips?: string[];
@@ -59,8 +60,12 @@ export const categories: CategoryInfo[] = [
   },
 ];
 
-const BATCH_NOTE = 'Freshly handmade in small batches.';
-
+// Temporary static array — kept ONLY to keep the build green for the still-
+// unmodified Shop/ProductGrid/Home components during the Wave 2 -> Wave 3 handoff.
+// Plan 03 removes these runtime consumers, after which this array (and the
+// helpers below) become dead code. Live data flows through catalog.ts instead.
+// price is null and images are bundled placeholders here — real values come from
+// Supabase at read time.
 export const products: Product[] = [
   // ─── SOAPS ───────────────────────────────────────────────
   {
@@ -68,7 +73,7 @@ export const products: Product[] = [
     name: 'Neem',
     subtitle: 'For oily, pimples & acne-prone skin',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Antibacterial & antifungal',
       'Reduces pimples and skin infections',
@@ -84,14 +89,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Neem'),
+    images: [soapImg],
   },
   {
     id: 'soap-turmeric',
     name: 'Turmeric',
     subtitle: 'For dull skin & pigmentation',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Brightens skin',
       'Reduces dark spots',
@@ -106,14 +111,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Turmeric'),
+    images: [soapImg],
   },
   {
     id: 'soap-aloe-vera',
     name: 'Aloe Vera',
     subtitle: 'For sensitive & dry skin',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Deep hydration',
       'Soothes irritation',
@@ -127,14 +132,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('AloeVera'),
+    images: [soapImg],
   },
   {
     id: 'soap-multani-mitti',
     name: 'Multani Mitti',
     subtitle: 'For oily & combination skin',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Absorbs excess oil',
       'Tightens pores',
@@ -149,14 +154,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Fuller_s Earth'),
+    images: [soapImg],
   },
   {
     id: 'soap-orange-peel',
     name: 'Orange Peel',
     subtitle: 'For tanned & uneven skin - Seasonal',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Natural exfoliation',
       'Removes tan',
@@ -171,14 +176,14 @@ export const products: Product[] = [
     tips: ['Best for cold climate', 'Not ideal for dry or sensitive skin'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Orange'),
+    images: [soapImg],
   },
   {
     id: 'soap-sandalwood',
     name: 'Sandalwood',
     subtitle: 'For normal & sensitive skin',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Calms skin',
       'Reduces redness',
@@ -193,14 +198,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Sandalwood'),
+    images: [soapImg],
   },
   {
     id: 'soap-charcoal',
     name: 'Charcoal Herbal',
     subtitle: 'For deep cleansing',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Deep pore cleansing',
       'Removes toxins',
@@ -215,14 +220,14 @@ export const products: Product[] = [
     tips: ['Not ideal for dry or sensitive skin'],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Charcoal'),
+    images: [soapImg],
   },
   {
     id: 'soap-rose',
     name: 'Rose',
     subtitle: 'For sensitive, normal & dry skin',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Soothes irritation',
       'Reduces redness',
@@ -237,14 +242,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Rose'),
+    images: [soapImg],
   },
   {
     id: 'soap-lemon-peel',
     name: 'Lemon Peel',
     subtitle: 'For tanned & uneven skin - Seasonal',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Natural exfoliation',
       'Removes tan',
@@ -260,14 +265,14 @@ export const products: Product[] = [
     tips: ['Best for cold climate', 'Not ideal for dry or sensitive skin'],
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Lemon'),
+    images: [soapImg],
   },
   {
     id: 'soap-rice',
     name: 'Rice',
     subtitle: 'For dull skin, uneven tone & mild pigmentation',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Natural skin brightening',
       'Gentle exfoliation',
@@ -283,14 +288,14 @@ export const products: Product[] = [
     tips: ['Not ideal for dry skin'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Rice'),
+    images: [soapImg],
   },
   {
     id: 'soap-milk',
     name: 'Milk',
     subtitle: 'For dull or dry skin',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Deep hydration',
       'Makes skin soft & supple',
@@ -304,14 +309,14 @@ export const products: Product[] = [
     tips: ['Best for winter or dry climate', 'Not ideal for oily skin'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Milk'),
+    images: [soapImg],
   },
   {
     id: 'soap-oats',
     name: 'Oats',
     subtitle: 'For sensitive skin',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Gentle exfoliation',
       'Soothes itchy skin',
@@ -325,14 +330,14 @@ export const products: Product[] = [
     ],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Oats'),
+    images: [soapImg],
   },
   {
     id: 'soap-coffee',
     name: 'Coffee',
     subtitle: 'For tan removing and firming',
     category: 'soap',
-    price: '',
+    price: null,
     benefits: [
       'Removes tan',
       'Improves circulation',
@@ -348,7 +353,7 @@ export const products: Product[] = [
     tips: ['Not ideal for sensitive skin'],
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
-    images: getSoapImages('Coffee'),
+    images: [soapImg],
   },
 
   // ─── SCRUBS ──────────────────────────────────────────────
@@ -357,7 +362,7 @@ export const products: Product[] = [
     name: 'Neem Face Scrub cum Face Pack',
     subtitle: 'For acne & oily skin',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Prevents acne',
       'Antibacterial',
@@ -380,7 +385,7 @@ export const products: Product[] = [
     name: 'Multani Mitti Face Scrub cum Face Pack',
     subtitle: 'For oily & acne-prone skin',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Absorbs excess oil',
       'Detoxifies skin',
@@ -404,7 +409,7 @@ export const products: Product[] = [
     name: 'Orange Peel Face Scrub cum Face Pack',
     subtitle: 'For dull & oily skin',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Natural vitamin C boost',
       'Controls oil',
@@ -426,7 +431,7 @@ export const products: Product[] = [
     name: 'Sandalwood Face Scrub cum Face Pack',
     subtitle: 'For pigmentation & dull skin',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Brightens complexion',
       'Reduces pigmentation',
@@ -449,7 +454,7 @@ export const products: Product[] = [
     name: 'Lemon Peel Face Scrub cum Face Pack',
     subtitle: 'For dull & oily skin',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Natural vitamin C boost',
       'Controls oil',
@@ -471,7 +476,7 @@ export const products: Product[] = [
     name: 'Rice Face Scrub cum Face Pack',
     subtitle: 'For pigmentation & uneven skin',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Gentle exfoliation',
       'Reduces pigmentation',
@@ -495,7 +500,7 @@ export const products: Product[] = [
     name: 'Coffee Face Scrub cum Face Pack',
     subtitle: 'For tan & rough skin',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Removes tan',
       'Removes dead skin',
@@ -518,7 +523,7 @@ export const products: Product[] = [
     name: 'Mix Face Scrub cum Face Pack',
     subtitle: 'For rough & textured skin',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Improves circulation',
       'Reduces rough skin',
@@ -543,7 +548,7 @@ export const products: Product[] = [
     name: 'Coffee Body Scrub',
     subtitle: 'For tan & rough body skin',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Removes tan',
       'Improves blood circulation',
@@ -566,7 +571,7 @@ export const products: Product[] = [
     name: 'Sugar and Honey Lip Scrub',
     subtitle: 'For tan & dry lips',
     category: 'scrub',
-    price: '',
+    price: null,
     benefits: [
       'Natural exfoliation',
       'Removes tan',
@@ -589,7 +594,7 @@ export const products: Product[] = [
     name: 'Aloe Vera Face Cream',
     subtitle: 'For acne-prone & sensitive skin',
     category: 'cream',
-    price: '',
+    price: null,
     benefits: [
       'Reduces pimples and skin infections',
       'Soothes irritation',
@@ -610,7 +615,7 @@ export const products: Product[] = [
     name: 'Aloe Vera Body Cream',
     subtitle: 'For dry & infection-prone skin',
     category: 'cream',
-    price: '',
+    price: null,
     benefits: [
       'Antibacterial & antifungal',
       'Reduces skin infections',
@@ -632,7 +637,7 @@ export const products: Product[] = [
     name: 'Rice Face Cream',
     subtitle: 'For dull skin & pigmentation',
     category: 'cream',
-    price: '',
+    price: null,
     benefits: [
       'Brightens complexion',
       'Reduces pigmentation',
@@ -654,7 +659,7 @@ export const products: Product[] = [
     name: 'Rose Cream',
     subtitle: 'For glow & mild toning',
     category: 'cream',
-    price: '',
+    price: null,
     benefits: [
       'Improves glow',
       'Mild skin toning',
@@ -675,7 +680,7 @@ export const products: Product[] = [
     name: 'Sandalwood Cream',
     subtitle: 'For acne & blemishes',
     category: 'cream',
-    price: '',
+    price: null,
     benefits: [
       'Reduces acne',
       'Lightens blemishes',
