@@ -2,9 +2,12 @@ import { Link } from "wouter";
 import Layout from "@/components/Layout";
 import Hero from "@/components/Hero";
 import ProductGrid from "@/components/ProductGrid";
-import { categories } from "@/data/products";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCategories } from "@/lib/catalog";
 
 export default function Home() {
+  const { data: categories, isLoading: categoriesLoading } = useCategories();
+
   return (
     <Layout>
       <Hero />
@@ -51,28 +54,32 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/shop/${cat.id}`}
-              className="group relative aspect-[4/5] overflow-hidden bg-card cursor-pointer"
-            >
-              <img
-                src={cat.image}
-                alt={cat.label}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 text-background">
-                <h3 className="font-sans font-bold text-2xl mb-1 group-hover:text-secondary transition-colors duration-300">
-                  {cat.label}
-                </h3>
-                <p className="text-sm text-background/70 font-light">
-                  {cat.description}
-                </p>
-              </div>
-            </Link>
-          ))}
+          {categoriesLoading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[4/5] w-full" />
+              ))
+            : (categories ?? []).map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/shop/${cat.id}`}
+                  className="group relative aspect-[4/5] overflow-hidden bg-card cursor-pointer"
+                >
+                  <img
+                    src={cat.image}
+                    alt={cat.label}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-background">
+                    <h3 className="font-sans font-bold text-2xl mb-1 group-hover:text-secondary transition-colors duration-300">
+                      {cat.label}
+                    </h3>
+                    <p className="text-sm text-background/70 font-light">
+                      {cat.description}
+                    </p>
+                  </div>
+                </Link>
+              ))}
         </div>
       </section>
 
