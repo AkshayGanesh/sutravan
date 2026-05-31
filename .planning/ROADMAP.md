@@ -55,13 +55,26 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Requirements**: DATA-03, PUB-01, PUB-02
 **Success Criteria** (what must be TRUE):
 
-  1. A one-time seed script run locally with the service-role key inserts all 68 products and their categories into Supabase, uploads the existing soap images to the `product-images` bucket, and records storage paths on the rows (scrub/cream rows seeded with empty `images[]`)
-  2. The seed is idempotent (upsert on slug) — re-running it yields 68 rows, not duplicates — and RLS stays enabled throughout
+  1. A one-time seed script run locally with the service-role key inserts all 28 products (13 soap + 10 scrub + 5 cream) and their 3 categories into Supabase, uploads the existing soap images to the `product-images` bucket, and records storage paths on the rows (scrub/cream rows seeded with empty `images[]`)
+  2. The seed is idempotent (upsert on slug) — re-running it yields 28 rows, not duplicates — and RLS stays enabled throughout
   3. The public Shop reads live products and categories from Supabase via TanStack Query, with working loading, empty, and error states and no UX regression versus the static file
   4. The product detail view renders entirely from Supabase data and only shows published (`is_active`/visible) products to the public
   5. The static `client/src/data/products.ts` dependency is removed from the runtime read path once parity is verified
 
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Seed slice: glob-free catalog metadata + idempotent service-role seed + anon verify (28 products / 3 categories, soap images to Storage) (DATA-03, PUB-02)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 02-02-PLAN.md — Live read-layer foundation: formatPrice + catalog.ts hooks (server-side is_active filter, snake->camel mapper, getPublicUrl image helper) + products.ts glob removal/type adapt (PUB-01, PUB-02)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 02-03-PLAN.md — Public read-path rewire: Shop/Home/ProductGrid/ProductCard/ProductDetail consume live hooks with loading/empty/error states; static array off runtime path (PUB-01, PUB-02)
+
 **UI hint**: yes
 
 > **Open question (surface during discussion):** Scrub/cream products have no repo images — they are seeded with empty `images[]` here and the owner uploads imagery via the admin portal in Phase 4. Confirm the migration handles the currently-empty `price` fields (seed blank vs placeholder).
@@ -128,7 +141,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
-| 2. Live Catalog — Data Migration & Public Shop Rewire | 0/TBD | Not started | - |
+| 2. Live Catalog — Data Migration & Public Shop Rewire | 0/3 | Not started | - |
 | 3. Authentication & Roles | 0/TBD | Not started | - |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
