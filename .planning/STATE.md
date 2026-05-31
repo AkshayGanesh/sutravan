@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 1 context gathered
-last_updated: "2026-05-31T08:24:23.495Z"
-last_activity: 2026-05-31 — Roadmap created (5 MVP phases, 23/23 requirements mapped)
+last_updated: "2026-05-31T08:33:33.766Z"
+last_activity: 2026-05-31 -- Phase 01 Wave 1 complete (01-01, 01-02 merged)
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-31)
 
 **Core value:** The owner can manage the entire product catalog (products, categories, images, prices) through an admin portal — no code changes, no redeploys.
-**Current focus:** Phase 1 — Supabase Foundation (Schema, RLS & Storage)
+**Current focus:** Phase 01 — supabase-foundation-schema-rls-storage
 
 ## Current Position
 
-Phase: 1 of 5 (Supabase Foundation — Schema, RLS & Storage)
-Plan: 0 of TBD in current phase
-Status: Ready to execute
-Last activity: 2026-05-31 — Roadmap created (5 MVP phases, 23/23 requirements mapped)
+Phase: 01 (supabase-foundation-schema-rls-storage) — EXECUTING
+Plan: 2 of 3 complete — next: 01-03 (Wave 2, human checkpoint)
+Status: Wave 1 complete; awaiting human-in-loop Wave 2 (live Supabase project + walking skeleton)
+Last activity: 2026-05-31 -- Phase 01 Wave 1 complete (01-01, 01-02 merged)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 

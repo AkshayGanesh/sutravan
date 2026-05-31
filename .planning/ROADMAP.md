@@ -38,8 +38,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plansPlans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Remove dead Express/Drizzle/Passport stack, rewire config, add Supabase client singleton + validation scaffolds (DATA-01, DATA-04)
-- [ ] 01-02-PLAN.md — Author versioned migrations: six tables, non-recursive is_admin(), default-deny RLS, Storage buckets + RLS assertion test (DATA-02)
+- [x] 01-01-PLAN.md — Remove dead Express/Drizzle/Passport stack, rewire config, add Supabase client singleton + validation scaffolds (DATA-01, DATA-04)
+- [x] 01-02-PLAN.md — Author versioned migrations: six tables, non-recursive is_admin(), default-deny RLS, Storage buckets + RLS assertion test (DATA-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -127,7 +127,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Supabase Foundation — Schema, RLS & Storage | 0/3 | Planned | - |
+| 1. Supabase Foundation — Schema, RLS & Storage | 2/3 | In Progress|  |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 0/TBD | Not started | - |
 | 3. Authentication & Roles | 0/TBD | Not started | - |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
