@@ -28,8 +28,8 @@ result: [pending]
 expected: skeleton cards on load; on a simulated network failure an inline error with a working Retry button appears; retry recovers and renders the catalog.
 result: [pending]
 
-### 5. URL deep-link /shop/soap (CR-02)
-expected: navigating directly to /shop/soap activates the Soaps tab. NOTE: verifier flagged this as a regression — currently lands on "All Products". Confirm behavior and whether the fix is acceptable.
+### 5. URL deep-link /shop/soap (CR-02 — fixed)
+expected: navigating directly to /shop/soap activates the Soaps tab; /shop/unknowncategory falls back to All Products. Fixed in commit f368082 (seed from URL param + useEffect validation). Confirm it now works.
 result: [pending]
 
 ## Summary

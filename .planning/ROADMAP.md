@@ -117,6 +117,8 @@ Plans:
 
 > **Open question (surface during discussion):** Scrub/cream imagery (seeded empty in Phase 2) is uploaded by the owner here — plan an initial onboarding task list. Image-upload UX (drag-drop, HEIC/JPEG/PNG, size validation, progress) is flagged in research as needing careful component design and likely iteration.
 
+> **Deferred from Phase 2 (CR-01, must-do before ADMIN-08 ships draft rows):** The `products_public_read` RLS policy (`supabase/migrations/0002_rls_policies.sql`) currently uses `using (true)`; the `is_active` published-only gate (PUB-02) is enforced only query-side in `catalog.ts`. This is safe today (no draft rows exist), but once this phase introduces the draft/published visibility toggle, a draft product would be reachable by any direct PostgREST call that omits the `is_active` filter. Add a migration tightening the policy to `using (is_active = true)` as part of the visibility work. Source: `.planning/phases/02-live-catalog-data-migration-public-shop-rewire/02-REVIEW.md`.
+
 ### Phase 5: Customer Experience — Wishlist, Profile & Native Questionnaire
 
 **Goal**: Logged-in customers get immediate account value before checkout exists — saving products, viewing their profile and inquiry history — and submit a native customization questionnaire that replaces the Google Form and lands in the admin inbox.
