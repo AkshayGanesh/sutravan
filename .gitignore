@@ -7,3 +7,5 @@ vite.config.ts.*
 marketing assets
 Skin Health Care Products.md
 .venv/
+.env.local
+.env*.local
