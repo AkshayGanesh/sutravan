@@ -83,41 +83,48 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | TBD | Pending |
-| DATA-02 | TBD | Pending |
-| DATA-03 | TBD | Pending |
-| DATA-04 | TBD | Pending |
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| AUTH-05 | TBD | Pending |
-| ADMIN-01 | TBD | Pending |
-| ADMIN-02 | TBD | Pending |
-| ADMIN-03 | TBD | Pending |
-| ADMIN-04 | TBD | Pending |
-| ADMIN-05 | TBD | Pending |
-| ADMIN-06 | TBD | Pending |
-| ADMIN-07 | TBD | Pending |
-| ADMIN-08 | TBD | Pending |
-| CUST-01 | TBD | Pending |
-| CUST-02 | TBD | Pending |
-| CUST-03 | TBD | Pending |
-| CUST-04 | TBD | Pending |
-| PUB-01 | TBD | Pending |
-| PUB-02 | TBD | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 2 | Pending |
+| DATA-04 | Phase 1 | Pending |
+| AUTH-01 | Phase 3 | Pending |
+| AUTH-02 | Phase 3 | Pending |
+| AUTH-03 | Phase 3 | Pending |
+| AUTH-04 | Phase 3 | Pending |
+| AUTH-05 | Phase 3 | Pending |
+| ADMIN-01 | Phase 4 | Pending |
+| ADMIN-02 | Phase 4 | Pending |
+| ADMIN-03 | Phase 4 | Pending |
+| ADMIN-04 | Phase 4 | Pending |
+| ADMIN-05 | Phase 4 | Pending |
+| ADMIN-06 | Phase 4 | Pending |
+| ADMIN-07 | Phase 4 | Pending |
+| ADMIN-08 | Phase 4 | Pending |
+| CUST-01 | Phase 5 | Pending |
+| CUST-02 | Phase 5 | Pending |
+| CUST-03 | Phase 5 | Pending |
+| CUST-04 | Phase 5 | Pending |
+| PUB-01 | Phase 2 | Pending |
+| PUB-02 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23 ✓
+- Unmapped: 0
+
+**By phase:**
+- Phase 1 (Supabase Foundation): DATA-01, DATA-02, DATA-04 (3)
+- Phase 2 (Live Catalog): DATA-03, PUB-01, PUB-02 (3)
+- Phase 3 (Authentication & Roles): AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05 (5)
+- Phase 4 (Admin Portal): ADMIN-01..ADMIN-08 (8)
+- Phase 5 (Customer Experience): CUST-01, CUST-02, CUST-03, CUST-04 (4)
 
 ## Open Questions (resolve during phase discussion/planning)
 
-1. **First admin bootstrap** — manually flip a user's role to admin in the Supabase dashboard (recommended) vs seed a designated admin.
-2. **Scrub/cream images** — no repo images exist; owner uploads them via the portal after launch.
-3. **Email confirmation** — on (safer) vs off (smoother onboarding) for v1.
+1. **First admin bootstrap** (Phase 3) — manually flip a user's role to admin in the Supabase dashboard (recommended) vs seed a designated admin.
+2. **Scrub/cream images** (Phase 2 → Phase 4) — no repo images exist; seeded with empty `images[]` in Phase 2; owner uploads them via the portal in Phase 4.
+3. **Email confirmation** (Phase 3) — on (safer) vs off (smoother onboarding) for v1.
 
 ---
 *Requirements defined: 2026-05-31*
-*Last updated: 2026-05-31 after initial definition*
+*Last updated: 2026-05-31 after roadmap creation (traceability mapped, 23/23 covered)*
