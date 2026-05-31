@@ -25,7 +25,7 @@ through an admin portal — no code changes, no redeploys.
 - ✓ Product browsing by category (soap / scrub / cream) with detail modal and image carousel — existing
 - ✓ Responsive React 19 + Vite + Tailwind + shadcn/ui frontend — existing
 - ✓ Static deployment to GitHub Pages with SPA routing — existing
-- ✓ Multi-step customization questionnaire UI (name, email, skin type, concerns, fragrance, interests, notes) — existing (not yet persisted)
+- ✓ "Skin Guide" questionnaire page that embeds an external Google Form — existing (responses go to Google, not the app)
 
 ### Active
 
@@ -48,10 +48,12 @@ through an admin portal — no code changes, no redeploys.
 - [ ] Admin can upload and replace product images via the portal
 - [ ] Admin can create, edit, and delete categories
 - [ ] Admin can edit contact details and social links (Instagram, YouTube, email)
+- [ ] Admin can edit site content (Our Story page copy, homepage hero text)
 - [ ] Admin can view customization submissions in an inbox
 
 **Customer Side**
-- [ ] Customization questionnaire submits to Supabase (real form, not just UI)
+- [ ] Replace the embedded Google Form with a native questionnaire that submits to Supabase
+- [ ] Customer can save / wishlist products to revisit later
 - [ ] Customer has a profile and can view their own inquiry / customization history
 
 **Public Site**
@@ -64,9 +66,7 @@ through an admin portal — no code changes, no redeploys.
 - Cart / add-to-cart — deferred to e-commerce milestone (can't sell before catalog is manageable)
 - Order page & checkout flow — deferred to e-commerce milestone
 - Razorpay / payment integration — deferred to e-commerce milestone
-- CMS editing of site copy (Our Story, homepage hero) — stays hardcoded this build; focus is catalog
 - Keeping the Express server — replaced by Supabase-direct architecture
-- Customer wishlist / save-products — not requested for this build
 
 ## Context
 
@@ -74,11 +74,11 @@ through an admin portal — no code changes, no redeploys.
 - Frontend is mature: React 19, Vite 7, Tailwind 4, shadcn/ui, Wouter routing, TanStack Query already wired in `client/src/lib/queryClient.ts`.
 - Products are hardcoded in `client/src/data/products.ts` (68 products, all with empty `price`), with images eagerly glob-imported from `client/src/assets/images/products/Soap/<id>/`.
 - Backend (`server/`) is scaffolding only: `server/routes.ts` is a stub, `server/storage.ts` is in-memory, Drizzle/Postgres configured but never connected. Passport installed but unconfigured.
-- Inquiries currently route to Instagram DMs (handle hardcoded in `Shop.tsx` and `ProductDetail.tsx`).
+- Product inquiries currently route to Instagram DMs (handle hardcoded in `Shop.tsx` and `ProductDetail.tsx`); the "Skin Guide" questionnaire (`client/src/pages/Questionnaire.tsx`) is an embedded Google Form whose responses never reach the app.
 - Deploys as static SPA to GitHub Pages via `.github/workflows/deploy.yml`.
 - No tests anywhere.
 
-**Why now:** Every product or content change today requires a code edit and redeploy. Prices can't be shown because they live as empty strings in code. Customization requests vanish into Instagram with no record. A real backend + admin portal removes the developer from the loop and sets the foundation for selling later.
+**Why now:** Every product or content change today requires a code edit and redeploy. Prices can't be shown because they live as empty strings in code. Customization requests vanish into a disconnected Google Form with no record in the app. A real backend + admin portal removes the developer from the loop and sets the foundation for selling later.
 
 ## Constraints
 
@@ -97,7 +97,9 @@ through an admin portal — no code changes, no redeploys.
 | Admin + customer accounts now | User wants customers to register early and have inquiry history, even before checkout | — Pending |
 | Product images → Supabase Storage | Replaces fragile repo glob-imports; enables image management in the portal | — Pending |
 | E-commerce deferred to later milestone | Catalog management must exist before selling; keeps this build focused | — Pending |
-| Site copy stays hardcoded this build | Catalog CMS is the priority; page-copy editing can come later | — Pending |
+| Site content (Story, hero) editable in portal | Owner wants full content control, not just catalog | — Pending |
+| Customer wishlist included this build | Gives customer accounts immediate value before checkout exists | — Pending |
+| Native questionnaire replaces Google Form | Capture submissions in-app so admin sees them and customers get history | — Pending |
 | Access control via Supabase RLS | Client-side route guards aren't real security for a public SPA | — Pending |
 
 ## Evolution
