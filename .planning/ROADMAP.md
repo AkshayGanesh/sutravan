@@ -93,10 +93,29 @@ Plans:
   4. Admin portal routes redirect non-admins away and are reachable only by an admin (UX guard backing the RLS enforcement)
   5. The first admin is bootstrapped out-of-band (not via any self-serve UI path), and an admin account can reach the protected area
 
-**Plans**: TBD
+**Plans**: 6 plans
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — DB foundation: migration 0004 (name column + handle_new_user trigger + role-lock trigger), psql assertion harness, `supabase db push` [BLOCKING], hosted Auth config (Confirm-email OFF + redirect allowlist) (AUTH-01, AUTH-04)
+- [ ] 03-02-PLAN.md — Auth-state layer: AuthProvider + useAuth (loading gate, session persistence) + authErrors mapper, mounted in App.tsx (AUTH-02, AUTH-05)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 03-03-PLAN.md — Register/login/logout slice: Register + Login pages, Navbar account menu, /login + /register routes (AUTH-01, AUTH-02, AUTH-03)
+- [ ] 03-06-PLAN.md — First-admin bootstrap: idempotent service-role promote-admin script (out-of-band, no UI path) (AUTH-04, AUTH-05)
+
+**Wave 3** *(blocked on Wave 1, Wave 2)*
+
+- [ ] 03-04-PLAN.md — Admin guard slice: AdminGuard (loading gate + D-11 redirects + return-to) + empty /admin shell + guarded /admin/* route (AUTH-05)
+
+**Wave 4** *(blocked on Wave 1, Wave 3)*
+
+- [ ] 03-05-PLAN.md — Password reset round-trip: ResetPassword page (implicit flow, sub-path aware) + /reset-password route (AUTH-02)
+
 **UI hint**: yes
 
-> **Open questions (surface during discussion):** (1) First admin bootstrap — manually flip a user's role to admin in the Supabase dashboard (recommended) vs seed a designated admin. (2) Email confirmation — on (safer) vs off (smoother onboarding) for v1; this also drives Supabase Site URL / redirect-allowlist config that must work on the GitHub Pages sub-path. Verify Auth URL-config setting names and email rate limits against current Supabase docs.
+> **Open questions (resolved in 03-CONTEXT.md):** (1) First admin bootstrap → local `scripts/promote-admin.ts` service-role script (D-03, Plan 06). (2) Email confirmation → OFF (D-01, Plan 01); password reset IS in scope (D-02, Plan 05) with Site URL/redirect-allowlist config for the GitHub Pages sub-path set in Plan 01. Auth setting names + email rate limit verified in 03-RESEARCH.md.
 
 ### Phase 4: Admin Portal — Catalog & Content Management
 
@@ -144,6 +163,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
-| 3. Authentication & Roles | 0/TBD | Not started | - |
+| 3. Authentication & Roles | 0/6 | Planned | - |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
