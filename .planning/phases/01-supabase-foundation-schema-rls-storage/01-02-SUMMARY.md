@@ -116,6 +116,10 @@ None. `config.toml`'s `project_id` is a CLI-generated placeholder (not an app st
 - Database foundation (DATA-02) is fully authored and committed; ready for Plan 03 to apply it to the live project and run the assertion suite GREEN.
 - No blockers from this plan. The only external prerequisite (a created hosted Supabase project + credentials) is handled at the Plan 03 human-verify checkpoint.
 
+## Self-Check: PASSED
+
+All 6 created files exist on disk and all 4 commits (`28573fd`, `0505f70`, `b7c6eb2`, `c40a516`) are present in git history.
+
 ---
 *Phase: 01-supabase-foundation-schema-rls-storage*
 *Completed: 2026-05-31*
