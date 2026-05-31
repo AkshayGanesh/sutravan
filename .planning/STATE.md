@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Plan 02-02 complete — live read-layer foundation built (formatPrice, catalog.ts hooks, glob-free products.ts). Next: Plan 02-03.
-last_updated: "2026-05-31T13:00:00.000Z"
-last_activity: 2026-05-31 -- Plan 02-02 complete; formatPrice + catalog.ts read layer + products.ts refactor committed
+status: completed
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-05-31T12:52:19.831Z"
+last_activity: 2026-05-31 -- Plan 02-02 Tasks 1-3 committed (b715fd7, 2f8423a, efc4baa)
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 20
+  completed_plans: 6
+  percent: 40
 ---
 
 # Project State
@@ -54,6 +54,7 @@ Progress: [█████████░] 100%
 *Updated after each plan completion*
 | Phase 02 P01 | 3min | 3 tasks | 3 files |
 | Phase 02 P02 | 12min | 3 tasks | 3 files |
+| Phase 02 P03 | 3min | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Recent decisions affecting current work:
 - [Phase 02 P02]: snake->camel mapping done ONCE at the catalog.ts data-layer boundary (toProduct/toCategory), not per component
 - [Phase 02 P02]: Product.price changed string -> number | null; formatPrice() is the single render path (null -> "Price on request", 0 -> "₹0")
 - [Phase 02 P02]: Storage image paths resolved only via getPublicUrl (encodes spaces/parens); empty images[] -> exactly one bundled category placeholder (D-03)
+- [Phase ?]: Public read surfaces (Shop/Home/ProductGrid/ProductCard/ProductDetail) consume only catalog.ts TanStack Query hooks; static products.ts data array is off the runtime path
+- [Phase ?]: Loading=skeleton grid mirroring real grid classes (no layout shift); error=inline message + Retry calling refetch(); featured=first published per category by sort_order (always up to 3)
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-31T13:00:00.000Z
-Stopped at: Plan 02-02 complete
+Last session: 2026-05-31T12:52:06.662Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: .planning/phases/02-live-catalog-data-migration-public-shop-rewire/02-03-PLAN.md

@@ -42,7 +42,7 @@ Requirements for this milestone. Each maps to a roadmap phase. E-commerce is exp
 
 ### Public Site
 
-- [ ] **PUB-01**: Public Shop reads live products and categories from Supabase instead of the static data file
+- [x] **PUB-01**: Public Shop reads live products and categories from Supabase instead of the static data file
 - [x] **PUB-02**: Product detail view renders from Supabase data (only published products shown)
 
 ## v2 Requirements
@@ -104,7 +104,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CUST-02 | Phase 5 | Pending |
 | CUST-03 | Phase 5 | Pending |
 | CUST-04 | Phase 5 | Pending |
-| PUB-01 | Phase 2 | Pending |
+| PUB-01 | Phase 2 | Complete |
 | PUB-02 | Phase 2 | Complete |
 
 **Coverage:**
