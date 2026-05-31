@@ -31,7 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The `is_admin()` helper exists as a `plpgsql` SECURITY DEFINER function with `search_path` locked, and is callable without triggering recursive-policy errors on `profiles`
   4. The `product-images` (and `site-content`) Storage bucket(s) exist with public read and admin-only write policies on `storage.objects`
   5. The unused Express + Drizzle + Passport scaffolding (`server/`, `shared/schema.ts`, `drizzle.config.ts`) is removed and the app still builds and runs
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 01-01-PLAN.md — Remove dead Express/Drizzle/Passport stack, rewire config, add Supabase client singleton + validation scaffolds (DATA-01, DATA-04)
+- [ ] 01-02-PLAN.md — Author versioned migrations: six tables, non-recursive is_admin(), default-deny RLS, Storage buckets + RLS assertion test (DATA-02)
+- [ ] 01-03-PLAN.md — Create live project (checkpoint), push migrations [BLOCKING], prove walking skeleton + RLS invariants live (DATA-01, DATA-02)
 
 > **Open question (surface during discussion):** Email confirmation on vs off is decided in Phase 3, but auth-related Supabase config (Site URL / redirect allowlist) should be noted here since the project is created in this phase. Storage `storage.objects` policy syntax is flagged VERIFY in research — confirm against current Supabase docs before writing the migration.
 
@@ -103,7 +107,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Supabase Foundation — Schema, RLS & Storage | 0/TBD | Not started | - |
+| 1. Supabase Foundation — Schema, RLS & Storage | 0/3 | Planned | - |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 0/TBD | Not started | - |
 | 3. Authentication & Roles | 0/TBD | Not started | - |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
