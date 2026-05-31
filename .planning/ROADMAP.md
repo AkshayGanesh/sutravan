@@ -1,0 +1,110 @@
+# Roadmap: Earthen Luxury Sutravan — Admin CMS + Supabase Backend
+
+## Overview
+
+This milestone turns a static, code-managed React/Vite showcase into a self-managed product backed by Supabase (Postgres + Auth + Storage). The journey is strictly dependency-driven: first stand up the Supabase foundation with the schema and Row Level Security that every other capability depends on; then migrate the 68 existing products and soap images into Supabase and rewire the public Shop to read live data (delivering owner/visitor value before any login exists); then add auth and the admin/customer role model; then build the admin portal that is the milestone's core value (catalog, content, and submissions management); and finally the customer-facing features (wishlist, profile/history, native questionnaire). Security — RLS, service-role key handling, secure role assignment — is woven through every phase rather than bolted on at the end. E-commerce (cart, checkout, payments) is explicitly deferred to a later milestone.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Supabase Foundation — Schema, RLS & Storage** - Live Supabase project with all tables, default-deny RLS, `is_admin()`, Storage buckets, and the client singleton; dead Express/Drizzle scaffolding removed
+- [ ] **Phase 2: Live Catalog — Data Migration & Public Shop Rewire** - 68 products + soap images migrated into Supabase, and the public Shop/Home/ProductDetail read live data (no login required)
+- [ ] **Phase 3: Authentication & Roles** - Customers can register/log in/log out across sessions; admin vs customer roles enforced in the database; admin routes protected
+- [ ] **Phase 4: Admin Portal — Catalog & Content Management** - Owner manages products, prices, images, categories, site content, and visibility, and views customization submissions — no code, no redeploy
+- [ ] **Phase 5: Customer Experience — Wishlist, Profile & Native Questionnaire** - Logged-in customers can save products, view their profile and submission history, and submit a native questionnaire that lands in the admin inbox
+
+## Phase Details
+
+### Phase 1: Supabase Foundation — Schema, RLS & Storage
+**Goal**: A working Supabase project is wired to the app with the full database schema, correct default-deny Row Level Security on every table, the `is_admin()` authorization helper, and Storage buckets — the secure foundation everything else builds on.
+**Mode:** mvp
+**Depends on**: Nothing (first phase)
+**Requirements**: DATA-01, DATA-02, DATA-04
+**Success Criteria** (what must be TRUE):
+  1. The app boots against a live Supabase project using only `VITE_SUPABASE_URL` + the anon key, with the service-role key kept local and absent from any `VITE_`-prefixed var or the built bundle
+  2. All tables (`products`, `categories`, `site_content`, `customization_submissions`, `profiles`, `wishlists`) exist via versioned migrations with RLS enabled and default-deny — an unauthenticated client can read public catalog tables but cannot write to any table
+  3. The `is_admin()` helper exists as a `plpgsql` SECURITY DEFINER function with `search_path` locked, and is callable without triggering recursive-policy errors on `profiles`
+  4. The `product-images` (and `site-content`) Storage bucket(s) exist with public read and admin-only write policies on `storage.objects`
+  5. The unused Express + Drizzle + Passport scaffolding (`server/`, `shared/schema.ts`, `drizzle.config.ts`) is removed and the app still builds and runs
+**Plans**: TBD
+
+> **Open question (surface during discussion):** Email confirmation on vs off is decided in Phase 3, but auth-related Supabase config (Site URL / redirect allowlist) should be noted here since the project is created in this phase. Storage `storage.objects` policy syntax is flagged VERIFY in research — confirm against current Supabase docs before writing the migration.
+
+### Phase 2: Live Catalog — Data Migration & Public Shop Rewire
+**Goal**: The existing catalog lives in Supabase and the public site renders it live — proving the no-redeploy promise and delivering value before any authentication exists.
+**Mode:** mvp
+**Depends on**: Phase 1
+**Requirements**: DATA-03, PUB-01, PUB-02
+**Success Criteria** (what must be TRUE):
+  1. A one-time seed script run locally with the service-role key inserts all 68 products and their categories into Supabase, uploads the existing soap images to the `product-images` bucket, and records storage paths on the rows (scrub/cream rows seeded with empty `images[]`)
+  2. The seed is idempotent (upsert on slug) — re-running it yields 68 rows, not duplicates — and RLS stays enabled throughout
+  3. The public Shop reads live products and categories from Supabase via TanStack Query, with working loading, empty, and error states and no UX regression versus the static file
+  4. The product detail view renders entirely from Supabase data and only shows published (`is_active`/visible) products to the public
+  5. The static `client/src/data/products.ts` dependency is removed from the runtime read path once parity is verified
+**Plans**: TBD
+**UI hint**: yes
+
+> **Open question (surface during discussion):** Scrub/cream products have no repo images — they are seeded with empty `images[]` here and the owner uploads imagery via the admin portal in Phase 4. Confirm the migration handles the currently-empty `price` fields (seed blank vs placeholder).
+
+### Phase 3: Authentication & Roles
+**Goal**: Users can create accounts and sign in securely, and the admin-vs-customer distinction is enforced in the database — establishing the trust boundary that gates the admin portal and all customer features.
+**Mode:** mvp
+**Depends on**: Phase 1
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05
+**Success Criteria** (what must be TRUE):
+  1. A visitor can register with email and password, and a `profiles` row (defaulting to the `customer` role) is auto-created for them
+  2. A user can log in and remain logged in across browser sessions/refreshes, and can log out from any page
+  3. Roles are stored server-side in `profiles` (never in user-editable metadata); a non-admin authenticated user holding the anon key is rejected by RLS on every catalog/content write attempt
+  4. Admin portal routes redirect non-admins away and are reachable only by an admin (UX guard backing the RLS enforcement)
+  5. The first admin is bootstrapped out-of-band (not via any self-serve UI path), and an admin account can reach the protected area
+**Plans**: TBD
+**UI hint**: yes
+
+> **Open questions (surface during discussion):** (1) First admin bootstrap — manually flip a user's role to admin in the Supabase dashboard (recommended) vs seed a designated admin. (2) Email confirmation — on (safer) vs off (smoother onboarding) for v1; this also drives Supabase Site URL / redirect-allowlist config that must work on the GitHub Pages sub-path. Verify Auth URL-config setting names and email rate limits against current Supabase docs.
+
+### Phase 4: Admin Portal — Catalog & Content Management
+**Goal**: The owner can manage the entire catalog and site content — products, prices, images, categories, visibility, contact/social links, page copy — and review customization submissions, all through a protected portal with no code changes or redeploys. This is the milestone's core value.
+**Mode:** mvp
+**Depends on**: Phase 2, Phase 3
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-08
+**Success Criteria** (what must be TRUE):
+  1. An admin can create, edit, and delete products (name, subtitle, category, benefits, ingredients, tips, shelf life, batch note) and set/edit each product's price, with changes appearing on the live public Shop without a redeploy
+  2. An admin can upload, replace, and remove product images stored in Supabase Storage, and can toggle a product's visibility (draft vs published) so unfinished products stay hidden from the public site
+  3. An admin can create, edit, and delete categories (with in-use delete protection)
+  4. An admin can edit site content (Our Story copy, homepage hero text) and contact details/social links (Instagram, YouTube, email), with edits reflected on the public site
+  5. An admin can view customer customization submissions in an inbox; every destructive action has a confirm dialog and every write surfaces a success/error toast (non-negotiable for a non-technical owner)
+**Plans**: TBD
+**UI hint**: yes
+
+> **Open question (surface during discussion):** Scrub/cream imagery (seeded empty in Phase 2) is uploaded by the owner here — plan an initial onboarding task list. Image-upload UX (drag-drop, HEIC/JPEG/PNG, size validation, progress) is flagged in research as needing careful component design and likely iteration.
+
+### Phase 5: Customer Experience — Wishlist, Profile & Native Questionnaire
+**Goal**: Logged-in customers get immediate account value before checkout exists — saving products, viewing their profile and inquiry history — and submit a native customization questionnaire that replaces the Google Form and lands in the admin inbox.
+**Mode:** mvp
+**Depends on**: Phase 3, Phase 4
+**Requirements**: CUST-01, CUST-02, CUST-03, CUST-04
+**Success Criteria** (what must be TRUE):
+  1. A logged-in customer can save (wishlist) a product and view/manage their wishlist, with per-user RLS guaranteeing one customer can never read another's saved items
+  2. A customer can submit a native customization questionnaire that saves to `customization_submissions` in Supabase (replacing the embedded Google Form) and appears in the admin inbox built in Phase 4
+  3. A customer can view their profile and the history of their own customization submissions, scoped to their own rows only
+  4. Anonymous visitors cannot read any wishlist or submission data, and no user can insert rows scoped to another user (WITH CHECK enforced on owner-scoped writes)
+**Plans**: TBD
+**UI hint**: yes
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Supabase Foundation — Schema, RLS & Storage | 0/TBD | Not started | - |
+| 2. Live Catalog — Data Migration & Public Shop Rewire | 0/TBD | Not started | - |
+| 3. Authentication & Roles | 0/TBD | Not started | - |
+| 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
+| 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
