@@ -8,13 +8,13 @@
 
 Two coupled deliverables, no authentication anywhere this phase:
 
-1. **One-time seed (DATA-03):** A local script (run with the **service-role key**, never shipped) that inserts all 68 existing products + their three categories into Supabase, uploads the existing soap images to the `product-images` bucket, and records the Storage paths on the rows. Idempotent — **upsert on `slug`** so re-running yields 68 rows, not duplicates. Scrub/cream rows seed with **empty `images[]`** (owner uploads via the portal in Phase 4). RLS stays enabled throughout.
+1. **One-time seed (DATA-03):** A local script (run with the **service-role key**, never shipped) that inserts all 28 existing products (13 soap + 10 scrub + 5 cream — the "68" in earlier drafts was the soap *image* count; see RESEARCH) + their three categories into Supabase, uploads the existing soap images to the `product-images` bucket, and records the Storage paths on the rows. Idempotent — **upsert on `slug`** so re-running yields 28 rows, not duplicates. Scrub/cream rows seed with **empty `images[]`** (owner uploads via the portal in Phase 4). RLS stays enabled throughout.
 
 2. **Public read-path rewire (PUB-01, PUB-02):** The public **Shop**, **Home/ProductGrid**, **ProductCard**, and **ProductDetail** read live products/categories from Supabase via **TanStack Query** (replacing the static `client/src/data/products.ts` read path), with working loading / empty / error states and no UX regression. Detail view renders entirely from Supabase and only published (`is_active = true`) products are shown publicly. The static `products.ts` runtime dependency is removed once parity is verified.
 
 **Out of scope (later phases):** any login/registration (Phase 3), the admin portal that lets the owner edit/upload (Phase 4), wishlist/native questionnaire (Phase 5). This phase delivers value to **anonymous** visitors only.
 
-Covers requirements **DATA-03** (idempotent seed), **PUB-01** (Shop reads live data), **PUB-02** (detail renders from Supabase, published-only).
+Covers requirements **DATA-03** (idempotent seed, 28 products / 3 categories), **PUB-01** (Shop reads live data), **PUB-02** (detail renders from Supabase, published-only).
 
 </domain>
 
