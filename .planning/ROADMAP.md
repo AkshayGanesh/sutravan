@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Live Catalog — Data Migration & Public Shop Rewire** - 68 products + soap images migrated into Supabase, and the public Shop/Home/ProductDetail read live data (no login required) (completed 2026-05-31)
 - [x] **Phase 3: Authentication & Roles** - Customers can register/log in/log out across sessions; admin vs customer roles enforced in the database; admin routes protected (completed 2026-06-01)
 - [x] **Phase 4: Admin Portal — Catalog & Content Management** - Owner manages products, prices, images, categories, site content, and visibility, and views customization submissions — no code, no redeploy (completed 2026-06-01)
-- [ ] **Phase 5: Customer Experience — Wishlist, Profile & Native Questionnaire** - Logged-in customers can save products, view their profile and submission history, and submit a native questionnaire that lands in the admin inbox (all 4 plans complete — pending phase verification)
+- [x] **Phase 5: Customer Experience — Wishlist, Profile & Native Questionnaire** - Logged-in customers can save products, view their profile and submission history, and submit a native questionnaire that lands in the admin inbox (all 4 plans complete — pending phase verification) (completed 2026-06-01)
 
 ## Phase Details
 
@@ -198,4 +198,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
 | 3. Authentication & Roles | 6/6 | Complete    | 2026-06-01 |
 | 4. Admin Portal — Catalog & Content Management | 9/9 | Complete    | 2026-06-01 |
-| 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 4/4 | In Review |  |
+| 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 4/4 | Complete    | 2026-06-01 |
