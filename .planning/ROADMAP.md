@@ -140,7 +140,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 04-03-PLAN.md — Write data-layer lib/admin.ts (product/category/content CRUD + Storage + mandatory cache invalidation) + lib/siteContent.ts read hook (ADMIN-01..06, ADMIN-08)
+- [x] 04-03-PLAN.md — Write data-layer lib/admin.ts (product/category/content CRUD + Storage + mandatory cache invalidation) + lib/siteContent.ts read hook (ADMIN-01..06, ADMIN-08)
 - [ ] 04-04-PLAN.md — Admin shell: AdminLayout (sidebar + slim header + logout) + ConfirmDialog + stub section pages + /admin/* routes + Sonner Toaster (ADMIN-01, ADMIN-04, ADMIN-05, ADMIN-07)
 
 **Wave 3** *(blocked on Wave 2; parallel — distinct page files)*
@@ -186,5 +186,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
 | 3. Authentication & Roles | 6/6 | Complete    | 2026-06-01 |
-| 4. Admin Portal — Catalog & Content Management | 2/9 | In Progress|  |
+| 4. Admin Portal — Catalog & Content Management | 3/9 | In Progress|  |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
