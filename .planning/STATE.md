@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 3 context gathered
-last_updated: "2026-05-31T14:40:00.550Z"
-last_activity: 2026-05-31 -- Phase 03 planning complete
+status: executing
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-06-01T00:50:02.201Z"
+last_activity: 2026-06-01 -- Phase 03 execution started
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 12
+  completed_plans: 7
   percent: 40
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-31)
 
 **Core value:** The owner can manage the entire product catalog (products, categories, images, prices) through an admin portal — no code changes, no redeploys.
-**Current focus:** Phase 02 — live-catalog-data-migration-public-shop-rewire
+**Current focus:** Phase 03 — authentication-roles
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
-Status: Plan 02-02 COMPLETE — live read-layer foundation built: formatPrice() single render path, catalog.ts (useProducts/useCategories hooks + server-side is_active filter + snake->camel mappers + getPublicUrl image resolution), products.ts refactored glob-free with price number|null. Build green, secret-check PASS. Next: Plan 02-03 (public Shop/Home/ProductGrid/ProductCard/ProductDetail rewire).
-Last activity: 2026-05-31 -- Phase 03 planning complete
+Phase: 03 (authentication-roles) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-06-01 -- Phase 03 execution started
 
 Progress: [█████████░] 100%
 
@@ -55,6 +55,7 @@ Progress: [█████████░] 100%
 | Phase 02 P01 | 3min | 3 tasks | 3 files |
 | Phase 02 P02 | 12min | 3 tasks | 3 files |
 | Phase 02 P03 | 3min | 4 tasks | 5 files |
+| Phase 03 P02 | 4min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,8 @@ Recent decisions affecting current work:
 - [Phase 02 P02]: Storage image paths resolved only via getPublicUrl (encodes spaces/parens); empty images[] -> exactly one bundled category placeholder (D-03)
 - [Phase ?]: Public read surfaces (Shop/Home/ProductGrid/ProductCard/ProductDetail) consume only catalog.ts TanStack Query hooks; static products.ts data array is off the runtime path
 - [Phase ?]: Loading=skeleton grid mirroring real grid classes (no layout shift); error=inline message + Retry calling refetch(); featured=first published per category by sort_order (always up to 3)
+- [Phase ?]: [Phase 03 P02]: useAuth returns { session, user, role, loading, signOut }; loading folds session+role gates so guards never decide early (D-12)
+- [Phase ?]: [Phase 03 P02]: role read client-side from public.profiles for UX only; real boundary is server-side RLS (D-11/T-3-07); mapAuthError collapses invalid-credentials and email-not-found into one generic message (D-14)
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-31T14:12:01.974Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-authentication-roles/03-CONTEXT.md
+Last session: 2026-06-01T00:50:02.197Z
+Stopped at: Completed 03-02-PLAN.md
+Resume file: None

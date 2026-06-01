@@ -98,7 +98,7 @@ Plans:
 **Wave 1**
 
 - [ ] 03-01-PLAN.md — DB foundation: migration 0004 (name column + handle_new_user trigger + role-lock trigger), psql assertion harness, `supabase db push` [BLOCKING], hosted Auth config (Confirm-email OFF + redirect allowlist) (AUTH-01, AUTH-04)
-- [ ] 03-02-PLAN.md — Auth-state layer: AuthProvider + useAuth (loading gate, session persistence) + authErrors mapper, mounted in App.tsx (AUTH-02, AUTH-05)
+- [x] 03-02-PLAN.md — Auth-state layer: AuthProvider + useAuth (loading gate, session persistence) + authErrors mapper, mounted in App.tsx (AUTH-02, AUTH-05)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -163,6 +163,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
-| 3. Authentication & Roles | 0/6 | Planned | - |
+| 3. Authentication & Roles | 1/6 | In Progress|  |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
