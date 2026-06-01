@@ -418,20 +418,23 @@ All must read from `useSiteContent()` with the current literal kept as the fallb
 
 > Per the provenance rule, the package NAMES (A1) are `[ASSUMED]` regardless of slopcheck `[OK]`. The planner should add a `checkpoint:human-verify` before installing the new deps.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Cross-tab live update scope**
+1. **Cross-tab live update scope — RESOLVED: out of scope (next-load refresh).**
    - What we know: invalidation refreshes the public Shop within the same SPA session after navigation.
    - What's unclear: whether the owner expects an already-open public tab on another device to update without reload (it won't — that needs realtime).
    - Recommendation: out of scope; "no redeploy, updates on next load/navigation" satisfies the milestone. Note it explicitly so it's not treated as a bug.
+   - **RESOLVED:** Realtime cross-device push is NOT in this phase. Plans rely on TanStack Query invalidation (same-session, on next navigation/load); the public Open Questions item is documented expected behavior, not a bug. No plan task targets realtime.
 
-2. **`heic2any` vs `heic-to` final pick**
+2. **`heic2any` vs `heic-to` final pick — RESOLVED: start with `heic2any`, gated by the verify checkpoint.**
    - What we know: both pass slopcheck; `heic2any` more downloads, `heic-to` more recently maintained.
    - Recommendation: start with `heic2any`; if HEIC edge cases fail in manual testing, swap to `heic-to` (same role). Decide at the verify checkpoint.
+   - **RESOLVED:** Plan 02 installs `heic2any` (behind the [GATE] human-verify on the [ASSUMED] packages); Plan 09 Task 2 is the manual HEIC verify where `heic-to` is the documented same-role swap if edge cases fail. Decision: `heic2any` as the default pick.
 
-3. **Submissions inbox has no data until Phase 5**
+3. **Submissions inbox has no data until Phase 5 — RESOLVED: build read-only list/detail + empty state now.**
    - What we know: `customization_submissions` is empty; Phase 5 writes it (D-17).
    - Recommendation: build the read-only list+detail against the existing admin-read RLS; verify with a manually-inserted test row, and ship an empty-state.
+   - **RESOLVED:** Plan 08 builds the read-only list+detail against the existing admin-read RLS and ships the "No submissions yet" empty state; Plan 08 Task 2 verifies with a manually-inserted test row. No schema change this phase (D-17).
 
 ## Environment Availability
 
