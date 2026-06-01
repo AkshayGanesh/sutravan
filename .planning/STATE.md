@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-02-PLAN.md (questionnaire backend live)
-last_updated: "2026-06-01T16:30:00.000Z"
-last_activity: 2026-06-01 -- Completed Phase 05 Plan 02 (questionnaire backend)
+stopped_at: Completed 05-03-PLAN.md (native questionnaire wizard — CUST-03 fully delivered)
+last_updated: "2026-06-01T16:35:01.793Z"
+last_activity: 2026-06-01 -- Completed Phase 05 Plan 03 (native questionnaire wizard — CUST-03 delivered)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 25
-  completed_plans: 23
-  percent: 84
+  completed_plans: 24
+  percent: 96
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 05 (customer-experience-wishlist-profile-native-questionnaire) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute (05-02 questionnaire backend complete & live)
-Last activity: 2026-06-01 -- Completed Phase 05 Plan 02 (questionnaire backend)
+Plan: 4 of 4 (05-01, 05-02, 05-03 complete; 05-04 remaining)
+Status: Ready to execute 05-04 (05-03 questionnaire wizard complete; CUST-03 fully delivered)
+Last activity: 2026-06-01 -- Completed Phase 05 Plan 03 (native questionnaire wizard — CUST-03 delivered)
 
-Progress: [█████████░] 92%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [█████████░] 92%
 | Phase 04 P09 | 30min | 2 tasks | 1 files |
 | Phase 05 P01 | 18 | 3 tasks | 9 files |
 | Phase 05 P02 | ~25min | 3 tasks | 4 files |
+| Phase 05 P03 | ~20min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,9 @@ Recent decisions affecting current work:
 - [Phase 05 P02]: T-05-08 ACCEPTED — direct-PostgREST insert can skip Turnstile but every row is still user_id-correct under 0007; residual spam risk accepted for a small no-payments brand (documented in function header)
 - [Phase 05 P02]: DEVIATION — Supabase CLI v2.102.0 rejects `--linked` on `functions deploy` (deploys to linked project by default); deployed without the flag to the correct ref
 - [Phase 05 P02]: CUST-03 BACKEND half done & live; requirement stays Pending until the Plan 03 wizard ships the customer-facing half
+- [Phase ?]: [Phase 05 P03]: /questionnaire is now a native multi-step RHF+Zod wizard replacing the Google Form iframe — per-step form.trigger(STEP_FIELDS[step]) advance gate; D-08 prefill+lock name/email for logged-in, D-02 required+email-validated for anon; lazy Turnstile on the review step (reset after fail); thank-you finale (D-07: logged-in -> /profile, anon -> /register)
+- [Phase ?]: [Phase 05 P03]: D-05 mapping lives in the pure toSubmission(values, userId) (symmetric to admin.ts fromProductForm) — name/email/skin_type/message are columns; concerns/productInterest/allergies go ONLY into payload jsonb (human-readable keys for the admin inbox); user_id = caller uid or null (anon, required by 0007 WITH CHECK). 9/9 unit tests pin this.
+- [Phase ?]: [Phase 05 P03]: CUST-03 NOW FULLY DELIVERED (Plan 02 backend + Plan 03 wizard) — anon (user_id=null) + logged-in (caller user_id) rows proven live in the Phase-4 admin inbox; Turnstile-fail inserts nothing. Dev-setup note: live walk needed localhost allow-listed on the real Cloudflare Turnstile widget (110200 otherwise); real site+secret keys kept, VITE_TURNSTILE_SITE_KEY in gitignored .env.local.
 
 ### Pending Todos
 
@@ -154,6 +158,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T16:30:00.000Z
-Stopped at: Completed 05-02-PLAN.md (questionnaire backend — 0007 live, verify-and-submit deployed, D-01 proven)
-Resume file: .planning/phases/05-customer-experience-wishlist-profile-native-questionnaire/05-03-PLAN.md
+Last session: 2026-06-01T16:35:01.789Z
+Stopped at: Completed 05-03-PLAN.md (native questionnaire wizard — CUST-03 fully delivered)
+Resume file: .planning/phases/05-customer-experience-wishlist-profile-native-questionnaire/05-04-PLAN.md

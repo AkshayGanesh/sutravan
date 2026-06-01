@@ -37,7 +37,7 @@ Requirements for this milestone. Each maps to a roadmap phase. E-commerce is exp
 
 - [x] **CUST-01**: Customer can save (wishlist) a product
 - [x] **CUST-02**: Customer can view and manage their wishlist
-- [ ] **CUST-03**: Customer can submit a native customization questionnaire (replacing the embedded Google Form) that is saved to Supabase
+- [x] **CUST-03**: Customer can submit a native customization questionnaire (replacing the embedded Google Form) that is saved to Supabase
 - [ ] **CUST-04**: Customer can view their profile and the history of their own customization submissions
 
 ### Public Site
@@ -102,7 +102,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ADMIN-08 | Phase 4 | Complete |
 | CUST-01 | Phase 5 | Complete |
 | CUST-02 | Phase 5 | Complete |
-| CUST-03 | Phase 5 | Pending |
+| CUST-03 | Phase 5 | Complete |
 | CUST-04 | Phase 5 | Pending |
 | PUB-01 | Phase 2 | Complete |
 | PUB-02 | Phase 2 | Complete |
