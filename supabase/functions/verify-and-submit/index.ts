@@ -65,6 +65,20 @@ Deno.serve(async (req) => {
   try {
     const { token, submission } = await req.json()
 
+    // Shape guard: the body's `submission` MUST be a plain object. A
+    // string/array/null reaching PostgREST would otherwise be reflected back as
+    // a raw error (CR-01). Reject early with a generic 400.
+    if (
+      typeof submission !== 'object' ||
+      submission === null ||
+      Array.isArray(submission)
+    ) {
+      return new Response(JSON.stringify({ error: 'bad_request' }), {
+        status: 400,
+        headers: jsonHeaders,
+      })
+    }
+
     // 1. Verify the Turnstile token server-side (secret never leaves the function).
     const verify = await fetch(
       'https://challenges.cloudflare.com/turnstile/v0/siteverify',
@@ -97,11 +111,34 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } },
     )
 
+    // Server-side field allow-list (CR-01). The wizard's `toSubmission`
+    // (client/src/lib/questionnaire.ts) legitimately writes ONLY these columns;
+    // every other client-supplied key (e.g. created_at, id) is dropped so the
+    // server is no longer a pure pass-through. user_id is passed through because
+    // the 0007 INSERT RLS WITH CHECK remains the real ownership gate.
+    const ALLOWED = new Set([
+      'name',
+      'email',
+      'skin_type',
+      'message',
+      'payload',
+      'user_id',
+    ])
+    const clean: Record<string, unknown> = {}
+    for (const key of Object.keys(submission as Record<string, unknown>)) {
+      if (ALLOWED.has(key)) {
+        clean[key] = (submission as Record<string, unknown>)[key]
+      }
+    }
+
     const { error } = await supabase
       .from('customization_submissions')
-      .insert(submission)
+      .insert(clean)
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
+      // Never reflect the raw Postgres/PostgREST error to the client (it leaks
+      // column names / constraint text). Log server-side, return generic 400.
+      console.error('verify-and-submit insert failed', error)
+      return new Response(JSON.stringify({ error: 'submission_failed' }), {
         status: 400,
         headers: jsonHeaders,
       })
