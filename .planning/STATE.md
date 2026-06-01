@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: 03-01-PLAN.md Task 3 (checkpoint:human-action — awaiting live push + hosted Auth config + psql harness)
-last_updated: "2026-06-01T01:10:00.000Z"
-last_activity: 2026-06-01 -- 03-01 Tasks 1-2 + config.toml done; paused at Task 3 human-action checkpoint
+stopped_at: Completed 03-01-PLAN.md (auth DB foundation — migration 0004 live, harnesses green, hosted Auth config set)
+last_updated: "2026-06-01T01:12:38.000Z"
+last_activity: 2026-06-01 -- 03-01 complete; migration 0004 pushed live, both psql harnesses pass, hosted Auth config (D-01/D-02) set
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 7
-  percent: 40
+  completed_plans: 8
+  percent: 42
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 03 (authentication-roles) — EXECUTING
-Plan: 2 of 6
-Status: Ready to execute
-Last activity: 2026-06-01 -- Phase 03 execution started
+Plan: 3 of 6
+Status: Ready to execute (03-01 + 03-02 complete)
+Last activity: 2026-06-01 -- 03-01 auth DB foundation complete (migration 0004 live)
 
 Progress: [█████████░] 100%
 
@@ -56,6 +56,7 @@ Progress: [█████████░] 100%
 | Phase 02 P02 | 12min | 3 tasks | 3 files |
 | Phase 02 P03 | 3min | 4 tasks | 5 files |
 | Phase 03 P02 | 4min | 3 tasks | 4 files |
+| Phase 03 P01 | ~50min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Loading=skeleton grid mirroring real grid classes (no layout shift); error=inline message + Retry calling refetch(); featured=first published per category by sort_order (always up to 3)
 - [Phase ?]: [Phase 03 P02]: useAuth returns { session, user, role, loading, signOut }; loading folds session+role gates so guards never decide early (D-12)
 - [Phase ?]: [Phase 03 P02]: role read client-side from public.profiles for UX only; real boundary is server-side RLS (D-11/T-3-07); mapAuthError collapses invalid-credentials and email-not-found into one generic message (D-14)
+- [Phase 03 P01]: migration 0004 — handle_new_user SECURITY DEFINER trigger auto-creates a role='customer' profile on signup (role hard-coded, never from raw_user_meta_data — D-05/T-3-03); no client INSERT policy on profiles (rows only via the trigger)
+- [Phase 03 P01]: enforce_profile_role_lock BEFORE UPDATE trigger blocks role self-escalation, with a (select auth.uid()) is not null carve-out so the no-JWT service-role bootstrap can still promote an admin (D-04/Pitfall 4); name/email self-updates still allowed
+- [Phase 03 P01]: deployed origin is the custom domain https://sutravan.in (build base '/'); hosted Auth config (runtime source of truth, not in git): Confirm-email OFF (D-01), Site URL https://sutravan.in, redirect allowlist includes exact https://sutravan.in/reset-password (D-02)
 
 ### Pending Todos
 
@@ -95,13 +99,13 @@ RESOLVED:
 Open questions to resolve during phase discussion (from REQUIREMENTS.md):
 
 - Phase 3: First admin bootstrap — manual dashboard role flip (recommended) vs seeded admin
-- Phase 3: Email confirmation on (safer) vs off (smoother onboarding) for v1
+- ~~Phase 3: Email confirmation on (safer) vs off (smoother onboarding) for v1~~ RESOLVED 03-01: Confirm-email OFF (D-01), set in hosted Dashboard
 - Phase 2/4: Scrub/cream products have no repo images — seed empty `images[]` in Phase 2, owner uploads via portal in Phase 4
 
 VERIFY items flagged in research (confirm against current Supabase docs before writing migrations):
 
 - `storage.objects` RLS policy syntax (Phase 1)
-- Auth URL-config setting names + email rate limits (Phase 3)
+- ~~Auth URL-config setting names + email rate limits (Phase 3)~~ RESOLVED 03-01: Site URL + Redirect URLs allowlist set in hosted Dashboard (https://sutravan.in + /reset-password); built-in email fine at <=2/hr for owner resets
 
 ## Deferred Items
 
@@ -114,6 +118,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T01:10:00.000Z
-Stopped at: 03-01-PLAN.md Task 3 — checkpoint:human-action (live `supabase db push` of 0004 + hosted Dashboard Auth config D-01/D-02 + live psql harness). Tasks 1-2 committed (dc31095, faab923); config.toml local parity committed (04df168).
-Resume file: .planning/phases/03-authentication-roles/03-01-PLAN.md (resume at Task 3; signal "approved")
+Last session: 2026-06-01T01:12:38.000Z
+Stopped at: Completed 03-01-PLAN.md — migration 0004 live, both psql harnesses green against the live DB, hosted Auth config (D-01 confirm-off + D-02 sutravan.in Site URL/reset redirect) set; config.toml corrected to the sutravan.in origin (9488e9f).
+Resume file: None — next is 03-03-PLAN.md (register/login/logout slice)

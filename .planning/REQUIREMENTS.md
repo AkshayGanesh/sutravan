@@ -19,7 +19,7 @@ Requirements for this milestone. Each maps to a roadmap phase. E-commerce is exp
 - [ ] **AUTH-01**: Customer can register with email and password
 - [x] **AUTH-02**: User can log in and stay logged in across browser sessions
 - [ ] **AUTH-03**: User can log out from any page
-- [ ] **AUTH-04**: Admin vs customer roles are stored server-side (in profiles) and enforced via RLS so only admins can write catalog/content data
+- [x] **AUTH-04**: Admin vs customer roles are stored server-side (in profiles) and enforced via RLS so only admins can write catalog/content data
 - [x] **AUTH-05**: Admin portal routes are protected — non-admins cannot reach or use them
 
 ### Admin Portal — Content Management
@@ -87,10 +87,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | DATA-02 | Phase 1 | Pending |
 | DATA-03 | Phase 2 | Complete |
 | DATA-04 | Phase 1 | Pending |
-| AUTH-01 | Phase 3 | Pending |
+| AUTH-01 | Phase 3 | DB foundation (03-01: signup trigger creates customer profile); register UI pending (03-03) |
 | AUTH-02 | Phase 3 | Complete |
 | AUTH-03 | Phase 3 | Pending |
-| AUTH-04 | Phase 3 | Pending |
+| AUTH-04 | Phase 3 | Complete (03-01: role server-side in profiles; role-lock trigger + RLS enforce admin-only writes) |
 | AUTH-05 | Phase 3 | Complete |
 | ADMIN-01 | Phase 4 | Pending |
 | ADMIN-02 | Phase 4 | Pending |
