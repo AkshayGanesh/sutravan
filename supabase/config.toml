@@ -153,17 +153,17 @@ enabled = true
 # in emails.
 # NOTE (Phase 3 / Plan 01 / Task 3, D-02): config.toml governs LOCAL `supabase start` only — the
 # HOSTED Dashboard (Authentication -> URL Configuration) is the runtime source of truth for the
-# deployed site and is NOT in git. The production values below mirror the deployed GitHub Pages
-# origin (repo: AkshayGanesh/sutravan; deploy.yml does not set VITE_BASE_PATH, so base = "/").
-# The OWNER must confirm the exact deployed origin and set it (plus the exact /reset-password URL)
-# in the hosted Dashboard allowlist — Supabase only redirects to EXACT allowlisted URLs (Pitfall 1).
-site_url = "https://akshayganesh.github.io"
+# deployed site and is NOT in git. The production values below mirror the deployed CUSTOM-DOMAIN
+# origin https://sutravan.in (build base = "/", so the exact reset URL is /reset-password).
+# The owner has confirmed this origin and set it (plus the exact /reset-password URL) in the
+# hosted Dashboard allowlist — Supabase only redirects to EXACT allowlisted URLs (Pitfall 1).
+site_url = "https://sutravan.in"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
 # Includes the local dev origin and the exact production /reset-password sub-path (D-02).
 additional_redirect_urls = [
   "http://127.0.0.1:3000",
   "http://127.0.0.1:3200",
-  "https://akshayganesh.github.io/reset-password"
+  "https://sutravan.in/reset-password"
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
