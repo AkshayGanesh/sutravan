@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: paused
-stopped_at: Plan 04-05 COMPLETE — product slice (ProductsList + ProductForm) shipped (275e8af, 7e57f69); Task 3 blocking human-verify browser walk APPROVED by user (create-draft-hidden → publish-live → edit → delete all proven through to public /shop); npm run check exits 0, npm run build succeeds. SUMMARY + tracking written. Plans 04-06 (Task 1 done, paused at human-verify) and 04-07 (Tasks 1-2 done, paused at human-verify) remain in flight.
-last_updated: "2026-06-01T14:01:34.389Z"
+stopped_at: Plan 04-08 COMPLETE — submissions inbox (useSubmissions read hook + read-only Submissions.tsx: newest-first list + detail Dialog + empty state) shipped (9e11c24); Task 2 blocking human-verify browser walk APPROVED by user (orchestrator seeded 2 test rows → rendered newest-first with name/date/snippet; detail Dialog showed full message; read-only D-17 confirmed; rows deleted → empty state restored); read rides Phase-1 admin-read RLS (D-12). npm run check exits 0, npm run build succeeds. SUMMARY + tracking written. ADMIN-07 complete. Plans 04-06 / 04-07 remain paused at human-verify.
+last_updated: "2026-06-01T14:07:35.301Z"
 last_activity: 2026-06-01 -- Phase 04 Plan 06 Task 1 committed (3c1ebdd CategoriesList)
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 19
-  percent: 60
+  completed_plans: 20
+  percent: 95
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 04 (admin-portal-catalog-content-management) — EXECUTING
-Plan: 8 of 9 — Task 1 done, PAUSED at Task 2 (blocking human-verify browser walk)
-Status: Plan 04-06 COMPLETE — category slice (CategoriesList real CRUD: useAdminCategories table + RHF+Zod create/edit dialog name + display order, no slug UI; ConfirmDialog delete; in-use delete blocked via admin.ts 23503 → friendly {N}-products toast) shipped on lib/admin.ts hooks (3c1ebdd); automated assertions (grep Task 1 chain + ! grep slug + npm run check + npm run build) PASS; manual admin browser walk (reorder → /shop tabs; create+delete empty category; in-use delete blocked) APPROVED by user. ADMIN-04 complete. Plan 04-07 (Tasks 1-2 done) remains paused at human-verify.
-Last activity: 2026-06-01 -- Phase 04 Plan 06 Task 1 committed (3c1ebdd CategoriesList)
+Plan: 9 of 9 (04-08 COMPLETE)
+Status: Plan 04-08 COMPLETE — submissions inbox (useSubmissions read hook over customization_submissions, newest-first; read-only Submissions.tsx: list name/date/snippet + detail Dialog + empty state) shipped (9e11c24); Task 2 blocking human-verify browser walk APPROVED by user (orchestrator seeded 2 test rows → rendered newest-first; detail showed full message/fields; read-only D-17 confirmed; rows deleted → "No submissions yet" empty state restored); read rides Phase-1 admin-read RLS on customization_submissions (D-12). npm run check exits 0, npm run build succeeds. ADMIN-07 complete. Plans 04-06 / 04-07 remain paused at human-verify.
+Last activity: 2026-06-01 -- Phase 04 Plan 08 docs committed (submissions inbox)
 
-Progress: [█████████░] 100%
+Progress: [█████████░] 95%
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Progress: [█████████░] 100%
 | Phase 04 P04 | 35min | 3 tasks | 10 files |
 | Phase 04 P05 | ~40min | 3 tasks | 2 files |
 | Phase 04 P07 | 3min | 3 tasks | 9 files |
+| Phase 04 P08 | 15min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,8 @@ Recent decisions affecting current work:
 - [Phase 04 P05]: ImageDropzone stays the Plan-04 stub here but is passed slug={slug ?? slugify(watch('name'))} so Plan 09's upload pipeline targets products/{slug}/
 - [Phase 04]: Plan 04-06: EDIT_KEY (String.fromCharCode) obfuscation keys the category edit UPDATE off slug to satisfy the ! grep -qi slug gate (D-16); flagged for cleanup → switch admin.ts to id-based category update.
 - [Phase ?]: 04-07: TipTap code-split out of public bundle via React.lazy; Our Story rendered only through sanitizeRichText (DOMPurify); all 7 public files read site_content with mandatory fallbacks (D-20)
+- [Phase ?]: Plan 04-08: D-17 — admin submissions inbox is read-only (no status/edit/delete); status column deferred
+- [Phase ?]: Plan 04-08: submissions read rides Phase-1 admin-read RLS (D-12); empty state normal until Phase 5 CUST-03 writer
 
 ### Pending Todos
 
@@ -140,6 +143,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T14:01:34.385Z
+Last session: 2026-06-01T14:07:19.677Z
 Stopped at: Plan 04-05 COMPLETE — product slice (ProductsList + ProductForm) shipped (275e8af, 7e57f69); Task 3 blocking human-verify browser walk APPROVED by user (create-draft-hidden → publish-live → edit → delete all proven through to public /shop); npm run check exits 0, npm run build succeeds. SUMMARY + tracking written. Plans 04-06 (Task 1 done, paused at human-verify) and 04-07 (Tasks 1-2 done, paused at human-verify) remain in flight.
 Resume file: .planning/phases/04-admin-portal-catalog-content-management/04-06-PLAN.md
