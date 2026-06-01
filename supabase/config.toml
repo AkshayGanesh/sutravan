@@ -372,6 +372,13 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+[functions.verify-and-submit]
+# Phase 5 / Plan 02 — questionnaire submit (Turnstile siteverify + caller-JWT insert).
+# verify_jwt = false so ANON submitters reach the function body (Pitfall 1 / D-01);
+# Turnstile + the 0007 customization_submissions INSERT RLS policy are the real gates,
+# not platform-edge JWT verification.
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
