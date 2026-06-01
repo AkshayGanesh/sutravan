@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 04 (admin-portal-catalog-content-management) — EXECUTING
-Plan: 5 of 9 — Tasks 1-2 done + Task 3 code change committed, PAUSED at Task 3 (blocking human-verify browser walk)
-Status: Awaiting checkpoint — AdminLayout shell + stub section pages + ConfirmDialog/ImageDropzone/RepeatableRows shipped; App.tsx routes wired behind AdminGuard; Sonner Toaster mounted; automated assertions (grep + npm run check + npm run build) PASS; manual admin browser walk pending (user)
-Last activity: 2026-06-01 -- Phase 04 Plan 01 Tasks 1-2 committed (985b93a, 567c179)
+Plan: 5 of 9 — Tasks 1-2 done, PAUSED at Task 3 (blocking human-verify browser walk)
+Status: Awaiting checkpoint — ProductForm (RHF+Zod full-page create/edit) + ProductsList (table, publish toggle, edit/delete, loading/empty/error states, No-photo badge) shipped on lib/admin.ts hooks; automated assertions (grep Task 1+2 + npm run check + npm run build) PASS; manual admin browser walk (create-draft → hidden on /shop → publish → live → edit price → delete) pending (user)
+Last activity: 2026-06-01 -- Phase 04 Plan 05 Tasks 1-2 committed (275e8af ProductForm, 7e57f69 ProductsList)
 
 Progress: [█████████░] 100%
 
