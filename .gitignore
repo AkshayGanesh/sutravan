@@ -9,3 +9,5 @@ Skin Health Care Products.md
 .venv/
 .env.local
 .env*.local
+.claude/
+__pycache__/
