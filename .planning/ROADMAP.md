@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Supabase Foundation — Schema, RLS & Storage** - Live Supabase project with all tables, default-deny RLS, `is_admin()`, Storage buckets, and the client singleton; dead Express/Drizzle scaffolding removed (completed 2026-05-31)
 - [x] **Phase 2: Live Catalog — Data Migration & Public Shop Rewire** - 68 products + soap images migrated into Supabase, and the public Shop/Home/ProductDetail read live data (no login required) (completed 2026-05-31)
 - [x] **Phase 3: Authentication & Roles** - Customers can register/log in/log out across sessions; admin vs customer roles enforced in the database; admin routes protected (completed 2026-06-01)
-- [ ] **Phase 4: Admin Portal — Catalog & Content Management** - Owner manages products, prices, images, categories, site content, and visibility, and views customization submissions — no code, no redeploy
+- [x] **Phase 4: Admin Portal — Catalog & Content Management** - Owner manages products, prices, images, categories, site content, and visibility, and views customization submissions — no code, no redeploy (completed 2026-06-01)
 - [ ] **Phase 5: Customer Experience — Wishlist, Profile & Native Questionnaire** - Logged-in customers can save products, view their profile and submission history, and submit a native questionnaire that lands in the admin inbox
 
 ## Phase Details
@@ -152,7 +152,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 — extends ProductForm)*
 
-- [ ] 04-09-PLAN.md — Image management: full ImageDropzone (drag-drop, HEIC convert+compress, upload/replace/remove, progress, orphan cleanup) (ADMIN-03)
+- [x] 04-09-PLAN.md — Image management: full ImageDropzone (drag-drop, HEIC convert+compress, upload/replace/remove, progress, orphan cleanup) (ADMIN-03)
 
 **UI hint**: yes
 
@@ -186,5 +186,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
 | 3. Authentication & Roles | 6/6 | Complete    | 2026-06-01 |
-| 4. Admin Portal — Catalog & Content Management | 8/9 | In Progress|  |
+| 4. Admin Portal — Catalog & Content Management | 9/9 | Complete   | 2026-06-01 |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
