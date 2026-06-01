@@ -163,6 +163,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
-| 3. Authentication & Roles | 6/6 | Complete   | 2026-06-01 |
+| 3. Authentication & Roles | 6/6 | Complete    | 2026-06-01 |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
