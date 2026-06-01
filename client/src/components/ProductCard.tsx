@@ -1,5 +1,6 @@
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/lib/format";
+import WishlistButton from "@/components/WishlistButton";
 
 interface ProductCardProps {
   product: Product;
@@ -24,6 +25,12 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        {/* Heart toggle — stopPropagation so it never opens the detail modal (D-09). */}
+        <WishlistButton
+          productSlug={product.id}
+          className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm hover:bg-background/90"
+        />
 
         <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
           <span className="block w-full bg-background/90 backdrop-blur text-primary py-3 text-sm uppercase tracking-wider font-medium text-center hover:bg-primary hover:text-background transition-colors duration-300">

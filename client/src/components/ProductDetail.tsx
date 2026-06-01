@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
+import WishlistButton from "@/components/WishlistButton";
 
 interface ProductDetailProps {
   product: Product | null;
@@ -87,12 +88,18 @@ export default function ProductDetail({
           {/* Details */}
           <div className="p-6 flex flex-col">
             <DialogTitle className="sr-only">{product.name}</DialogTitle>
-            <p className="text-xs uppercase tracking-widest text-secondary mb-1.5">
-              {product.category}
-            </p>
-            <h2 className="font-sans font-bold text-2xl text-primary mb-1">
-              {product.name}
-            </h2>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-widest text-secondary mb-1.5">
+                  {product.category}
+                </p>
+                <h2 className="font-sans font-bold text-2xl text-primary mb-1">
+                  {product.name}
+                </h2>
+              </div>
+              {/* Same toggle, same ['wishlist'] cache as the card — stays in sync (D-13). */}
+              <WishlistButton productSlug={product.id} className="-mr-2 -mt-1 shrink-0" />
+            </div>
             <p className="text-sm text-foreground/60 mb-2">
               {product.subtitle}
             </p>
