@@ -146,7 +146,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2; parallel — distinct page files)*
 
 - [x] 04-05-PLAN.md — Products slice: ProductsList (table + Published toggle + delete) + ProductForm (RHF+Zod, price, draft default, image slot) (ADMIN-01, ADMIN-02, ADMIN-08)
-- [ ] 04-06-PLAN.md — Categories slice: create/edit/delete with auto-hidden slug + in-use delete protection (ADMIN-04)
+- [x] 04-06-PLAN.md — Categories slice: create/edit/delete with auto-hidden slug + in-use delete protection (ADMIN-04)
 - [ ] 04-07-PLAN.md — Site content slice: editor (plain fields + lazy TipTap rich text) + D-20 rewire of 7 public components + safe Our Story render (ADMIN-05, ADMIN-06)
 - [ ] 04-08-PLAN.md — Submissions inbox: read-only list + detail + empty state via admin-read RLS (ADMIN-07)
 
@@ -186,5 +186,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
 | 3. Authentication & Roles | 6/6 | Complete    | 2026-06-01 |
-| 4. Admin Portal — Catalog & Content Management | 5/9 | In Progress|  |
+| 4. Admin Portal — Catalog & Content Management | 6/9 | In Progress|  |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
