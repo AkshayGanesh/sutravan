@@ -10,8 +10,8 @@ progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 16
-  percent: 60
+  completed_plans: 17
+  percent: 62
 ---
 
 # Project State
@@ -66,6 +66,7 @@ Progress: [█████████░] 100%
 | Phase 04 P02 | 8min | 3 tasks | 10 files |
 | Phase 04 P03 | 3min | 3 tasks | 3 files |
 | Phase 04 P04 | 35min | 3 tasks | 10 files |
+| Phase 04 P05 | ~40min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,8 @@ Recent decisions affecting current work:
 - [Phase 04]: heic2any kept as HEIC primary (heic-to documented fallback) — owner-approved Task 1 package gate
 - [Phase 04]: Admin write-layer pure modules ship test-first (Vitest): slugify/sanitizeRichText/image-guard/mapWriteError; heavy HEIC+compression libs lazy dynamic-imported to stay out of public bundle
 - [Phase ?]: 04-04: Mounted Sonner Toaster in App.tsx (single global mount) rather than main.tsx
+- [Phase 04 P05]: Product slice COMPLETE — blank price → null via z.preprocess, single render path formatPrice ("Price on request"); isActive defaults false (draft, D-08); edit prefills drafts and never changes slug on rename (D-07); proven live create-draft-hidden → publish → edit → delete through to public /shop with no redeploy (ADMIN-01/02/08)
+- [Phase 04 P05]: ImageDropzone stays the Plan-04 stub here but is passed slug={slug ?? slugify(watch('name'))} so Plan 09's upload pipeline targets products/{slug}/
 
 ### Pending Todos
 
@@ -134,6 +137,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T05:31:23Z
-Stopped at: Plan 04-07 paused at Task 3 (checkpoint:human-verify — manual browser walk for the site-content slice). Tasks 1-2 implemented & committed (6b9b259, 314706b); npm run check + npm run build + TipTap code-split all PASS.
-Resume file: .planning/phases/04-admin-portal-catalog-content-management/04-07-PLAN.md
+Last session: 2026-06-01T13:52:58Z
+Stopped at: Plan 04-05 COMPLETE — product slice (ProductsList + ProductForm) shipped (275e8af, 7e57f69); Task 3 blocking human-verify browser walk APPROVED by user (create-draft-hidden → publish-live → edit → delete all proven through to public /shop); npm run check exits 0, npm run build succeeds. SUMMARY + tracking written. Plans 04-06 (Task 1 done, paused at human-verify) and 04-07 (Tasks 1-2 done, paused at human-verify) remain in flight.
+Resume file: .planning/phases/04-admin-portal-catalog-content-management/04-06-PLAN.md
