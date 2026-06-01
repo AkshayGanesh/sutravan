@@ -29,6 +29,14 @@ jobs:
 
       - name: Build client
         run: npx vite build
+        env:
+          # Public client values — inlined into the bundle at build time by Vite.
+          # Safe by design: the anon key is gated by Supabase RLS and the Turnstile
+          # site key is public. Stored as GitHub repo secrets (Settings -> Secrets
+          # and variables -> Actions). The service_role key is NEVER set here.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
 
       - name: Copy index.html to 404.html for SPA routing
         run: cp dist/public/index.html dist/public/404.html
