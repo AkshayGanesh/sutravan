@@ -12,6 +12,7 @@ import Contact from "@/pages/Contact";
 import Questionnaire from "@/pages/Questionnaire";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import ResetPassword from "@/pages/ResetPassword";
 import Admin from "@/pages/Admin";
 import AdminGuard from "@/auth/AdminGuard";
 
@@ -27,6 +28,7 @@ function Router() {
         <Route path="/questionnaire" component={Questionnaire} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/reset-password" component={ResetPassword} />
         <Route path="/admin/:rest*">
           {() => (
             <AdminGuard>
