@@ -2,6 +2,7 @@ import { Router as WouterRouter, Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AuthProvider from "@/auth/AuthProvider";
 import NotFound from "@/pages/not-found";
@@ -13,8 +14,27 @@ import Questionnaire from "@/pages/Questionnaire";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ResetPassword from "@/pages/ResetPassword";
-import Admin from "@/pages/Admin";
 import AdminGuard from "@/auth/AdminGuard";
+import AdminLayout from "@/pages/admin/AdminLayout";
+import ProductsList from "@/pages/admin/ProductsList";
+import ProductForm from "@/pages/admin/ProductForm";
+import CategoriesList from "@/pages/admin/CategoriesList";
+import SiteContent from "@/pages/admin/SiteContent";
+import Submissions from "@/pages/admin/Submissions";
+import type { ReactNode } from "react";
+
+/**
+ * Every `/admin/*` route stays behind the unchanged AdminGuard (T-04-11:
+ * logged-out→/login, non-admin→/, admin→children) and renders its section
+ * inside AdminLayout. The guard is UX; RLS is the real boundary.
+ */
+function AdminRoute({ children }: { children: ReactNode }) {
+  return (
+    <AdminGuard>
+      <AdminLayout>{children}</AdminLayout>
+    </AdminGuard>
+  );
+}
 
 function Router() {
   return (
@@ -29,20 +49,57 @@ function Router() {
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/reset-password" component={ResetPassword} />
-        <Route path="/admin/:rest*">
+
+        <Route path="/admin/products/new">
           {() => (
-            <AdminGuard>
-              <Admin />
-            </AdminGuard>
+            <AdminRoute>
+              <ProductForm />
+            </AdminRoute>
+          )}
+        </Route>
+        <Route path="/admin/products/:slug">
+          {() => (
+            <AdminRoute>
+              <ProductForm />
+            </AdminRoute>
+          )}
+        </Route>
+        <Route path="/admin/products">
+          {() => (
+            <AdminRoute>
+              <ProductsList />
+            </AdminRoute>
+          )}
+        </Route>
+        <Route path="/admin/categories">
+          {() => (
+            <AdminRoute>
+              <CategoriesList />
+            </AdminRoute>
+          )}
+        </Route>
+        <Route path="/admin/content">
+          {() => (
+            <AdminRoute>
+              <SiteContent />
+            </AdminRoute>
+          )}
+        </Route>
+        <Route path="/admin/submissions">
+          {() => (
+            <AdminRoute>
+              <Submissions />
+            </AdminRoute>
           )}
         </Route>
         <Route path="/admin">
           {() => (
-            <AdminGuard>
-              <Admin />
-            </AdminGuard>
+            <AdminRoute>
+              <ProductsList />
+            </AdminRoute>
           )}
         </Route>
+
         <Route component={NotFound} />
       </Switch>
     </WouterRouter>
@@ -55,6 +112,7 @@ function App() {
       <TooltipProvider>
         <AuthProvider>
           <Toaster />
+          <SonnerToaster />
           <Router />
         </AuthProvider>
       </TooltipProvider>
