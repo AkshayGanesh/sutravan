@@ -1,10 +1,13 @@
 import { Link } from "wouter";
 import Layout from "@/components/Layout";
-
-const INSTAGRAM_URL = "https://www.instagram.com/sutravan.in";
-const EMAIL = "sutravan.in@gmail.com";
+import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 
 export default function Contact() {
+  // D-20: instagram + email from the single source of truth, with fallbacks.
+  const { data } = useSiteContent();
+  const instagramUrl = data?.instagram_url ?? SITE_CONTENT_DEFAULTS.instagram_url;
+  const email = data?.email ?? SITE_CONTENT_DEFAULTS.email;
+
   return (
     <Layout>
       {/* Header */}
@@ -27,7 +30,7 @@ export default function Contact() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Instagram */}
           <a
-            href={INSTAGRAM_URL}
+            href={instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="group bg-background border border-border hover:border-primary p-8 text-center transition-all duration-300"
@@ -63,7 +66,7 @@ export default function Contact() {
 
           {/* Email */}
           <a
-            href={`mailto:${EMAIL}`}
+            href={`mailto:${email}`}
             className="group bg-background border border-border hover:border-primary p-8 text-center transition-all duration-300"
           >
             <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center border border-secondary rounded-full text-secondary group-hover:bg-secondary group-hover:text-primary transition-colors duration-300">
@@ -90,7 +93,7 @@ export default function Contact() {
               orders.
             </p>
             <span className="text-secondary font-medium text-sm">
-              {EMAIL}
+              {email}
             </span>
           </a>
         </div>

@@ -1,10 +1,14 @@
 import { Link } from "wouter";
-
-const INSTAGRAM_URL = "https://www.instagram.com/sutravan.in";
-const YOUTUBE_URL = "https://youtube.com/@sutravan?si=0ne7zUvFEh70AF6j";
-const EMAIL = "sutravan.in@gmail.com";
+import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 
 export default function Footer() {
+  // D-20: read the single source of truth with mandatory code-default fallbacks
+  // so the footer never renders a blank link while the query loads or on error.
+  const { data } = useSiteContent();
+  const instagramUrl = data?.instagram_url ?? SITE_CONTENT_DEFAULTS.instagram_url;
+  const youtubeUrl = data?.youtube_url ?? SITE_CONTENT_DEFAULTS.youtube_url;
+  const email = data?.email ?? SITE_CONTENT_DEFAULTS.email;
+
   return (
     <footer className="bg-primary text-background/80 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -21,7 +25,7 @@ export default function Footer() {
           {/* Social */}
           <div className="flex items-center gap-4">
             <a
-              href={INSTAGRAM_URL}
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-secondary transition-colors"
@@ -44,7 +48,7 @@ export default function Footer() {
               </svg>
             </a>
             <a
-              href={YOUTUBE_URL}
+              href={youtubeUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-secondary transition-colors"
@@ -66,7 +70,7 @@ export default function Footer() {
               </svg>
             </a>
             <a
-              href={`mailto:${EMAIL}`}
+              href={`mailto:${email}`}
               className="hover:text-secondary transition-colors"
               aria-label="Email"
             >
@@ -159,7 +163,7 @@ export default function Footer() {
             </li>
             <li>
               <a
-                href={INSTAGRAM_URL}
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-secondary transition-colors"
@@ -169,7 +173,7 @@ export default function Footer() {
             </li>
             <li>
               <a
-                href={YOUTUBE_URL}
+                href={youtubeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-secondary transition-colors"

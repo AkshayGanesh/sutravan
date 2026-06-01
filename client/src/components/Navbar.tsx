@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/auth/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 
 const navLinks = [
   { href: "/shop", label: "Shop" },
@@ -28,6 +29,13 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { session, signOut } = useAuth();
   const { toast } = useToast();
+
+  // D-20: email + social links from the single source of truth, with mandatory
+  // code-default fallbacks so the nav never renders blank links.
+  const { data } = useSiteContent();
+  const instagramUrl = data?.instagram_url ?? SITE_CONTENT_DEFAULTS.instagram_url;
+  const youtubeUrl = data?.youtube_url ?? SITE_CONTENT_DEFAULTS.youtube_url;
+  const email = data?.email ?? SITE_CONTENT_DEFAULTS.email;
 
   // Role lives in useAuth too (Phase 5 Wishlist/Profile items go here);
   // session presence is sufficient to decide logged-in vs logged-out here.
@@ -74,7 +82,7 @@ export default function Navbar() {
           <div className="flex items-center space-x-3">
             {/* Instagram */}
             <a
-              href="https://www.instagram.com/sutravan.in"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 hover:text-secondary transition-colors duration-300"
@@ -99,7 +107,7 @@ export default function Navbar() {
 
             {/* YouTube */}
             <a
-              href="https://youtube.com/@sutravan"
+              href={youtubeUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 hover:text-secondary transition-colors duration-300"
@@ -123,7 +131,7 @@ export default function Navbar() {
 
             {/* Email */}
             <a
-              href="mailto:sutravan.in@gmail.com"
+              href={`mailto:${email}`}
               className="hidden sm:block p-2 hover:text-secondary transition-colors duration-300"
               aria-label="Email"
             >
@@ -246,7 +254,7 @@ export default function Navbar() {
                 </nav>
                 <div className="mt-10 pt-6 border-t border-border/50 space-y-4">
                   <a
-                    href="https://www.instagram.com/sutravan.in"
+                    href={instagramUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 text-sm text-foreground/70 hover:text-secondary transition-colors"
@@ -276,7 +284,7 @@ export default function Navbar() {
                     @sutravan.in
                   </a>
                   <a
-                    href="https://youtube.com/@sutravan"
+                    href={youtubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 text-sm text-foreground/70 hover:text-secondary transition-colors"
@@ -298,7 +306,7 @@ export default function Navbar() {
                     @sutravan
                   </a>
                   <a
-                    href="mailto:sutravan.in@gmail.com"
+                    href={`mailto:${email}`}
                     className="flex items-center gap-3 text-sm text-foreground/70 hover:text-secondary transition-colors"
                   >
                     <svg
@@ -315,7 +323,7 @@ export default function Navbar() {
                       <rect width="20" height="16" x="2" y="4" rx="2" />
                       <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                     </svg>
-                    sutravan.in@gmail.com
+                    {email}
                   </a>
                 </div>
               </SheetContent>

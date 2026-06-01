@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 
 interface ProductDetailProps {
   product: Product | null;
@@ -13,14 +14,15 @@ interface ProductDetailProps {
   onClose: () => void;
 }
 
-const INSTAGRAM_URL = "https://www.instagram.com/sutravan.in";
-
 export default function ProductDetail({
   product,
   open,
   onClose,
 }: ProductDetailProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  // D-20: the "Enquire on Instagram" CTA reads the live URL with a fallback.
+  const { data } = useSiteContent();
+  const instagramUrl = data?.instagram_url ?? SITE_CONTENT_DEFAULTS.instagram_url;
 
   useEffect(() => {
     setActiveIndex(0);
@@ -179,7 +181,7 @@ export default function ProductDetail({
 
             {/* CTA */}
             <a
-              href={INSTAGRAM_URL}
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 block w-full bg-primary text-primary-foreground py-3.5 text-sm uppercase tracking-wider font-medium text-center hover:bg-secondary hover:text-primary transition-colors duration-300"

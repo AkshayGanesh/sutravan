@@ -5,6 +5,7 @@ import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProducts, useCategories } from "@/lib/catalog";
+import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 import type { Product, Category } from "@/data/products";
 
 const allTab = { id: "all" as const, label: "All Products" };
@@ -32,6 +33,11 @@ export default function Shop() {
     (params.category as Category | undefined) ?? null
   );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // D-20: the "Message Us on Instagram" CTA reads the live URL with a fallback.
+  const { data: siteContent } = useSiteContent();
+  const instagramUrl =
+    siteContent?.instagram_url ?? SITE_CONTENT_DEFAULTS.instagram_url;
 
   // Once categories load, drop the active filter if the URL param wasn't a real
   // category (e.g. /shop/bogus) so we fall back to All Products.
@@ -174,7 +180,7 @@ export default function Shop() {
             customize the formulation accordingly.
           </p>
           <a
-            href="https://www.instagram.com/sutravan.in"
+            href={instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block bg-primary text-primary-foreground px-8 py-3.5 text-sm uppercase tracking-wider font-medium hover:bg-secondary hover:text-primary transition-colors duration-300"
