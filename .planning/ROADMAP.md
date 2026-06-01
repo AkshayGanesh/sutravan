@@ -107,7 +107,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 1, Wave 2)*
 
-- [ ] 03-04-PLAN.md — Admin guard slice: AdminGuard (loading gate + D-11 redirects + return-to) + empty /admin shell + guarded /admin/* route (AUTH-05)
+- [x] 03-04-PLAN.md — Admin guard slice: AdminGuard (loading gate + D-11 redirects + return-to) + empty /admin shell + guarded /admin/* route (AUTH-05)
 
 **Wave 4** *(blocked on Wave 1, Wave 3)*
 
@@ -163,6 +163,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
-| 3. Authentication & Roles | 4/6 | In Progress|  |
+| 3. Authentication & Roles | 5/6 | In Progress|  |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
