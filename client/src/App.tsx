@@ -10,6 +10,8 @@ import Shop from "@/pages/Shop";
 import OurStory from "@/pages/OurStory";
 import Contact from "@/pages/Contact";
 import Questionnaire from "@/pages/Questionnaire";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 
 function Router() {
   return (
@@ -21,6 +23,8 @@ function Router() {
         <Route path="/our-story" component={OurStory} />
         <Route path="/contact" component={Contact} />
         <Route path="/questionnaire" component={Questionnaire} />
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
         <Route component={NotFound} />
       </Switch>
     </WouterRouter>

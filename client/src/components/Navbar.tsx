@@ -1,11 +1,20 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
+import { User, LogOut } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/auth/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const navLinks = [
   { href: "/shop", label: "Shop" },
@@ -15,8 +24,20 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [open, setOpen] = useState(false);
+  const { session, signOut } = useAuth();
+  const { toast } = useToast();
+
+  // Role lives in useAuth too (Phase 5 Wishlist/Profile items go here);
+  // session presence is sufficient to decide logged-in vs logged-out here.
+  const isLoggedIn = !!session;
+
+  async function handleSignOut() {
+    await signOut();
+    toast({ title: "Signed out" });
+    navigate("/");
+  }
 
   return (
     <nav className="w-full bg-background/90 backdrop-blur-sm fixed top-0 z-50 border-b border-border/50">
@@ -122,6 +143,32 @@ export default function Navbar() {
               </svg>
             </a>
 
+            {/* Account */}
+            {isLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="p-2 hover:text-secondary transition-colors duration-300 outline-none"
+                  aria-label="Account menu"
+                >
+                  <User size={20} strokeWidth={1.5} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => void handleSignOut()}>
+                    <LogOut size={16} strokeWidth={1.5} />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link
+                href="/login"
+                className="p-2 hover:text-secondary transition-colors duration-300"
+                aria-label="Log in"
+              >
+                <User size={20} strokeWidth={1.5} />
+              </Link>
+            )}
+
             {/* Mobile Hamburger */}
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
@@ -169,6 +216,33 @@ export default function Navbar() {
                       {link.label}
                     </Link>
                   ))}
+                  {/* Account parity: logout/login reachable on mobile too */}
+                  {isLoggedIn ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpen(false);
+                        void handleSignOut();
+                      }}
+                      className="flex items-center gap-2 text-base font-medium text-left hover:text-secondary transition-colors duration-300"
+                    >
+                      <LogOut size={18} strokeWidth={1.5} />
+                      Log out
+                    </button>
+                  ) : (
+                    <Link
+                      href="/login"
+                      onClick={() => setOpen(false)}
+                      className={`flex items-center gap-2 text-base font-medium transition-colors duration-300 ${
+                        location === "/login"
+                          ? "text-secondary"
+                          : "hover:text-secondary"
+                      }`}
+                    >
+                      <User size={18} strokeWidth={1.5} />
+                      Log in
+                    </Link>
+                  )}
                 </nav>
                 <div className="mt-10 pt-6 border-t border-border/50 space-y-4">
                   <a
