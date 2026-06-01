@@ -36,6 +36,11 @@ through an admin portal — no code changes, no redeploys.
 - ✓ Admin vs customer roles distinguished and enforced server-side (DB trigger role-lock + RLS), not just in the UI — validated in Phase 3 (AUTH-04)
 - ✓ Admin portal routes protected by an auth guard; first admin bootstrapped out-of-band via `scripts/promote-admin.ts` — validated in Phase 3 (AUTH-05)
 
+<!-- Validated in Phase 5: Customer Experience -->
+- ✓ Customer can save / wishlist products (heart on card + detail + /wishlist page + navbar badge, optimistic shared cache) — validated in Phase 5 (CUST-01/CUST-02)
+- ✓ Native multi-step questionnaire replaces the Google Form; Turnstile-gated submissions land in the admin inbox via the verify-and-submit Edge Function under RLS ownership (migration 0007) — validated in Phase 5 (CUST-03)
+- ✓ Customer profile with self-service account management (name/email/password) and owner-scoped customization history — validated in Phase 5 (CUST-04)
+
 ### Active
 
 <!-- This milestone. Hypotheses until shipped and validated. -->
@@ -56,9 +61,9 @@ through an admin portal — no code changes, no redeploys.
 - [ ] Admin can view customization submissions in an inbox
 
 **Customer Side**
-- [ ] Replace the embedded Google Form with a native questionnaire that submits to Supabase
-- [ ] Customer can save / wishlist products to revisit later
-- [ ] Customer has a profile and can view their own inquiry / customization history
+- [x] Replace the embedded Google Form with a native questionnaire that submits to Supabase — Phase 5 (CUST-03)
+- [x] Customer can save / wishlist products to revisit later — Phase 5 (CUST-01/02)
+- [x] Customer has a profile and can view their own inquiry / customization history — Phase 5 (CUST-04)
 
 ### Out of Scope
 
@@ -71,7 +76,7 @@ through an admin portal — no code changes, no redeploys.
 
 ## Context
 
-**Milestone progress:** Phase 1 (Supabase foundation), Phase 2 (live catalog / public shop rewire), and Phase 3 (authentication & roles) are complete. Next: Phase 4 — Admin Portal (catalog & content management).
+**Milestone progress:** ALL FIVE PHASES COMPLETE (2026-06-01) — Phase 1 (Supabase foundation), Phase 2 (live catalog / public shop rewire), Phase 3 (authentication & roles), Phase 4 (admin portal — catalog & content management), and Phase 5 (customer experience — wishlist, profile, native questionnaire). The milestone goal is delivered: owner self-manages the full catalog via the admin portal, and customers can register, wishlist, profile, and submit native customization requests. Next: `/gsd-complete-milestone` to archive, then the e-commerce milestone (cart / checkout / payments).
 
 **Current state (from codebase map):**
 - Frontend is mature: React 19, Vite 7, Tailwind 4, shadcn/ui, Wouter routing, TanStack Query already wired in `client/src/lib/queryClient.ts`.
