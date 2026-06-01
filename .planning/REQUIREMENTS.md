@@ -9,10 +9,10 @@ Requirements for this milestone. Each maps to a roadmap phase. E-commerce is exp
 
 ### Backend & Data Foundation
 
-- [ ] **DATA-01**: App is wired to a Supabase project via environment-based config (anon key in client)
-- [ ] **DATA-02**: Postgres schema exists for products, categories, site content, customization submissions, profiles, and wishlists, with Row Level Security enabled on every table
+- [x] **DATA-01**: App is wired to a Supabase project via environment-based config (anon key in client)
+- [x] **DATA-02**: Postgres schema exists for products, categories, site content, customization submissions, profiles, and wishlists, with Row Level Security enabled on every table
 - [x] **DATA-03**: The 68 existing hardcoded products, categories, and soap images are migrated into Supabase via a one-time seed (run with the service-role key locally, never shipped)
-- [ ] **DATA-04**: The unused Express + Drizzle backend scaffolding is removed
+- [x] **DATA-04**: The unused Express + Drizzle backend scaffolding is removed
 
 ### Authentication & Access Control
 
@@ -83,10 +83,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 1 | Pending |
-| DATA-02 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
+| DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 2 | Complete |
-| DATA-04 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Complete |
 | AUTH-01 | Phase 3 | DB foundation (03-01: signup trigger creates customer profile); register UI pending (03-03) |
 | AUTH-02 | Phase 3 | Complete |
 | AUTH-03 | Phase 3 | Complete |
