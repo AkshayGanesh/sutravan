@@ -27,6 +27,15 @@ through an admin portal — no code changes, no redeploys.
 - ✓ Static deployment to GitHub Pages with SPA routing — existing
 - ✓ "Skin Guide" questionnaire page that embeds an external Google Form — existing (responses go to Google, not the app)
 
+<!-- Validated in Phase 1: Supabase Foundation -->
+- ✓ Supabase project wired with full schema, default-deny RLS, `is_admin()` helper, and Storage buckets — validated in Phase 1
+<!-- Validated in Phase 2: Live Catalog -->
+- ✓ Public Shop reads live product/category data from Supabase (replacing the static file) — validated in Phase 2
+<!-- Validated in Phase 3: Authentication & Roles -->
+- ✓ Customer can register and log in (Supabase Auth), session persists across restarts, logout from any page — validated in Phase 3 (AUTH-01/02/03)
+- ✓ Admin vs customer roles distinguished and enforced server-side (DB trigger role-lock + RLS), not just in the UI — validated in Phase 3 (AUTH-04)
+- ✓ Admin portal routes protected by an auth guard; first admin bootstrapped out-of-band via `scripts/promote-admin.ts` — validated in Phase 3 (AUTH-05)
+
 ### Active
 
 <!-- This milestone. Hypotheses until shipped and validated. -->
@@ -36,11 +45,6 @@ through an admin portal — no code changes, no redeploys.
 - [ ] Store categories in Supabase (replacing the literal `'soap' | 'scrub' | 'cream'` type)
 - [ ] Move product images from repo glob-imports into Supabase Storage
 - [ ] Drop the unused Express + Drizzle scaffolding (Supabase-direct architecture)
-
-**Auth**
-- [ ] Admin can log in to a protected admin portal (Supabase Auth)
-- [ ] Customer can register and log in (Supabase Auth)
-- [ ] Admin vs customer roles are distinguished and enforced
 
 **Admin Portal — Content Management**
 - [ ] Admin can create, edit, and delete products (name, description, category, price, images)
@@ -56,9 +60,6 @@ through an admin portal — no code changes, no redeploys.
 - [ ] Customer can save / wishlist products to revisit later
 - [ ] Customer has a profile and can view their own inquiry / customization history
 
-**Public Site**
-- [ ] Public Shop reads live product/category data from Supabase (instead of static file)
-
 ### Out of Scope
 
 <!-- Explicit boundaries with reasoning. -->
@@ -69,6 +70,8 @@ through an admin portal — no code changes, no redeploys.
 - Keeping the Express server — replaced by Supabase-direct architecture
 
 ## Context
+
+**Milestone progress:** Phase 1 (Supabase foundation), Phase 2 (live catalog / public shop rewire), and Phase 3 (authentication & roles) are complete. Next: Phase 4 — Admin Portal (catalog & content management).
 
 **Current state (from codebase map):**
 - Frontend is mature: React 19, Vite 7, Tailwind 4, shadcn/ui, Wouter routing, TanStack Query already wired in `client/src/lib/queryClient.ts`.
@@ -94,13 +97,13 @@ through an admin portal — no code changes, no redeploys.
 |----------|-----------|---------|
 | Supabase as backend | User choice; gives Postgres + Auth + Storage + auto API in one managed service | — Pending |
 | Supabase-direct (drop Express) | Existing Express was never wired up; removing it cuts maintenance and hosting | — Pending |
-| Admin + customer accounts now | User wants customers to register early and have inquiry history, even before checkout | — Pending |
+| Admin + customer accounts now | User wants customers to register early and have inquiry history, even before checkout | ✓ Validated (Phase 3) |
 | Product images → Supabase Storage | Replaces fragile repo glob-imports; enables image management in the portal | — Pending |
 | E-commerce deferred to later milestone | Catalog management must exist before selling; keeps this build focused | — Pending |
 | Site content (Story, hero) editable in portal | Owner wants full content control, not just catalog | — Pending |
 | Customer wishlist included this build | Gives customer accounts immediate value before checkout exists | — Pending |
 | Native questionnaire replaces Google Form | Capture submissions in-app so admin sees them and customers get history | — Pending |
-| Access control via Supabase RLS | Client-side route guards aren't real security for a public SPA | — Pending |
+| Access control via Supabase RLS | Client-side route guards aren't real security for a public SPA | ✓ Validated (Phase 3) — role-lock trigger + RLS enforce server-side; AdminGuard is UX only |
 
 ## Evolution
 
