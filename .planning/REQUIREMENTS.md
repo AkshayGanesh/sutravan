@@ -24,10 +24,10 @@ Requirements for this milestone. Each maps to a roadmap phase. E-commerce is exp
 
 ### Admin Portal — Content Management
 
-- [ ] **ADMIN-01**: Admin can create, edit, and delete products (name, subtitle, category, benefits, ingredients, tips, shelf life, batch note)
+- [x] **ADMIN-01**: Admin can create, edit, and delete products (name, subtitle, category, benefits, ingredients, tips, shelf life, batch note)
 - [ ] **ADMIN-02**: Admin can set and edit each product's price
-- [ ] **ADMIN-03**: Admin can upload, replace, and remove product images stored in Supabase Storage
-- [ ] **ADMIN-04**: Admin can create, edit, and delete categories
+- [x] **ADMIN-03**: Admin can upload, replace, and remove product images stored in Supabase Storage
+- [x] **ADMIN-04**: Admin can create, edit, and delete categories
 - [x] **ADMIN-05**: Admin can edit site content (Our Story page copy, homepage hero text)
 - [x] **ADMIN-06**: Admin can edit contact details and social links (Instagram, YouTube, email)
 - [ ] **ADMIN-07**: Admin can view customer customization submissions in an inbox
@@ -92,10 +92,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | AUTH-03 | Phase 3 | Complete |
 | AUTH-04 | Phase 3 | Complete (03-01: role server-side in profiles; role-lock trigger + RLS enforce admin-only writes) |
 | AUTH-05 | Phase 3 | Complete |
-| ADMIN-01 | Phase 4 | Pending |
+| ADMIN-01 | Phase 4 | Complete |
 | ADMIN-02 | Phase 4 | Pending |
-| ADMIN-03 | Phase 4 | Pending |
-| ADMIN-04 | Phase 4 | Pending |
+| ADMIN-03 | Phase 4 | Complete |
+| ADMIN-04 | Phase 4 | Complete |
 | ADMIN-05 | Phase 4 | Complete |
 | ADMIN-06 | Phase 4 | Complete |
 | ADMIN-07 | Phase 4 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: "Phase 4 Plan 01 — Task 3 checkpoint (blocking human-verify: live push of migrations 0005 + 0006)"
-last_updated: "2026-06-01T04:56:44.620Z"
+stopped_at: Completed 04-02-PLAN.md (admin write-layer pure modules)
+last_updated: "2026-06-01T05:04:23.770Z"
 last_activity: 2026-06-01 -- Phase 04 Plan 01 Tasks 1-2 committed (985b93a, 567c179)
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 13
+  completed_plans: 14
   percent: 60
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 04 (admin-portal-catalog-content-management) — EXECUTING
-Plan: 2 of 9 — Tasks 1-2 done, PAUSED at Task 3 (blocking human-verify live push)
+Plan: 3 of 9 — Tasks 1-2 done, PAUSED at Task 3 (blocking human-verify live push)
 Status: Awaiting checkpoint — migrations 0005 + 0006 authored & committed; live `supabase db push` + draft-isolation verification pending (orchestrator)
 Last activity: 2026-06-01 -- Phase 04 Plan 01 Tasks 1-2 committed (985b93a, 567c179)
 
@@ -63,6 +63,7 @@ Progress: [█████████░] 100%
 | Phase 03 P04 | 5min | 3 tasks | 3 files |
 | Phase 03-authentication-roles P05 | 3min | 2 tasks | 2 files |
 | Phase 04 P01 | 35min | 3 tasks | 2 files |
+| Phase 04 P02 | 8min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase ?]: AdminGuard defers decisions behind useAuth loading gate (D-12), then D-11 matrix: logged-out -> /login?next=<internal-path>, non-admin -> / (no 403), admin -> children
 - [Phase 04]: D-14/CR-01: products_public_read enforces is_active = true at the RLS layer (0005), proven live — drafts unreachable via raw anon PostgREST
 - [Phase 04]: D-18: seven site_content keys seeded idempotently (0006) via on conflict (key) do nothing
+- [Phase 04]: heic2any kept as HEIC primary (heic-to documented fallback) — owner-approved Task 1 package gate
+- [Phase 04]: Admin write-layer pure modules ship test-first (Vitest): slugify/sanitizeRichText/image-guard/mapWriteError; heavy HEIC+compression libs lazy dynamic-imported to stay out of public bundle
 
 ### Pending Todos
 
@@ -128,6 +131,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T04:56:35.527Z
-Stopped at: Phase 4 Plan 01 — Task 3 checkpoint (blocking human-verify: live push of migrations 0005 + 0006)
-Resume file: .planning/phases/04-admin-portal-catalog-content-management/04-01-PLAN.md
+Last session: 2026-06-01T05:04:23.766Z
+Stopped at: Completed 04-02-PLAN.md (admin write-layer pure modules)
+Resume file: None

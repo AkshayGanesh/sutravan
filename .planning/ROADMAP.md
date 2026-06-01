@@ -136,7 +136,7 @@ Plans:
 **Wave 1**
 
 - [x] 04-01-PLAN.md — Migrations 0005 (CR-01 products_public_read -> is_active=true) + 0006 (site_content seed) + [BLOCKING] supabase db push + draft-isolation verify (ADMIN-05, ADMIN-06, ADMIN-08)
-- [ ] 04-02-PLAN.md — Pure-logic foundation + Vitest: slug, sanitizeHtml (DOMPurify), imagePipeline guard, adminErrors; package-legitimacy gate (ADMIN-01, ADMIN-03, ADMIN-04, ADMIN-05)
+- [x] 04-02-PLAN.md — Pure-logic foundation + Vitest: slug, sanitizeHtml (DOMPurify), imagePipeline guard, adminErrors; package-legitimacy gate (ADMIN-01, ADMIN-03, ADMIN-04, ADMIN-05)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -186,5 +186,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
 | 3. Authentication & Roles | 6/6 | Complete    | 2026-06-01 |
-| 4. Admin Portal — Catalog & Content Management | 1/9 | In Progress|  |
+| 4. Admin Portal — Catalog & Content Management | 2/9 | In Progress|  |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
