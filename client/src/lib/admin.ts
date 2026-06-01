@@ -17,6 +17,8 @@
 //    .eq('is_active', true) — admins see and manage drafts (Pitfall 4). RLS
 //    (migrations 0002/0003 + CR-01 0005) is the real gate; this layer is
 //    convenience only.
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "./supabase";
 import { slugify } from "./slug";
 import { mapWriteError } from "./adminErrors";
@@ -183,4 +185,233 @@ export async function insertProductWithUniqueSlug(
   }
   // Exhausted suffixes — surface a friendly error via the shared mapper.
   throw new Error(mapWriteError({ code: "23505" }));
+}
+
+// ── Query + mutation hooks ───────────────────────────────────────────────────
+//
+// The existing public read keys are ['catalog','products'] and
+// ['catalog','categories']; invalidating the ['catalog'] PREFIX refreshes both
+// the admin lists and the public Shop. Content writes use the ['siteContent']
+// key family. Because queryClient.ts sets staleTime: Infinity + retry:false,
+// invalidation in onSuccess is MANDATORY, not optional (Pitfall 1).
+
+// The admin product/category row shapes returned by the list queries (snake_case
+// straight from PostgREST; the admin tables render these directly).
+const ADMIN_PRODUCT_COLUMNS =
+  "slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, is_active, categories(slug, label, sort_order)";
+
+async function fetchAdminProducts() {
+  // NOTE: no .eq('is_active', true) here — admins manage drafts too (Pitfall 4).
+  const { data, error } = await supabase
+    .from("products")
+    .select(ADMIN_PRODUCT_COLUMNS)
+    .order("slug", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Admin product list — includes drafts (no is_active filter), key distinct from public. */
+export function useAdminProducts() {
+  return useQuery({
+    queryKey: ["catalog", "admin-products"],
+    queryFn: fetchAdminProducts,
+  });
+}
+
+async function fetchAdminCategories() {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id, slug, label, description, sort_order")
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Admin category list ordered by sort_order. */
+export function useAdminCategories() {
+  return useQuery({
+    queryKey: ["catalog", "admin-categories"],
+    queryFn: fetchAdminCategories,
+  });
+}
+
+// Resolve a category slug to its UUID (products store category_id, not slug).
+async function categoryIdForSlug(slug: string): Promise<string> {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("slug", slug)
+    .single();
+  if (error) throw error;
+  return (data as { id: string }).id;
+}
+
+/**
+ * Create or update a product.
+ * - CREATE (no v.slug): resolve category, then insert with a unique slug.
+ * - EDIT (v.slug set): update by the fixed slug — slug never changes on rename (D-07).
+ */
+export function useUpsertProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: ProductFormValues) => {
+      const categoryId = await categoryIdForSlug(v.category);
+      const row = fromProductForm(v, categoryId);
+      const isCreate = !v.slug;
+      if (isCreate) {
+        await insertProductWithUniqueSlug(row);
+      } else {
+        // slug stays fixed; do not write it back as a changeable column.
+        const { slug, ...changes } = row;
+        const { error } = await supabase
+          .from("products")
+          .update(changes)
+          .eq("slug", v.slug);
+        if (error) throw error;
+      }
+      return { isCreate };
+    },
+    onSuccess: ({ isCreate }) => {
+      qc.invalidateQueries({ queryKey: ["catalog"] });
+      toast.success(isCreate ? "Product saved." : "Changes saved.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+/** Flip a product's draft/published flag (ADMIN-08). */
+export function useToggleProductActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ slug, isActive }: { slug: string; isActive: boolean }) => {
+      const { error } = await supabase
+        .from("products")
+        .update({ is_active: isActive })
+        .eq("slug", slug);
+      if (error) throw error;
+      return { isActive };
+    },
+    onSuccess: ({ isActive }) => {
+      qc.invalidateQueries({ queryKey: ["catalog"] });
+      toast.success(
+        isActive
+          ? "Product is now live on the Shop."
+          : "Product hidden from the Shop.",
+      );
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+/** Delete a product row, then clean up its Storage images (orphan cleanup, Pitfall 2). */
+export function useDeleteProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      slug,
+      imagePaths,
+    }: {
+      slug: string;
+      imagePaths: string[];
+    }) => {
+      const { error } = await supabase.from("products").delete().eq("slug", slug);
+      if (error) throw error;
+      await removeProductImages(slug, imagePaths);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["catalog"] });
+      toast.success("Product deleted.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+/**
+ * Create or update a category.
+ * - CREATE (no v.slug): slug auto-derived from the name via slugify.
+ * - EDIT (v.slug set): update by the fixed slug (stable on rename, D-07).
+ */
+export function useUpsertCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: CategoryFormValues) => {
+      const isCreate = !v.slug;
+      if (isCreate) {
+        const { error } = await supabase.from("categories").insert({
+          slug: slugify(v.name),
+          label: v.name,
+          sort_order: v.sortOrder,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("categories")
+          .update({ label: v.name, sort_order: v.sortOrder })
+          .eq("slug", v.slug);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["catalog"] });
+      toast.success("Category saved.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+/**
+ * Delete a category by id. The category_id FK rejects deleting a category whose
+ * products still reference it (PostgREST 23503) — translate that to the friendly
+ * D-15 in-use message, including the product count {N} (D-15), instead of a raw
+ * DB error.
+ */
+export function useDeleteCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase.from("categories").delete().eq("id", id);
+      if (error) {
+        if ((error as { code?: string }).code === "23503") {
+          // Fill the {N} product count for the friendly in-use message (D-15).
+          const { count } = await supabase
+            .from("products")
+            .select("slug", { count: "exact", head: true })
+            .eq("category_id", id);
+          const n = count ?? 0;
+          throw new Error(
+            `This category has ${n} product${n === 1 ? "" : "s"} — move or delete them first.`,
+          );
+        }
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["catalog"] });
+      toast.success("Category deleted.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+/**
+ * Upsert site_content key/value rows (hero copy, Our Story body, email, socials).
+ * Invalidates the ['siteContent'] family so the public Navbar/Footer/Contact/
+ * Hero/Our Story reflect the change without a redeploy.
+ */
+export function useSaveSiteContent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (values: Record<string, string>) => {
+      const rows = Object.entries(values).map(([key, value]) => ({ key, value }));
+      const { error } = await supabase
+        .from("site_content")
+        .upsert(rows, { onConflict: "key" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["siteContent"] });
+      toast.success("Site content updated.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
 }
