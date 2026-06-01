@@ -103,7 +103,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1)*
 
 - [x] 03-03-PLAN.md — Register/login/logout slice: Register + Login pages, Navbar account menu, /login + /register routes (AUTH-01, AUTH-02, AUTH-03)
-- [ ] 03-06-PLAN.md — First-admin bootstrap: idempotent service-role promote-admin script (out-of-band, no UI path) (AUTH-04, AUTH-05)
+- [x] 03-06-PLAN.md — First-admin bootstrap: idempotent service-role promote-admin script (out-of-band, no UI path) (AUTH-04, AUTH-05)
 
 **Wave 3** *(blocked on Wave 1, Wave 2)*
 
@@ -163,6 +163,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
-| 3. Authentication & Roles | 3/6 | In Progress|  |
+| 3. Authentication & Roles | 4/6 | In Progress|  |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
