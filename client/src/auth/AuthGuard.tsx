@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Redirect, useLocation } from "wouter";
 
 import { useAuth } from "@/auth/useAuth";
+import { safeReturnTo } from "@/pages/Login";
 import { Spinner } from "@/components/ui/spinner";
 
 /**
@@ -39,8 +40,11 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
   }
 
   // 2. Logged out — remember the intended internal path and send to /login.
+  //    Use the audited `safeReturnTo` sanitizer (the same one Login and
+  //    WishlistButton use) so protocol-relative paths like `//evil.com` are
+  //    rejected consistently here, not only re-checked downstream (WR-02).
   if (!session) {
-    const next = location.startsWith("/") ? location : "/";
+    const next = safeReturnTo(location);
     return <Redirect to={`/login?next=${encodeURIComponent(next)}`} />;
   }
 
