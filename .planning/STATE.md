@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
+status: Awaiting checkpoint — AdminLayout shell + stub section pages + ConfirmDialog/ImageDropzone/RepeatableRows shipped; App.tsx routes wired behind AdminGuard; Sonner Toaster mounted; automated assertions (grep + npm run check + npm run build) PASS; manual admin browser walk pending (user)
 stopped_at: Completed 04-02-PLAN.md (admin write-layer pure modules)
-last_updated: "2026-06-01T05:11:14.877Z"
+last_updated: "2026-06-01T05:20:52.707Z"
 last_activity: 2026-06-01 -- Phase 04 Plan 01 Tasks 1-2 committed (985b93a, 567c179)
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 15
+  completed_plans: 16
   percent: 60
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 04 (admin-portal-catalog-content-management) — EXECUTING
-Plan: 4 of 9 — Tasks 1-2 done, PAUSED at Task 3 (blocking human-verify live push)
-Status: Awaiting checkpoint — migrations 0005 + 0006 authored & committed; live `supabase db push` + draft-isolation verification pending (orchestrator)
+Plan: 5 of 9 — Tasks 1-2 done + Task 3 code change committed, PAUSED at Task 3 (blocking human-verify browser walk)
+Status: Awaiting checkpoint — AdminLayout shell + stub section pages + ConfirmDialog/ImageDropzone/RepeatableRows shipped; App.tsx routes wired behind AdminGuard; Sonner Toaster mounted; automated assertions (grep + npm run check + npm run build) PASS; manual admin browser walk pending (user)
 Last activity: 2026-06-01 -- Phase 04 Plan 01 Tasks 1-2 committed (985b93a, 567c179)
 
 Progress: [█████████░] 100%
@@ -65,6 +65,7 @@ Progress: [█████████░] 100%
 | Phase 04 P01 | 35min | 3 tasks | 2 files |
 | Phase 04 P02 | 8min | 3 tasks | 10 files |
 | Phase 04 P03 | 3min | 3 tasks | 3 files |
+| Phase 04 P04 | 35min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,7 @@ Recent decisions affecting current work:
 - [Phase 04]: D-18: seven site_content keys seeded idempotently (0006) via on conflict (key) do nothing
 - [Phase 04]: heic2any kept as HEIC primary (heic-to documented fallback) — owner-approved Task 1 package gate
 - [Phase 04]: Admin write-layer pure modules ship test-first (Vitest): slugify/sanitizeRichText/image-guard/mapWriteError; heavy HEIC+compression libs lazy dynamic-imported to stay out of public bundle
+- [Phase ?]: 04-04: Mounted Sonner Toaster in App.tsx (single global mount) rather than main.tsx
 
 ### Pending Todos
 
@@ -132,6 +134,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T05:10:42.525Z
+Last session: 2026-06-01T05:20:37.612Z
 Stopped at: Completed 04-02-PLAN.md (admin write-layer pure modules)
 Resume file: None

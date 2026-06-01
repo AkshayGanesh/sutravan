@@ -30,7 +30,7 @@ Requirements for this milestone. Each maps to a roadmap phase. E-commerce is exp
 - [x] **ADMIN-04**: Admin can create, edit, and delete categories
 - [x] **ADMIN-05**: Admin can edit site content (Our Story page copy, homepage hero text)
 - [x] **ADMIN-06**: Admin can edit contact details and social links (Instagram, YouTube, email)
-- [ ] **ADMIN-07**: Admin can view customer customization submissions in an inbox
+- [x] **ADMIN-07**: Admin can view customer customization submissions in an inbox
 - [x] **ADMIN-08**: Admin can toggle a product's visibility (draft vs published) so unfinished products stay hidden from the public site
 
 ### Customer Experience
@@ -98,7 +98,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ADMIN-04 | Phase 4 | Complete |
 | ADMIN-05 | Phase 4 | Complete |
 | ADMIN-06 | Phase 4 | Complete |
-| ADMIN-07 | Phase 4 | Pending |
+| ADMIN-07 | Phase 4 | Complete |
 | ADMIN-08 | Phase 4 | Complete |
 | CUST-01 | Phase 5 | Pending |
 | CUST-02 | Phase 5 | Pending |
