@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 05 UI-SPEC approved
-last_updated: "2026-06-01T15:49:35.629Z"
-last_activity: 2026-06-01 -- Phase 05 execution started
+stopped_at: Completed 05-02-PLAN.md (questionnaire backend live)
+last_updated: "2026-06-01T16:30:00.000Z"
+last_activity: 2026-06-01 -- Completed Phase 05 Plan 02 (questionnaire backend)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 25
-  completed_plans: 22
-  percent: 80
+  completed_plans: 23
+  percent: 84
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 05 (customer-experience-wishlist-profile-native-questionnaire) — EXECUTING
-Plan: 2 of 4
-Status: Ready to execute
-Last activity: 2026-06-01 -- Phase 05 execution started
+Plan: 3 of 4
+Status: Ready to execute (05-02 questionnaire backend complete & live)
+Last activity: 2026-06-01 -- Completed Phase 05 Plan 02 (questionnaire backend)
 
-Progress: [█████████░] 95%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [█████████░] 95%
 | Phase 04 P08 | 15min | 2 tasks | 2 files |
 | Phase 04 P09 | 30min | 2 tasks | 1 files |
 | Phase 05 P01 | 18 | 3 tasks | 9 files |
+| Phase 05 P02 | ~25min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,11 @@ Recent decisions affecting current work:
 - [Phase ?]: Plan 04-08: submissions read rides Phase-1 admin-read RLS (D-12); empty state normal until Phase 5 CUST-03 writer
 - [Phase ?]: Wishlist uses a single ['wishlist'] TanStack cache shared by card/modal/page/navbar with optimistic toggle (D-13)
 - [Phase ?]: Card passes slug only; useToggleWishlist resolves the products UUID server-side by slug
+- [Phase 05 P02]: D-01 ownership invariant lives in migration 0007 WITH CHECK on customization_submissions INSERT — anon → auth.uid() is null AND user_id is null; authenticated → user_id = (select auth.uid()). 0002 deliberately omitted this; pushed live to ref wfbnrcnmpcqzeyjlfflv and all four RLS cases proven (anon-null allowed, anon-non-null rejected, forged-uid rejected, own-uid allowed)
+- [Phase 05 P02]: First Edge Function verify-and-submit inserts under the CALLER's JWT (anon key + Authorization passthrough), NEVER service-role, so 0007's WITH CHECK stays the ownership gate (T-05-06); Turnstile siteverify with TURNSTILE_SECRET_KEY held only in function env (never VITE_); verify_jwt=false so anon reaches the body (Pitfall 1); CORS origin allow-listed to https://sutravan.in (not wildcard)
+- [Phase 05 P02]: T-05-08 ACCEPTED — direct-PostgREST insert can skip Turnstile but every row is still user_id-correct under 0007; residual spam risk accepted for a small no-payments brand (documented in function header)
+- [Phase 05 P02]: DEVIATION — Supabase CLI v2.102.0 rejects `--linked` on `functions deploy` (deploys to linked project by default); deployed without the flag to the correct ref
+- [Phase 05 P02]: CUST-03 BACKEND half done & live; requirement stays Pending until the Plan 03 wizard ships the customer-facing half
 
 ### Pending Todos
 
@@ -148,6 +154,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T15:49:26.749Z
-Stopped at: Phase 05 UI-SPEC approved
-Resume file: .planning/phases/05-customer-experience-wishlist-profile-native-questionnaire/05-UI-SPEC.md
+Last session: 2026-06-01T16:30:00.000Z
+Stopped at: Completed 05-02-PLAN.md (questionnaire backend — 0007 live, verify-and-submit deployed, D-01 proven)
+Resume file: .planning/phases/05-customer-experience-wishlist-profile-native-questionnaire/05-03-PLAN.md
