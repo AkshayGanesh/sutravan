@@ -131,7 +131,29 @@ Plans:
   4. An admin can edit site content (Our Story copy, homepage hero text) and contact details/social links (Instagram, YouTube, email), with edits reflected on the public site
   5. An admin can view customer customization submissions in an inbox; every destructive action has a confirm dialog and every write surfaces a success/error toast (non-negotiable for a non-technical owner)
 
-**Plans**: TBD
+**Plans**: 9 plans
+Plans:
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Migrations 0005 (CR-01 products_public_read -> is_active=true) + 0006 (site_content seed) + [BLOCKING] supabase db push + draft-isolation verify (ADMIN-05, ADMIN-06, ADMIN-08)
+- [ ] 04-02-PLAN.md — Pure-logic foundation + Vitest: slug, sanitizeHtml (DOMPurify), imagePipeline guard, adminErrors; package-legitimacy gate (ADMIN-01, ADMIN-03, ADMIN-04, ADMIN-05)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 04-03-PLAN.md — Write data-layer lib/admin.ts (product/category/content CRUD + Storage + mandatory cache invalidation) + lib/siteContent.ts read hook (ADMIN-01..06, ADMIN-08)
+- [ ] 04-04-PLAN.md — Admin shell: AdminLayout (sidebar + slim header + logout) + ConfirmDialog + stub section pages + /admin/* routes + Sonner Toaster (ADMIN-01, ADMIN-04, ADMIN-05, ADMIN-07)
+
+**Wave 3** *(blocked on Wave 2; parallel — distinct page files)*
+
+- [ ] 04-05-PLAN.md — Products slice: ProductsList (table + Published toggle + delete) + ProductForm (RHF+Zod, price, draft default, image slot) (ADMIN-01, ADMIN-02, ADMIN-08)
+- [ ] 04-06-PLAN.md — Categories slice: create/edit/delete with auto-hidden slug + in-use delete protection (ADMIN-04)
+- [ ] 04-07-PLAN.md — Site content slice: editor (plain fields + lazy TipTap rich text) + D-20 rewire of 7 public components + safe Our Story render (ADMIN-05, ADMIN-06)
+- [ ] 04-08-PLAN.md — Submissions inbox: read-only list + detail + empty state via admin-read RLS (ADMIN-07)
+
+**Wave 4** *(blocked on Wave 3 — extends ProductForm)*
+
+- [ ] 04-09-PLAN.md — Image management: full ImageDropzone (drag-drop, HEIC convert+compress, upload/replace/remove, progress, orphan cleanup) (ADMIN-03)
+
 **UI hint**: yes
 
 > **Open question (surface during discussion):** Scrub/cream imagery (seeded empty in Phase 2) is uploaded by the owner here — plan an initial onboarding task list. Image-upload UX (drag-drop, HEIC/JPEG/PNG, size validation, progress) is flagged in research as needing careful component design and likely iteration.
@@ -164,5 +186,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
 | 3. Authentication & Roles | 6/6 | Complete    | 2026-06-01 |
-| 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
+| 4. Admin Portal — Catalog & Content Management | 0/9 | Not started | - |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
