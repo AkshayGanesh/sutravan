@@ -28,10 +28,10 @@ Requirements for this milestone. Each maps to a roadmap phase. E-commerce is exp
 - [ ] **ADMIN-02**: Admin can set and edit each product's price
 - [ ] **ADMIN-03**: Admin can upload, replace, and remove product images stored in Supabase Storage
 - [ ] **ADMIN-04**: Admin can create, edit, and delete categories
-- [ ] **ADMIN-05**: Admin can edit site content (Our Story page copy, homepage hero text)
-- [ ] **ADMIN-06**: Admin can edit contact details and social links (Instagram, YouTube, email)
+- [x] **ADMIN-05**: Admin can edit site content (Our Story page copy, homepage hero text)
+- [x] **ADMIN-06**: Admin can edit contact details and social links (Instagram, YouTube, email)
 - [ ] **ADMIN-07**: Admin can view customer customization submissions in an inbox
-- [ ] **ADMIN-08**: Admin can toggle a product's visibility (draft vs published) so unfinished products stay hidden from the public site
+- [x] **ADMIN-08**: Admin can toggle a product's visibility (draft vs published) so unfinished products stay hidden from the public site
 
 ### Customer Experience
 
@@ -96,10 +96,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ADMIN-02 | Phase 4 | Pending |
 | ADMIN-03 | Phase 4 | Pending |
 | ADMIN-04 | Phase 4 | Pending |
-| ADMIN-05 | Phase 4 | Pending |
-| ADMIN-06 | Phase 4 | Pending |
+| ADMIN-05 | Phase 4 | Complete |
+| ADMIN-06 | Phase 4 | Complete |
 | ADMIN-07 | Phase 4 | Pending |
-| ADMIN-08 | Phase 4 | Pending |
+| ADMIN-08 | Phase 4 | Complete |
 | CUST-01 | Phase 5 | Pending |
 | CUST-02 | Phase 5 | Pending |
 | CUST-03 | Phase 5 | Pending |

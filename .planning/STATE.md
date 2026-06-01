@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-06-01T04:41:10.145Z"
-last_activity: 2026-06-01 -- Phase 04 planning complete
+status: verifying
+stopped_at: "Phase 4 Plan 01 — Task 3 checkpoint (blocking human-verify: live push of migrations 0005 + 0006)"
+last_updated: "2026-06-01T04:56:44.620Z"
+last_activity: 2026-06-01 -- Phase 04 Plan 01 Tasks 1-2 committed (985b93a, 567c179)
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 21
+  completed_plans: 13
   percent: 60
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-31)
 
 **Core value:** The owner can manage the entire product catalog (products, categories, images, prices) through an admin portal — no code changes, no redeploys.
-**Current focus:** Phase 03 — authentication-roles
+**Current focus:** Phase 04 — admin-portal-catalog-content-management
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
-Status: Ready to execute (03-01 + 03-02 complete)
-Last activity: 2026-06-01 -- Phase 04 planning complete
+Phase: 04 (admin-portal-catalog-content-management) — EXECUTING
+Plan: 2 of 9 — Tasks 1-2 done, PAUSED at Task 3 (blocking human-verify live push)
+Status: Awaiting checkpoint — migrations 0005 + 0006 authored & committed; live `supabase db push` + draft-isolation verification pending (orchestrator)
+Last activity: 2026-06-01 -- Phase 04 Plan 01 Tasks 1-2 committed (985b93a, 567c179)
 
 Progress: [█████████░] 100%
 
@@ -62,6 +62,7 @@ Progress: [█████████░] 100%
 | Phase 03 P06 | ~1min | 2 tasks | 1 files |
 | Phase 03 P04 | 5min | 3 tasks | 3 files |
 | Phase 03-authentication-roles P05 | 3min | 2 tasks | 2 files |
+| Phase 04 P01 | 35min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ Recent decisions affecting current work:
 - [Phase 03 P01]: deployed origin is the custom domain https://sutravan.in (build base '/'); hosted Auth config (runtime source of truth, not in git): Confirm-email OFF (D-01), Site URL https://sutravan.in, redirect allowlist includes exact https://sutravan.in/reset-password (D-02)
 - [Phase ?]: [Phase 03 P03]: safeReturnTo() is the single open-redirect sanitizer — Login reads ?next= and rejects //-prefixed or ://-containing values to / (D-10); Plan 04 must redirect to /login?next=<internal-path>
 - [Phase ?]: AdminGuard defers decisions behind useAuth loading gate (D-12), then D-11 matrix: logged-out -> /login?next=<internal-path>, non-admin -> / (no 403), admin -> children
+- [Phase 04]: D-14/CR-01: products_public_read enforces is_active = true at the RLS layer (0005), proven live — drafts unreachable via raw anon PostgREST
+- [Phase 04]: D-18: seven site_content keys seeded idempotently (0006) via on conflict (key) do nothing
 
 ### Pending Todos
 
@@ -125,6 +128,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T04:04:34.447Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-admin-portal-catalog-content-management/04-UI-SPEC.md
+Last session: 2026-06-01T04:56:35.527Z
+Stopped at: Phase 4 Plan 01 — Task 3 checkpoint (blocking human-verify: live push of migrations 0005 + 0006)
+Resume file: .planning/phases/04-admin-portal-catalog-content-management/04-01-PLAN.md
