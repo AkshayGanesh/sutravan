@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: paused
-stopped_at: Phase 5 context gathered
-last_updated: "2026-06-01T14:49:16.021Z"
-last_activity: 2026-06-01
+stopped_at: Phase 05 UI-SPEC approved
+last_updated: "2026-06-01T15:35:14.753Z"
+last_activity: 2026-06-01 -- Phase 05 planning complete
 progress:
   total_phases: 5
   completed_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 Phase: 5
 Plan: Not started
 Status: Plan 04-09 Task 1 COMPLETE — full ImageDropzone shipped (5b24624): real drag-drop + click-to-pick replacing the Plan-04 stub; per-file assertImageAllowed guard BEFORE processing (reject >10MB/unsupported up front), processImage (lazy HEIC convert+compress) in try/catch with conversion-failure toast, uploadProductImage into products/{slug}/ with per-tile spinner + "Converting…" HEIC state + success/failure toasts, saved-image removal via ConfirmDialog + removeProductImages (orphan cleanup), thumbnails via productImageUrls/getPublicUrl, empty-name edge disables the zone with the hint. npm run check exits 0; npm run build succeeds with heic2any (1.35MB) + browser-image-compression (53kB) CODE-SPLIT into separate chunks (NOT in main index chunk). PAUSED at Task 2 blocking human-verify: manual browser walk (real HEIC upload renders on /shop, JPEG/PNG, >10MB/.txt rejection toasts, create-flow upload into products/{slugify(name)}/, replace/remove + product delete leave no orphaned Storage objects) — awaiting "approved". Plans 04-06 / 04-07 also remain paused at human-verify.
-Last activity: 2026-06-01
+Last activity: 2026-06-01 -- Phase 05 planning complete
 
 Progress: [█████████░] 95%
 
@@ -145,6 +145,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T14:49:16.016Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-customer-experience-wishlist-profile-native-questionnaire/05-CONTEXT.md
+Last session: 2026-06-01T15:05:17.732Z
+Stopped at: Phase 05 UI-SPEC approved
+Resume file: .planning/phases/05-customer-experience-wishlist-profile-native-questionnaire/05-UI-SPEC.md
