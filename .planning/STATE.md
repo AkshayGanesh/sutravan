@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: paused
+status: executing
 stopped_at: Phase 05 UI-SPEC approved
-last_updated: "2026-06-01T15:35:14.753Z"
-last_activity: 2026-06-01 -- Phase 05 planning complete
+last_updated: "2026-06-01T15:49:35.629Z"
+last_activity: 2026-06-01 -- Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 25
+  completed_plans: 22
   percent: 80
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-31)
 
 **Core value:** The owner can manage the entire product catalog (products, categories, images, prices) through an admin portal — no code changes, no redeploys.
-**Current focus:** Phase 04 — admin-portal-catalog-content-management
+**Current focus:** Phase 05 — customer-experience-wishlist-profile-native-questionnaire
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Plan 04-09 Task 1 COMPLETE — full ImageDropzone shipped (5b24624): real drag-drop + click-to-pick replacing the Plan-04 stub; per-file assertImageAllowed guard BEFORE processing (reject >10MB/unsupported up front), processImage (lazy HEIC convert+compress) in try/catch with conversion-failure toast, uploadProductImage into products/{slug}/ with per-tile spinner + "Converting…" HEIC state + success/failure toasts, saved-image removal via ConfirmDialog + removeProductImages (orphan cleanup), thumbnails via productImageUrls/getPublicUrl, empty-name edge disables the zone with the hint. npm run check exits 0; npm run build succeeds with heic2any (1.35MB) + browser-image-compression (53kB) CODE-SPLIT into separate chunks (NOT in main index chunk). PAUSED at Task 2 blocking human-verify: manual browser walk (real HEIC upload renders on /shop, JPEG/PNG, >10MB/.txt rejection toasts, create-flow upload into products/{slugify(name)}/, replace/remove + product delete leave no orphaned Storage objects) — awaiting "approved". Plans 04-06 / 04-07 also remain paused at human-verify.
-Last activity: 2026-06-01 -- Phase 05 planning complete
+Phase: 05 (customer-experience-wishlist-profile-native-questionnaire) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-01 -- Phase 05 execution started
 
 Progress: [█████████░] 95%
 
@@ -71,6 +71,7 @@ Progress: [█████████░] 95%
 | Phase 04 P07 | 3min | 3 tasks | 9 files |
 | Phase 04 P08 | 15min | 2 tasks | 2 files |
 | Phase 04 P09 | 30min | 2 tasks | 1 files |
+| Phase 05 P01 | 18 | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-07: TipTap code-split out of public bundle via React.lazy; Our Story rendered only through sanitizeRichText (DOMPurify); all 7 public files read site_content with mandatory fallbacks (D-20)
 - [Phase ?]: Plan 04-08: D-17 — admin submissions inbox is read-only (no status/edit/delete); status column deferred
 - [Phase ?]: Plan 04-08: submissions read rides Phase-1 admin-read RLS (D-12); empty state normal until Phase 5 CUST-03 writer
+- [Phase ?]: Wishlist uses a single ['wishlist'] TanStack cache shared by card/modal/page/navbar with optimistic toggle (D-13)
+- [Phase ?]: Card passes slug only; useToggleWishlist resolves the products UUID server-side by slug
 
 ### Pending Todos
 
@@ -145,6 +148,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T15:05:17.732Z
+Last session: 2026-06-01T15:49:26.749Z
 Stopped at: Phase 05 UI-SPEC approved
 Resume file: .planning/phases/05-customer-experience-wishlist-profile-native-questionnaire/05-UI-SPEC.md
