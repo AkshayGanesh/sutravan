@@ -94,14 +94,19 @@ export default function Wishlist() {
                   <button
                     type="button"
                     aria-label="Remove"
+                    disabled={toggle.isPending}
                     onClick={() => {
+                      // In-flight guard (WR-03): ignore extra taps while a
+                      // toggle is pending so a second onMutate can't snapshot
+                      // the already-mutated optimistic list.
+                      if (toggle.isPending) return;
                       toggle.mutate({
                         productId: item.productId,
                         slug: item.slug,
                         saved: true,
                       });
                     }}
-                    className="absolute top-2 right-2 z-10 inline-flex h-11 w-11 items-center justify-center bg-background/80 backdrop-blur-sm text-foreground/70 hover:bg-background/90 hover:text-primary transition-colors duration-300"
+                    className="absolute top-2 right-2 z-10 inline-flex h-11 w-11 items-center justify-center bg-background/80 backdrop-blur-sm text-foreground/70 hover:bg-background/90 hover:text-primary transition-colors duration-300 disabled:opacity-50"
                   >
                     <X size={18} strokeWidth={1.5} />
                   </button>

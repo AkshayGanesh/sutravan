@@ -51,6 +51,10 @@ export default function WishlistButton({
       navigate(`/login?next=${encodeURIComponent(safeReturnTo(location))}`);
       return;
     }
+    // In-flight guard (WR-03): ignore a fast double-tap while a toggle is
+    // already pending for this product, so the second `onMutate` can't snapshot
+    // the already-mutated optimistic list and corrupt the rollback baseline.
+    if (toggle.isPending) return;
     toggle.mutate({ productId: resolvedId, slug: productSlug, saved });
   }
 
@@ -58,6 +62,7 @@ export default function WishlistButton({
     <button
       type="button"
       onClick={handleClick}
+      disabled={toggle.isPending}
       aria-label={saved ? "Remove from wishlist" : "Save to wishlist"}
       aria-pressed={saved}
       className={cn(
