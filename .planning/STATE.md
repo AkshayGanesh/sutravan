@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 04 (admin-portal-catalog-content-management) — EXECUTING
-Plan: 5 of 9 — Tasks 1-2 done, PAUSED at Task 3 (blocking human-verify browser walk)
-Status: Awaiting checkpoint — ProductForm (RHF+Zod full-page create/edit) + ProductsList (table, publish toggle, edit/delete, loading/empty/error states, No-photo badge) shipped on lib/admin.ts hooks; automated assertions (grep Task 1+2 + npm run check + npm run build) PASS; manual admin browser walk (create-draft → hidden on /shop → publish → live → edit price → delete) pending (user)
-Last activity: 2026-06-01 -- Phase 04 Plan 05 Tasks 1-2 committed (275e8af ProductForm, 7e57f69 ProductsList)
+Plan: 6 of 9 — Task 1 done, PAUSED at Task 2 (blocking human-verify browser walk)
+Status: Awaiting checkpoint — CategoriesList (real CRUD: useAdminCategories table + RHF+Zod create/edit dialog name + display order, no slug UI; ConfirmDialog delete; in-use delete blocked via admin.ts 23503 → friendly {N}-products toast; loading/error/empty states) shipped on lib/admin.ts hooks; automated assertions (grep Task 1 chain + npm run check + npm run build) PASS; manual admin browser walk (reorder → /shop tabs; create+delete empty category; in-use delete blocked) pending (user)
+Last activity: 2026-06-01 -- Phase 04 Plan 06 Task 1 committed (3c1ebdd CategoriesList)
 
 Progress: [█████████░] 100%
 
