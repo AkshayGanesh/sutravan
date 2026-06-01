@@ -1,0 +1,19 @@
+import { defineConfig } from "vitest/config";
+import path from "path";
+
+// Vitest footing for the admin write-layer pure modules (Phase 04 Plan 02).
+// Defaults to the `node` environment for the pure suites (slug, adminErrors,
+// imagePipeline guard); suites that touch the DOM (sanitizeHtml → DOMPurify)
+// opt into jsdom via a `// @vitest-environment jsdom` file pragma.
+// The `@` alias mirrors vite.config.ts so test imports resolve like app code.
+export default defineConfig({
+  test: {
+    environment: "node",
+    include: ["client/src/**/*.test.ts"],
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+    },
+  },
+});
