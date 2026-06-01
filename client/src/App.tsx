@@ -14,6 +14,8 @@ import Questionnaire from "@/pages/Questionnaire";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ResetPassword from "@/pages/ResetPassword";
+import AuthGuard from "@/auth/AuthGuard";
+import Wishlist from "@/pages/Wishlist";
 import AdminGuard from "@/auth/AdminGuard";
 import AdminLayout from "@/pages/admin/AdminLayout";
 import ProductsList from "@/pages/admin/ProductsList";
@@ -49,6 +51,15 @@ function Router() {
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/reset-password" component={ResetPassword} />
+
+        {/* Auth-gated customer route — its own Layout (not AdminLayout). */}
+        <Route path="/wishlist">
+          {() => (
+            <AuthGuard>
+              <Wishlist />
+            </AuthGuard>
+          )}
+        </Route>
 
         <Route path="/admin/products/new">
           {() => (

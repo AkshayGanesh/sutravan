@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Heart } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -16,6 +16,7 @@ import {
 import { useAuth } from "@/auth/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
+import { useWishlistCount } from "@/lib/wishlist";
 
 const navLinks = [
   { href: "/shop", label: "Shop" },
@@ -40,6 +41,10 @@ export default function Navbar() {
   // Role lives in useAuth too (Phase 5 Wishlist/Profile items go here);
   // session presence is sufficient to decide logged-in vs logged-out here.
   const isLoggedIn = !!session;
+
+  // Live count derived from the shared ['wishlist'] cache — NO separate query
+  // (D-12 / Pitfall 6). The badge is hidden at 0.
+  const wishlistCount = useWishlistCount();
 
   async function handleSignOut() {
     await signOut();
@@ -151,6 +156,22 @@ export default function Navbar() {
               </svg>
             </a>
 
+            {/* Wishlist heart + live count badge (logged-in only). */}
+            {isLoggedIn && (
+              <Link
+                href="/wishlist"
+                aria-label="Wishlist"
+                className="relative inline-flex h-11 w-11 items-center justify-center hover:text-secondary transition-colors duration-300"
+              >
+                <Heart size={20} strokeWidth={1.5} />
+                {wishlistCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.625rem] font-medium leading-none text-primary-foreground">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
             {/* Account */}
             {isLoggedIn ? (
               <DropdownMenu>
@@ -161,6 +182,12 @@ export default function Navbar() {
                   <User size={20} strokeWidth={1.5} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/wishlist">
+                      <Heart size={16} strokeWidth={1.5} />
+                      Wishlist
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => void handleSignOut()}>
                     <LogOut size={16} strokeWidth={1.5} />
                     Log out
@@ -224,19 +251,38 @@ export default function Navbar() {
                       {link.label}
                     </Link>
                   ))}
-                  {/* Account parity: logout/login reachable on mobile too */}
+                  {/* Account parity: wishlist/logout/login reachable on mobile too */}
                   {isLoggedIn ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOpen(false);
-                        void handleSignOut();
-                      }}
-                      className="flex items-center gap-2 text-base font-medium text-left hover:text-secondary transition-colors duration-300"
-                    >
-                      <LogOut size={18} strokeWidth={1.5} />
-                      Log out
-                    </button>
+                    <>
+                      <Link
+                        href="/wishlist"
+                        onClick={() => setOpen(false)}
+                        className={`flex items-center gap-2 text-base font-medium transition-colors duration-300 ${
+                          location === "/wishlist"
+                            ? "text-secondary"
+                            : "hover:text-secondary"
+                        }`}
+                      >
+                        <Heart size={18} strokeWidth={1.5} />
+                        Wishlist
+                        {wishlistCount > 0 && (
+                          <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.625rem] font-medium leading-none text-primary-foreground">
+                            {wishlistCount}
+                          </span>
+                        )}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpen(false);
+                          void handleSignOut();
+                        }}
+                        className="flex items-center gap-2 text-base font-medium text-left hover:text-secondary transition-colors duration-300"
+                      >
+                        <LogOut size={18} strokeWidth={1.5} />
+                        Log out
+                      </button>
+                    </>
                   ) : (
                     <Link
                       href="/login"
