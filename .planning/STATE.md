@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 04 (admin-portal-catalog-content-management) — EXECUTING
-Plan: 9 of 9 (04-08 COMPLETE)
-Status: Plan 04-08 COMPLETE — submissions inbox (useSubmissions read hook over customization_submissions, newest-first; read-only Submissions.tsx: list name/date/snippet + detail Dialog + empty state) shipped (9e11c24); Task 2 blocking human-verify browser walk APPROVED by user (orchestrator seeded 2 test rows → rendered newest-first; detail showed full message/fields; read-only D-17 confirmed; rows deleted → "No submissions yet" empty state restored); read rides Phase-1 admin-read RLS on customization_submissions (D-12). npm run check exits 0, npm run build succeeds. ADMIN-07 complete. Plans 04-06 / 04-07 remain paused at human-verify.
-Last activity: 2026-06-01 -- Phase 04 Plan 08 docs committed (submissions inbox)
+Plan: 9 of 9 (04-09 Task 1 COMPLETE — paused at Task 2 human-verify)
+Status: Plan 04-09 Task 1 COMPLETE — full ImageDropzone shipped (5b24624): real drag-drop + click-to-pick replacing the Plan-04 stub; per-file assertImageAllowed guard BEFORE processing (reject >10MB/unsupported up front), processImage (lazy HEIC convert+compress) in try/catch with conversion-failure toast, uploadProductImage into products/{slug}/ with per-tile spinner + "Converting…" HEIC state + success/failure toasts, saved-image removal via ConfirmDialog + removeProductImages (orphan cleanup), thumbnails via productImageUrls/getPublicUrl, empty-name edge disables the zone with the hint. npm run check exits 0; npm run build succeeds with heic2any (1.35MB) + browser-image-compression (53kB) CODE-SPLIT into separate chunks (NOT in main index chunk). PAUSED at Task 2 blocking human-verify: manual browser walk (real HEIC upload renders on /shop, JPEG/PNG, >10MB/.txt rejection toasts, create-flow upload into products/{slugify(name)}/, replace/remove + product delete leave no orphaned Storage objects) — awaiting "approved". Plans 04-06 / 04-07 also remain paused at human-verify.
+Last activity: 2026-06-01 -- Phase 04 Plan 09 Task 1 committed (image dropzone); paused at human-verify
 
 Progress: [█████████░] 95%
 
