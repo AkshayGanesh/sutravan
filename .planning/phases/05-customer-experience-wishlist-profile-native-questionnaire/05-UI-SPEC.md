@@ -172,6 +172,7 @@ All copy is brand-warm, second-person, lowercase-friendly sentence case (matchin
 
 | Surface | Contract |
 |---------|----------|
+| Questionnaire focal point | The Display-role serif heading ("Customize your blend") is the primary focal point of the `/questionnaire` route — largest element, Samarkan font, drawn first. The active step's content area is the secondary anchor; the step indicator and "Continue" CTA are tertiary. |
 | Wishlist heart on ProductCard | `e.stopPropagation()` + `e.preventDefault()` (keyboard) so it never opens the detail modal (D-09 / Pitfall 7). 44px hit area. Filled gold/primary when saved; outline `text-foreground/60` when not. |
 | Wishlist heart on ProductDetail modal | Same toggle, reads/writes the same `['wishlist']` cache so card + modal stay in sync (D-13). |
 | Logged-out heart tap | Sign-in toast/prompt → `/login?next=<current>` via existing `safeReturnTo` (D-10). No anonymous wishlist UI. |
