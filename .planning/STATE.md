@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-06-01T00:50:02.201Z"
-last_activity: 2026-06-01 -- Phase 03 execution started
+stopped_at: 03-01-PLAN.md Task 3 (checkpoint:human-action — awaiting live push + hosted Auth config + psql harness)
+last_updated: "2026-06-01T01:10:00.000Z"
+last_activity: 2026-06-01 -- 03-01 Tasks 1-2 + config.toml done; paused at Task 3 human-action checkpoint
 progress:
   total_phases: 5
   completed_phases: 2
@@ -114,6 +114,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T00:50:02.197Z
-Stopped at: Completed 03-02-PLAN.md
-Resume file: None
+Last session: 2026-06-01T01:10:00.000Z
+Stopped at: 03-01-PLAN.md Task 3 — checkpoint:human-action (live `supabase db push` of 0004 + hosted Dashboard Auth config D-01/D-02 + live psql harness). Tasks 1-2 committed (dc31095, faab923); config.toml local parity committed (04df168).
+Resume file: .planning/phases/03-authentication-roles/03-01-PLAN.md (resume at Task 3; signal "approved")
