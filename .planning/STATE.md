@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 03-01-PLAN.md (auth DB foundation — migration 0004 live, harnesses green, hosted Auth config set)
-last_updated: "2026-06-01T01:12:38.000Z"
-last_activity: 2026-06-01 -- 03-01 complete; migration 0004 pushed live, both psql harnesses pass, hosted Auth config (D-01/D-02) set
+status: completed
+stopped_at: Completed 03-01-PLAN.md — migration 0004 live, both psql harnesses green against the live DB, hosted Auth config (D-01 confirm-off + D-02 sutravan.in Site URL/reset redirect) set; config.toml corrected to the sutravan.in origin (9488e9f).
+last_updated: "2026-06-01T01:20:50.716Z"
+last_activity: 2026-06-01 -- 03-01 auth DB foundation complete (migration 0004 live)
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 8
-  percent: 42
+  completed_plans: 9
+  percent: 40
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 ## Current Position
 
 Phase: 03 (authentication-roles) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute (03-01 + 03-02 complete)
 Last activity: 2026-06-01 -- 03-01 auth DB foundation complete (migration 0004 live)
 
@@ -57,6 +57,7 @@ Progress: [█████████░] 100%
 | Phase 02 P03 | 3min | 4 tasks | 5 files |
 | Phase 03 P02 | 4min | 3 tasks | 4 files |
 | Phase 03 P01 | ~50min | 3 tasks | 3 files |
+| Phase 03 P03 | 6min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,7 @@ Recent decisions affecting current work:
 - [Phase 03 P01]: migration 0004 — handle_new_user SECURITY DEFINER trigger auto-creates a role='customer' profile on signup (role hard-coded, never from raw_user_meta_data — D-05/T-3-03); no client INSERT policy on profiles (rows only via the trigger)
 - [Phase 03 P01]: enforce_profile_role_lock BEFORE UPDATE trigger blocks role self-escalation, with a (select auth.uid()) is not null carve-out so the no-JWT service-role bootstrap can still promote an admin (D-04/Pitfall 4); name/email self-updates still allowed
 - [Phase 03 P01]: deployed origin is the custom domain https://sutravan.in (build base '/'); hosted Auth config (runtime source of truth, not in git): Confirm-email OFF (D-01), Site URL https://sutravan.in, redirect allowlist includes exact https://sutravan.in/reset-password (D-02)
+- [Phase ?]: [Phase 03 P03]: safeReturnTo() is the single open-redirect sanitizer — Login reads ?next= and rejects //-prefixed or ://-containing values to / (D-10); Plan 04 must redirect to /login?next=<internal-path>
 
 ### Pending Todos
 
@@ -118,6 +120,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-01T01:12:38.000Z
+Last session: 2026-06-01T01:20:29.576Z
 Stopped at: Completed 03-01-PLAN.md — migration 0004 live, both psql harnesses green against the live DB, hosted Auth config (D-01 confirm-off + D-02 sutravan.in Site URL/reset redirect) set; config.toml corrected to the sutravan.in origin (9488e9f).
 Resume file: None — next is 03-03-PLAN.md (register/login/logout slice)
