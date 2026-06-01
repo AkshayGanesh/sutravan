@@ -106,7 +106,7 @@ function AccountSection() {
   const { data: currentName } = useMyProfileName(userId);
 
   const updateName = useUpdateName(userId);
-  const updateEmail = useUpdateEmail();
+  const updateEmail = useUpdateEmail(user?.email);
   const updatePassword = useUpdatePassword();
 
   // Track that an email change was submitted so we render the PENDING notice
@@ -185,7 +185,10 @@ function AccountSection() {
             <form
               onSubmit={emailForm.handleSubmit((v) => {
                 updateEmail.mutate(v, {
-                  onSuccess: () => setEmailPending(true),
+                  // Only show the "check your inbox" notice when a change was
+                  // actually started; an unchanged re-submit is a no-op (WR-05).
+                  onSuccess: (result) =>
+                    setEmailPending(result === "pending"),
                 });
               })}
               className="space-y-4"

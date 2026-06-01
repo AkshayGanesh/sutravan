@@ -72,18 +72,43 @@ export function useUpdateName(userId: string | undefined) {
 }
 
 /**
+ * Result of an email-change attempt. `unchanged` means the submitted address
+ * equalled the current one, so no GoTrue call was made (WR-05) — the caller
+ * surfaces a "no change" affordance instead of the pending-confirmation notice.
+ * `pending` means the change was started and the confirmation email was sent.
+ */
+export type EmailUpdateResult = "unchanged" | "pending";
+
+/**
  * Begin an email change. PENDING by design (Secure email change ON): the toast
  * tells the user to confirm via their inbox — it MUST NOT claim the change is
  * complete, because the login address stays the same until the link is clicked.
+ *
+ * WR-05: skip firing `supabase.auth.updateUser({ email })` when the new email
+ * equals the current one. The form is seeded with the current address, so an
+ * unchanged re-submit would otherwise start a GoTrue email-change flow and burn
+ * the rate-limited confirmation-email budget (config.toml email_sent = 2/hr).
+ * The `currentEmail` is compared case-insensitively after trimming.
  */
-export function useUpdateEmail() {
-  return useMutation({
-    mutationFn: async ({ email }: { email: string }) => {
-      const { error } = await supabase.auth.updateUser({ email });
+export function useUpdateEmail(currentEmail: string | undefined) {
+  return useMutation<EmailUpdateResult, unknown, { email: string }>({
+    mutationFn: async ({ email }) => {
+      const next = email.trim();
+      const current = (currentEmail ?? "").trim();
+      if (current && next.toLowerCase() === current.toLowerCase()) {
+        return "unchanged";
+      }
+      const { error } = await supabase.auth.updateUser({ email: next });
       if (error) throw error;
+      return "pending";
     },
-    onSuccess: () =>
-      toast.success("Check your inbox to confirm your new email."),
+    onSuccess: (result) => {
+      if (result === "unchanged") {
+        toast.info("That's already your email — nothing to change.");
+        return;
+      }
+      toast.success("Check your inbox to confirm your new email.");
+    },
     onError: () => toast.error(GENERIC_ERROR),
   });
 }
