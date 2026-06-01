@@ -12,6 +12,8 @@ import Contact from "@/pages/Contact";
 import Questionnaire from "@/pages/Questionnaire";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import Admin from "@/pages/Admin";
+import AdminGuard from "@/auth/AdminGuard";
 
 function Router() {
   return (
@@ -25,6 +27,20 @@ function Router() {
         <Route path="/questionnaire" component={Questionnaire} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/admin/:rest*">
+          {() => (
+            <AdminGuard>
+              <Admin />
+            </AdminGuard>
+          )}
+        </Route>
+        <Route path="/admin">
+          {() => (
+            <AdminGuard>
+              <Admin />
+            </AdminGuard>
+          )}
+        </Route>
         <Route component={NotFound} />
       </Switch>
     </WouterRouter>
