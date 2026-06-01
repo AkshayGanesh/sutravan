@@ -25,7 +25,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useSubmissions, type SubmissionRow } from "@/lib/submissions";
+import {
+  useSubmissions,
+  submissionSnippet,
+  type SubmissionRow,
+} from "@/lib/submissions";
 
 const COLUMN_COUNT = 3;
 
@@ -38,13 +42,6 @@ function displayName(row: SubmissionRow): string {
 function formatDate(iso: string): string {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? "—" : format(d, "PP");
-}
-
-/** One-line message snippet for the list row. */
-function snippet(message: string | null): string {
-  const text = message?.replace(/\s+/g, " ").trim() ?? "";
-  if (!text) return "—";
-  return text.length > 80 ? `${text.slice(0, 80)}…` : text;
 }
 
 const header = (
@@ -175,7 +172,7 @@ export default function Submissions() {
                   {formatDate(row.created_at)}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {snippet(row.message)}
+                  {submissionSnippet(row.message)}
                 </TableCell>
               </TableRow>
             ))}
@@ -205,7 +202,7 @@ export default function Submissions() {
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                {snippet(row.message)}
+                {submissionSnippet(row.message)}
               </p>
             </button>
           </li>
