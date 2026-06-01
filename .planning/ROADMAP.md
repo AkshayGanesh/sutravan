@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Supabase Foundation — Schema, RLS & Storage** - Live Supabase project with all tables, default-deny RLS, `is_admin()`, Storage buckets, and the client singleton; dead Express/Drizzle scaffolding removed (completed 2026-05-31)
 - [x] **Phase 2: Live Catalog — Data Migration & Public Shop Rewire** - 68 products + soap images migrated into Supabase, and the public Shop/Home/ProductDetail read live data (no login required) (completed 2026-05-31)
-- [ ] **Phase 3: Authentication & Roles** - Customers can register/log in/log out across sessions; admin vs customer roles enforced in the database; admin routes protected
+- [x] **Phase 3: Authentication & Roles** - Customers can register/log in/log out across sessions; admin vs customer roles enforced in the database; admin routes protected (completed 2026-06-01)
 - [ ] **Phase 4: Admin Portal — Catalog & Content Management** - Owner manages products, prices, images, categories, site content, and visibility, and views customization submissions — no code, no redeploy
 - [ ] **Phase 5: Customer Experience — Wishlist, Profile & Native Questionnaire** - Logged-in customers can save products, view their profile and submission history, and submit a native questionnaire that lands in the admin inbox
 
@@ -111,7 +111,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 1, Wave 3)*
 
-- [ ] 03-05-PLAN.md — Password reset round-trip: ResetPassword page (implicit flow, sub-path aware) + /reset-password route (AUTH-02)
+- [x] 03-05-PLAN.md — Password reset round-trip: ResetPassword page (implicit flow, sub-path aware) + /reset-password route (AUTH-02)
 
 **UI hint**: yes
 
@@ -163,6 +163,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Supabase Foundation — Schema, RLS & Storage | 3/3 | Complete   | 2026-05-31 |
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
-| 3. Authentication & Roles | 5/6 | In Progress|  |
+| 3. Authentication & Roles | 6/6 | Complete   | 2026-06-01 |
 | 4. Admin Portal — Catalog & Content Management | 0/TBD | Not started | - |
 | 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
