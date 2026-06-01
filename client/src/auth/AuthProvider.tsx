@@ -34,9 +34,16 @@ export default function AuthProvider({
 }) {
   const [session, setSession] = React.useState<Session | null>(null);
   const [role, setRole] = React.useState<Role>(null);
-  // Two independent gates folded into one `loading` boolean.
+  // Session resolution gate, plus the user id the current `role` was resolved
+  // for. `undefined` = role not yet resolved for anyone; `null` = resolved as
+  // logged-out. Tracking the id (not a bare `roleResolved` boolean) closes the
+  // hard-load race where a logged-out roleResolved=true leaked into the first
+  // logged-in render and bounced a real admin to "/" before the role re-fetch
+  // ran (the D-12 / Pitfall 2 "no bounce on hard refresh" invariant).
   const [sessionResolved, setSessionResolved] = React.useState(false);
-  const [roleResolved, setRoleResolved] = React.useState(false);
+  const [resolvedFor, setResolvedFor] = React.useState<
+    string | null | undefined
+  >(undefined);
 
   const user = session?.user ?? null;
 
@@ -71,16 +78,19 @@ export default function AuthProvider({
     const userId = user?.id ?? null;
 
     if (!userId) {
-      // Logged out: role is null and there is nothing to resolve.
+      // Logged out: role is null and resolved-as-logged-out.
       setRole(null);
-      setRoleResolved(true);
+      setResolvedFor(null);
       return () => {
         active = false;
       };
     }
 
-    // A user exists — the role is in flight until this query returns.
-    setRoleResolved(false);
+    // A user exists — the role stays unresolved FOR THIS USER until the query
+    // returns. Because `loading` compares resolvedFor to the live user id, the
+    // stale logged-out resolution (resolvedFor === null) keeps loading true here
+    // instead of flashing a decision, so the guard shows the spinner rather than
+    // bouncing the admin during the hard-load session→role gap.
     supabase
       .from("profiles")
       .select("role")
@@ -89,7 +99,7 @@ export default function AuthProvider({
       .then(({ data }) => {
         if (!active) return;
         setRole((data?.role as Role) ?? null);
-        setRoleResolved(true);
+        setResolvedFor(userId);
       });
 
     return () => {
@@ -101,8 +111,14 @@ export default function AuthProvider({
     await supabase.auth.signOut();
   }, []);
 
-  // loading is true until the session resolves AND, when a user exists,
-  // the role resolves too.
+  // loading is true until the session resolves AND the role has been resolved
+  // for the CURRENT user id. Comparing resolvedFor to the live user id (rather
+  // than a bare boolean) prevents the hard-load race: when getSession promotes
+  // a logged-out render to logged-in, resolvedFor (null) !== user.id keeps
+  // loading true until the role re-fetch lands, so AdminGuard shows the spinner
+  // instead of bouncing the admin to "/".
+  const currentUserId = user?.id ?? null;
+  const roleResolved = resolvedFor === currentUserId;
   const loading = !sessionResolved || !roleResolved;
 
   const value = React.useMemo<AuthContextValue>(
