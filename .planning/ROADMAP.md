@@ -173,7 +173,17 @@ Plans:
   3. A customer can view their profile and the history of their own customization submissions, scoped to their own rows only
   4. Anonymous visitors cannot read any wishlist or submission data, and no user can insert rows scoped to another user (WITH CHECK enforced on owner-scoped writes)
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Wishlist slice: AuthGuard + lib/wishlist (optimistic shared cache) + WishlistButton (heart, stopPropagation, sign-in prompt) + /wishlist page + ProductCard/ProductDetail hearts + navbar heart+badge (CUST-01, CUST-02)
+- [ ] 05-02-PLAN.md — Questionnaire backend: migration 0007 anon+auth INSERT policy (WITH CHECK ownership) + first Edge Function verify-and-submit (Turnstile siteverify + caller-JWT insert) + verify_jwt=false + [BLOCKING] db push + live RLS/Turnstile proofs (CUST-03)
+
+**Wave 2** *(03 blocked on 02; 04 blocked on 01)*
+
+- [ ] 05-03-PLAN.md — Questionnaire wizard: native multi-step RHF+Zod form (prefill/lock, per-step validation, lazy Turnstile, D-05 mapping) replacing the Google Form, invoking the Edge Function (CUST-03)
+- [ ] 05-04-PLAN.md — Profile slice: /profile account mgmt (name self-update, email pending, password immediate) + owner-scoped submission history + navbar entry + guarded route (CUST-04)
 **UI hint**: yes
 
 ## Progress
@@ -187,4 +197,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Live Catalog — Data Migration & Public Shop Rewire | 3/3 | Complete    | 2026-05-31 |
 | 3. Authentication & Roles | 6/6 | Complete    | 2026-06-01 |
 | 4. Admin Portal — Catalog & Content Management | 9/9 | Complete    | 2026-06-01 |
-| 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/TBD | Not started | - |
+| 5. Customer Experience — Wishlist, Profile & Native Questionnaire | 0/4 | Planned | - |
