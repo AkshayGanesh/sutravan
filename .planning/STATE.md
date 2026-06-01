@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: paused
 stopped_at: Plan 04-05 COMPLETE — product slice (ProductsList + ProductForm) shipped (275e8af, 7e57f69); Task 3 blocking human-verify browser walk APPROVED by user (create-draft-hidden → publish-live → edit → delete all proven through to public /shop); npm run check exits 0, npm run build succeeds. SUMMARY + tracking written. Plans 04-06 (Task 1 done, paused at human-verify) and 04-07 (Tasks 1-2 done, paused at human-verify) remain in flight.
-last_updated: "2026-06-01T14:17:08.775Z"
-last_activity: 2026-06-01 -- Phase 04 Plan 09 Task 1 committed (image dropzone); paused at human-verify
+last_updated: "2026-06-01T14:33:46.675Z"
+last_activity: 2026-06-01
 progress:
   total_phases: 5
   completed_phases: 4
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 
 ## Current Position
 
-Phase: 04 (admin-portal-catalog-content-management) — EXECUTING
-Plan: 9 of 9 (04-09 Task 1 COMPLETE — paused at Task 2 human-verify)
+Phase: 5
+Plan: Not started
 Status: Plan 04-09 Task 1 COMPLETE — full ImageDropzone shipped (5b24624): real drag-drop + click-to-pick replacing the Plan-04 stub; per-file assertImageAllowed guard BEFORE processing (reject >10MB/unsupported up front), processImage (lazy HEIC convert+compress) in try/catch with conversion-failure toast, uploadProductImage into products/{slug}/ with per-tile spinner + "Converting…" HEIC state + success/failure toasts, saved-image removal via ConfirmDialog + removeProductImages (orphan cleanup), thumbnails via productImageUrls/getPublicUrl, empty-name edge disables the zone with the hint. npm run check exits 0; npm run build succeeds with heic2any (1.35MB) + browser-image-compression (53kB) CODE-SPLIT into separate chunks (NOT in main index chunk). PAUSED at Task 2 blocking human-verify: manual browser walk (real HEIC upload renders on /shop, JPEG/PNG, >10MB/.txt rejection toasts, create-flow upload into products/{slugify(name)}/, replace/remove + product delete leave no orphaned Storage objects) — awaiting "approved". Plans 04-06 / 04-07 also remain paused at human-verify.
-Last activity: 2026-06-01 -- Phase 04 Plan 09 Task 1 committed (image dropzone); paused at human-verify
+Last activity: 2026-06-01
 
 Progress: [█████████░] 95%
 
@@ -36,7 +36,7 @@ Progress: [█████████░] 95%
 
 **Velocity:**
 
-- Total plans completed: 9
+- Total plans completed: 18
 - Average duration: -
 - Total execution time: 0 hours
 
@@ -46,6 +46,7 @@ Progress: [█████████░] 95%
 |-------|-------|-------|----------|
 | 02 | 3 | - | - |
 | 03 | 6 | - | - |
+| 04 | 9 | - | - |
 
 **Recent Trend:**
 
