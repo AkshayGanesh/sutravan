@@ -183,6 +183,12 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <User size={16} strokeWidth={1.5} />
+                      Your account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/wishlist">
                       <Heart size={16} strokeWidth={1.5} />
                       Wishlist
@@ -254,6 +260,18 @@ export default function Navbar() {
                   {/* Account parity: wishlist/logout/login reachable on mobile too */}
                   {isLoggedIn ? (
                     <>
+                      <Link
+                        href="/profile"
+                        onClick={() => setOpen(false)}
+                        className={`flex items-center gap-2 text-base font-medium transition-colors duration-300 ${
+                          location === "/profile"
+                            ? "text-secondary"
+                            : "hover:text-secondary"
+                        }`}
+                      >
+                        <User size={18} strokeWidth={1.5} />
+                        Your account
+                      </Link>
                       <Link
                         href="/wishlist"
                         onClick={() => setOpen(false)}

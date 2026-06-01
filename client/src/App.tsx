@@ -16,6 +16,7 @@ import Register from "@/pages/Register";
 import ResetPassword from "@/pages/ResetPassword";
 import AuthGuard from "@/auth/AuthGuard";
 import Wishlist from "@/pages/Wishlist";
+import Profile from "@/pages/Profile";
 import AdminGuard from "@/auth/AdminGuard";
 import AdminLayout from "@/pages/admin/AdminLayout";
 import ProductsList from "@/pages/admin/ProductsList";
@@ -57,6 +58,15 @@ function Router() {
           {() => (
             <AuthGuard>
               <Wishlist />
+            </AuthGuard>
+          )}
+        </Route>
+
+        {/* Auth-gated customer account page — its own Layout (not AdminLayout). */}
+        <Route path="/profile">
+          {() => (
+            <AuthGuard>
+              <Profile />
             </AuthGuard>
           )}
         </Route>
