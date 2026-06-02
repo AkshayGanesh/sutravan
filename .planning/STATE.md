@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 Phase: 05
 Plan: Not started
 Status: All 4 Phase-5 plans complete (CUST-01..CUST-04 delivered). Awaiting orchestrator phase verification/close — do NOT mark phase verified here.
-Last activity: 2026-06-02 - Completed quick task 260602-ucf: Customization-pricing caveat copy (no live step)
+Last activity: 2026-06-02 - Completed quick task 260602-uxl: Drag-to-reorder admin repeatable rows (no live step)
 
 Progress: [██████████] 100%
 
@@ -163,6 +163,7 @@ VERIFY items flagged in research (confirm against current Supabase docs before w
 | 260602-tf6 | Per-product weight/price variants (SKUs): product_variants table + admin CRUD + public selector + 'From' card | 2026-06-02 | ac0e3ce | [260602-tf6-per-product-weight-price-variants-skus-a](./quick/260602-tf6-per-product-weight-price-variants-skus-a/) |
 | 260602-u0q | Link the 'Tell us your skin type' note in ProductDetail to the questionnaire (Skin Guide) page | 2026-06-02 | 5d3a251 | [260602-u0q-link-the-tell-us-your-skin-type-note-in-](./quick/260602-u0q-link-the-tell-us-your-skin-type-note-in-/) |
 | 260602-ucf | Customization-pricing caveat copy (questionnaire intro + review + product modal; static) | 2026-06-02 | f78af54 | [260602-ucf-add-customization-pricing-caveat-copy-to](./quick/260602-ucf-add-customization-pricing-caveat-copy-to/) |
+| 260602-uxl | Drag-to-reorder admin ProductForm repeatable rows (Benefits/Ingredients/Usage tips, framer-motion) | 2026-06-02 | 6a6446f | [260602-uxl-add-drag-to-reorder-to-admin-productform](./quick/260602-uxl-add-drag-to-reorder-to-admin-productform/) |
 
 > ✅ RESOLVED (2026-06-02): live steps for c2y + co6 completed by owner —
 > `supabase db push` (applied 0008 + 0009), `supabase secrets set RESEND_API_KEY/ADMIN_NOTIFY_EMAIL`,
