@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 import { CUSTOMIZATION_PRICING_CAVEAT } from "@/lib/copy";
+import { normalizeMultiline } from "@/lib/multiline";
 import WishlistButton from "@/components/WishlistButton";
 
 interface ProductDetailProps {
@@ -192,7 +193,9 @@ export default function ProductDetail({
                         <path d="M12 22V12" />
                       </svg>
                     </span>
-                    {b}
+                    <span className="whitespace-pre-line">
+                      {normalizeMultiline(b)}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -207,9 +210,9 @@ export default function ProductDetail({
                 {product.ingredients.map((ing, i) => (
                   <li
                     key={i}
-                    className="text-sm text-foreground/70 pl-3 relative before:content-['·'] before:absolute before:left-0 before:text-secondary before:font-bold"
+                    className="text-sm text-foreground/70 pl-3 relative whitespace-pre-line before:content-['·'] before:absolute before:left-0 before:text-secondary before:font-bold"
                   >
-                    {ing}
+                    {normalizeMultiline(ing)}
                   </li>
                 ))}
               </ul>
@@ -225,9 +228,9 @@ export default function ProductDetail({
                   {product.tips.map((tip, i) => (
                     <li
                       key={i}
-                      className="text-sm text-foreground/70 italic"
+                      className="text-sm text-foreground/70 italic whitespace-pre-line"
                     >
-                      {tip}
+                      {normalizeMultiline(tip)}
                     </li>
                   ))}
                 </ul>

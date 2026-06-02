@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { GripVertical, Plus, X } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 export interface RepeatableRowsProps {
@@ -21,8 +21,12 @@ export interface RepeatableRowsProps {
  * can be empty/duplicate) and never the array index. Ids are bookkeeping only
  * and never leak to the parent: `onChange` always emits `string[]`.
  *
+ * Each row is a multi-line Textarea: pressing Enter inserts a newline WITHIN
+ * the same bullet (that is the feature) — Enter is never intercepted. The
+ * stored value stays the controlled `string[]` (newlines included).
+ *
  * Dragging starts only from the GripVertical handle (`dragListener={false}` +
- * `useDragControls`), so clicking into the Input still selects/edits text
+ * `useDragControls`), so clicking into the Textarea still selects/edits text
  * without fighting a drag.
  *
  * The "+ Add" control uses the forest-green accent per UI-SPEC (one of the four
@@ -140,7 +144,7 @@ function RepeatableRow({
       value={id}
       dragListener={false}
       dragControls={controls}
-      className="flex items-center gap-2"
+      className="flex items-start gap-2"
     >
       <Button
         type="button"
@@ -152,9 +156,10 @@ function RepeatableRow({
       >
         <GripVertical className="size-4" aria-hidden="true" />
       </Button>
-      <Input
+      <Textarea
         value={value}
         onChange={(e) => onEdit(e.target.value)}
+        rows={2}
         className="flex-1"
       />
       <Button
