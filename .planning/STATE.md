@@ -168,12 +168,10 @@ VERIFY items flagged in research (confirm against current Supabase docs before w
 > and `supabase functions deploy verify-and-submit`. Out-of-stock toggle, unread badge/mark-read,
 > and per-submission admin email are all live.
 >
-> ⚠ Outstanding live `supabase db push` (project ref `wfbnrcnmpcqzeyjlfflv`):
-> - `0010_products_show_patch_test_note.sql` (t02) — patch-test toggle errors at runtime until pushed.
->   NOTE: default OFF means the previously-always-shown "Always patch test first." note is now hidden
->   on every product until the owner enables it per product.
-> - `0011_product_variants.sql` (tf6) — product variants/SKUs error at runtime until pushed.
-> Both ship in one `echo y | ./node_modules/.bin/supabase db push --linked`.
+> ✅ RESOLVED (2026-06-02): `supabase db push` applied `0010_products_show_patch_test_note.sql` (t02)
+> and `0011_product_variants.sql` (tf6) to the live DB. Patch-test note toggle and product
+> variants/SKUs are now live. NOTE: patch-test note defaults OFF — it stays hidden on every product
+> until the owner enables it per product.
 
 ## Deferred Items
 
