@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 Phase: 05
 Plan: Not started
 Status: All 4 Phase-5 plans complete (CUST-01..CUST-04 delivered). Awaiting orchestrator phase verification/close — do NOT mark phase verified here.
-Last activity: 2026-06-02 - Completed quick task 260602-tf6: Per-product weight/price variants (pending live migration push 0010+0011)
+Last activity: 2026-06-02 - Completed quick task 260602-u0q: Link skin-type note to questionnaire (no live step)
 
 Progress: [██████████] 100%
 
@@ -161,6 +161,7 @@ VERIFY items flagged in research (confirm against current Supabase docs before w
 | 260602-co6 | Notify admins on new questionnaire submission (in-app unread badge via status column + email per submission) | 2026-06-02 | b8cd5b0 | [260602-co6-notify-admins-on-new-questionnaire-submi](./quick/260602-co6-notify-admins-on-new-questionnaire-submi/) |
 | 260602-t02 | Per-product admin toggle to show 'Always patch test first.' note (opt-in, default OFF) | 2026-06-02 | 2134724 | [260602-t02-per-product-admin-toggle-to-show-always-](./quick/260602-t02-per-product-admin-toggle-to-show-always-/) |
 | 260602-tf6 | Per-product weight/price variants (SKUs): product_variants table + admin CRUD + public selector + 'From' card | 2026-06-02 | ac0e3ce | [260602-tf6-per-product-weight-price-variants-skus-a](./quick/260602-tf6-per-product-weight-price-variants-skus-a/) |
+| 260602-u0q | Link the 'Tell us your skin type' note in ProductDetail to the questionnaire (Skin Guide) page | 2026-06-02 | 5d3a251 | [260602-u0q-link-the-tell-us-your-skin-type-note-in-](./quick/260602-u0q-link-the-tell-us-your-skin-type-note-in-/) |
 
 > ✅ RESOLVED (2026-06-02): live steps for c2y + co6 completed by owner —
 > `supabase db push` (applied 0008 + 0009), `supabase secrets set RESEND_API_KEY/ADMIN_NOTIFY_EMAIL`,
