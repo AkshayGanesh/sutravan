@@ -26,6 +26,13 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
         />
         <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
+        {/* Out-of-stock marker — the product STAYS visible/clickable (QUICK-OOS-01). */}
+        {!product.inStock && (
+          <span className="absolute top-2 left-2 z-10 bg-background/90 backdrop-blur text-primary px-2.5 py-1 text-[10px] uppercase tracking-wider font-medium">
+            Out of stock
+          </span>
+        )}
+
         {/* Heart toggle — stopPropagation so it never opens the detail modal (D-09). */}
         <WishlistButton
           productSlug={product.id}

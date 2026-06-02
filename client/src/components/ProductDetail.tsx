@@ -103,9 +103,16 @@ export default function ProductDetail({
             <p className="text-sm text-foreground/60 mb-2">
               {product.subtitle}
             </p>
-            <p className="text-xl font-semibold text-primary mb-4">
+            <p className="text-xl font-semibold text-primary mb-2">
               {formatPrice(product.price)}
             </p>
+            {/* Out-of-stock marker — the product is still shown; just not buyable now. */}
+            {!product.inStock && (
+              <p className="mb-4 inline-block self-start bg-muted text-foreground/70 px-2.5 py-1 text-xs uppercase tracking-wider font-medium">
+                Currently unavailable
+              </p>
+            )}
+            {product.inStock && <div className="mb-2" />}
 
             {/* Benefits */}
             <div className="mb-3">
@@ -186,14 +193,17 @@ export default function ProductDetail({
               </p>
             </div>
 
-            {/* CTA */}
+            {/* CTA — out of stock keeps the Instagram enquiry available but the
+                label makes clear it can't be bought right now (it still exists). */}
             <a
               href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 block w-full bg-primary text-primary-foreground py-3.5 text-sm uppercase tracking-wider font-medium text-center hover:bg-secondary hover:text-primary transition-colors duration-300"
             >
-              Enquire on Instagram
+              {product.inStock
+                ? "Enquire on Instagram"
+                : "Currently unavailable — enquire on Instagram"}
             </a>
 
             <p className="text-center text-xs text-foreground/50 mt-3">

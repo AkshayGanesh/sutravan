@@ -26,6 +26,7 @@ import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import {
   useAdminProducts,
   useToggleProductActive,
+  useToggleProductInStock,
   useDeleteProduct,
 } from "@/lib/admin";
 import { formatPrice } from "@/lib/format";
@@ -38,6 +39,7 @@ interface AdminProductRow {
   price: number | null;
   images: string[] | null;
   is_active: boolean;
+  in_stock: boolean;
   categories?:
     | { slug: string; label: string; sort_order: number }
     | { slug: string; label: string; sort_order: number }[]
@@ -58,12 +60,13 @@ function categoryLabel(row: AdminProductRow): string {
   return cat?.label ?? "—";
 }
 
-const COLUMN_COUNT = 5;
+const COLUMN_COUNT = 6;
 
 export default function ProductsList() {
   const [, navigate] = useLocation();
   const { data, isLoading, isError, refetch } = useAdminProducts();
   const toggleActive = useToggleProductActive();
+  const toggleStock = useToggleProductInStock();
   const deleteProduct = useDeleteProduct();
 
   const [pendingDelete, setPendingDelete] = useState<AdminProductRow | null>(
@@ -103,6 +106,7 @@ export default function ProductsList() {
               <TableHead>Name</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Published</TableHead>
+              <TableHead>In stock</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -117,6 +121,9 @@ export default function ProductsList() {
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-4 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-9 rounded-full" />
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-5 w-9 rounded-full" />
@@ -205,6 +212,21 @@ export default function ProductsList() {
     );
   }
 
+  function StockToggle({ row }: { row: AdminProductRow }) {
+    // Distinct from the green Published switch (neutral checked color) — this is
+    // NOT a visibility control; an out-of-stock product stays on the Shop.
+    return (
+      <Switch
+        checked={row.in_stock}
+        onCheckedChange={(next) =>
+          toggleStock.mutate({ slug: row.slug, inStock: next })
+        }
+        className="data-[state=checked]:bg-secondary"
+        aria-label={`In stock — ${row.name}`}
+      />
+    );
+  }
+
   function RowActions({ row }: { row: AdminProductRow }) {
     return (
       <div className="flex items-center justify-end gap-1">
@@ -244,6 +266,7 @@ export default function ProductsList() {
               <TableHead>Name</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Published</TableHead>
+              <TableHead>In stock</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -266,6 +289,9 @@ export default function ProductsList() {
                 </TableCell>
                 <TableCell>
                   <PublishedToggle row={row} />
+                </TableCell>
+                <TableCell>
+                  <StockToggle row={row} />
                 </TableCell>
                 <TableCell className="text-right">
                   <RowActions row={row} />
@@ -300,7 +326,16 @@ export default function ProductsList() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">{formatPrice(row.price)}</span>
-              <PublishedToggle row={row} />
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  Published
+                  <PublishedToggle row={row} />
+                </label>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  In stock
+                  <StockToggle row={row} />
+                </label>
+              </div>
             </div>
             <RowActions row={row} />
           </li>
