@@ -52,6 +52,10 @@ function toProduct(row: any): Product {
     shelfLife: row.shelf_life ?? '',
     batchNote: row.batch_note ?? '',
     images: productImageUrls(row.images ?? [], categorySlug),
+    // Default true so any unexpected null reads as available (matches the column
+    // default). Out-of-stock products are STILL returned by fetchProducts (no
+    // in_stock filter); inStock only drives the client-side "unavailable" UI.
+    inStock: row.in_stock ?? true,
   };
 }
 
@@ -72,9 +76,12 @@ async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
     .select(
-      'slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, categories(slug, label, sort_order)'
+      'slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, in_stock, categories(slug, label, sort_order)'
     )
-    .eq('is_active', true) // PUB-02: published-only filter lives SERVER-SIDE
+    // PUB-02: published-only filter lives SERVER-SIDE. NOTE: deliberately NO
+    // .eq('in_stock', ...) — out-of-stock products MUST stay visible on the Shop
+    // (in_stock is not a visibility flag; it only drives the "unavailable" UI).
+    .eq('is_active', true)
     .order('slug', { ascending: true }); // D-08: deterministic featured ordering
   if (error) throw error; // surfaces to useQuery isError -> Retry
   return (data ?? []).map(toProduct);

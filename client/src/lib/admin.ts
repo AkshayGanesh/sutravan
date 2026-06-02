@@ -41,6 +41,7 @@ export type ProductFormValues = {
   shelfLife?: string;
   batchNote?: string;
   isActive: boolean; // draft (false) / published (true) (ADMIN-08)
+  inStock: boolean; // in stock (true) / out of stock (false). NOT a visibility flag.
   imagePaths: string[]; // Storage paths, NOT URLs (D-03)
   slug?: string;
 };
@@ -66,6 +67,7 @@ export type ProductRow = {
   batch_note: string | null;
   images: string[];
   is_active: boolean;
+  in_stock: boolean;
 };
 
 // ── Mapping boundary: camelCase form -> snake_case row (reverse of toProduct) ─
@@ -98,6 +100,7 @@ export function fromProductForm(
     batch_note: v.batchNote || null,
     images: v.imagePaths,
     is_active: v.isActive,
+    in_stock: v.inStock,
   };
 }
 
@@ -198,7 +201,7 @@ export async function insertProductWithUniqueSlug(
 // The admin product/category row shapes returned by the list queries (snake_case
 // straight from PostgREST; the admin tables render these directly).
 const ADMIN_PRODUCT_COLUMNS =
-  "slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, is_active, categories(slug, label, sort_order)";
+  "slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, is_active, in_stock, categories(slug, label, sort_order)";
 
 async function fetchAdminProducts() {
   // NOTE: no .eq('is_active', true) here — admins manage drafts too (Pitfall 4).
@@ -297,6 +300,39 @@ export function useToggleProductActive() {
         isActive
           ? "Product is now live on the Shop."
           : "Product hidden from the Shop.",
+      );
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+/**
+ * Flip a product's in_stock flag (QUICK-OOS-01).
+ *
+ * Deliberately NOT a visibility toggle: an out-of-stock product STAYS on the
+ * public Shop (is_active is untouched here, catalog.ts applies no in_stock
+ * filter) and is merely rendered as "unavailable". The toasts therefore must
+ * NOT reuse the is_active "hidden from the Shop" copy — that would be wrong and
+ * misleading. ['catalog'] invalidation is MANDATORY (staleTime: Infinity) so the
+ * public Shop reflects the change with no redeploy.
+ */
+export function useToggleProductInStock() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ slug, inStock }: { slug: string; inStock: boolean }) => {
+      const { error } = await supabase
+        .from("products")
+        .update({ in_stock: inStock })
+        .eq("slug", slug);
+      if (error) throw error;
+      return { inStock };
+    },
+    onSuccess: ({ inStock }) => {
+      qc.invalidateQueries({ queryKey: ["catalog"] });
+      toast.success(
+        inStock
+          ? "Product marked in stock."
+          : "Product marked out of stock. It stays visible on the Shop.",
       );
     },
     onError: (e) => toast.error(mapWriteError(e)),

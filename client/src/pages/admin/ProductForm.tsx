@@ -64,6 +64,9 @@ const productSchema = z.object({
       .nullable(),
   ),
   isActive: z.boolean(),
+  // Carried hidden value (like isActive) so create/edit never resets stock; the
+  // visible stock toggle lives on the products list, not in this form.
+  inStock: z.boolean(),
   imagePaths: z.array(z.string()),
 });
 
@@ -113,6 +116,7 @@ export default function ProductForm() {
         batchNote: existing.batch_note ?? "",
         price: existing.price ?? null,
         isActive: existing.is_active ?? false,
+        inStock: existing.in_stock ?? true,
         imagePaths: existing.images ?? [],
       };
     }
@@ -127,6 +131,7 @@ export default function ProductForm() {
       batchNote: "",
       price: null,
       isActive: false, // D-08: new products start as draft
+      inStock: true, // new products start in stock
       imagePaths: [],
     };
   }, [existing]);
@@ -157,6 +162,7 @@ export default function ProductForm() {
       batchNote: parsed.batchNote,
       price: parsed.price,
       isActive: parsed.isActive,
+      inStock: parsed.inStock,
       imagePaths: parsed.imagePaths,
       slug: editSlug, // undefined on create -> insert with a unique slug
     };

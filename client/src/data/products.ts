@@ -30,6 +30,9 @@ export interface Product {
   shelfLife: string;
   batchNote: string;
   images: string[];
+  // Stock state (QUICK-OOS-01). Out-of-stock products stay visible on the Shop;
+  // this only drives the client-side "unavailable" rendering. Defaults true.
+  inStock: boolean;
 }
 
 export interface CategoryInfo {
@@ -90,6 +93,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-turmeric',
@@ -112,6 +116,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-aloe-vera',
@@ -133,6 +138,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-multani-mitti',
@@ -155,6 +161,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-orange-peel',
@@ -177,6 +184,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-sandalwood',
@@ -199,6 +207,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-charcoal',
@@ -221,6 +230,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-rose',
@@ -243,6 +253,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-lemon-peel',
@@ -266,6 +277,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-rice',
@@ -289,6 +301,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-milk',
@@ -310,6 +323,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-oats',
@@ -331,6 +345,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
   {
     id: 'soap-coffee',
@@ -354,6 +369,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [soapImg],
+    inStock: true,
   },
 
   // ─── SCRUBS ──────────────────────────────────────────────
@@ -379,6 +395,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
   {
     id: 'scrub-multani-mitti',
@@ -403,6 +420,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
   {
     id: 'scrub-orange-peel',
@@ -425,6 +443,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
   {
     id: 'scrub-sandalwood',
@@ -448,6 +467,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
   {
     id: 'scrub-lemon-peel',
@@ -470,6 +490,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
   {
     id: 'scrub-rice',
@@ -494,6 +515,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
   {
     id: 'scrub-coffee-face',
@@ -517,6 +539,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
   {
     id: 'scrub-mix',
@@ -542,6 +565,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 6 months',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
   {
     id: 'scrub-coffee-body',
@@ -565,6 +589,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
   {
     id: 'scrub-lip',
@@ -586,6 +611,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
     images: [scrubImg],
+    inStock: true,
   },
 
   // ─── CREAMS ──────────────────────────────────────────────
@@ -609,6 +635,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
     images: [creamImg],
+    inStock: true,
   },
   {
     id: 'cream-aloe-vera-body',
@@ -631,6 +658,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 3 months',
     batchNote: BATCH_NOTE,
     images: [creamImg],
+    inStock: true,
   },
   {
     id: 'cream-rice',
@@ -653,6 +681,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
     images: [creamImg],
+    inStock: true,
   },
   {
     id: 'cream-rose',
@@ -674,6 +703,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
     images: [creamImg],
+    inStock: true,
   },
   {
     id: 'cream-sandalwood',
@@ -696,6 +726,7 @@ export const products: Product[] = [
     shelfLife: 'Best enjoyed within 1 month',
     batchNote: BATCH_NOTE,
     images: [creamImg],
+    inStock: true,
   },
 
 ];
