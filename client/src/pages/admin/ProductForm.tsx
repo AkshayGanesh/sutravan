@@ -71,6 +71,31 @@ const productSchema = z.object({
   // test first." Opt-in: defaults false for new products (QUICK-PTN-01).
   showPatchTestNote: z.boolean(),
   imagePaths: z.array(z.string()),
+  // Weight/price variants (QUICK-VAR-01). Optional: an empty list keeps the
+  // single price above. Each row needs a non-empty label and a numeric price
+  // (blank -> null), reusing the same blank->null coercion as the product price.
+  variants: z.array(
+    z.object({
+      id: z.string().optional(),
+      label: z.string().trim().min(1, "Please enter a label (e.g. 70gm)."),
+      price: z.preprocess(
+        (raw) => {
+          if (raw === "" || raw === null || raw === undefined) return null;
+          if (typeof raw === "string") {
+            const n = Number(raw.trim());
+            return Number.isNaN(n) ? raw : n;
+          }
+          return raw;
+        },
+        z
+          .number({ invalid_type_error: "Enter a whole rupee amount, or leave blank." })
+          .int("Enter a whole rupee amount (no paise).")
+          .nonnegative("Price can't be negative.")
+          .nullable(),
+      ),
+      sortOrder: z.number(),
+    }),
+  ),
 });
 
 // The form's working value type. price is `unknown` on input (the raw field
@@ -108,6 +133,24 @@ export default function ProductForm() {
       const cat = Array.isArray(existing.categories)
         ? existing.categories[0]
         : existing.categories;
+      // PostgREST embeds product_variants as an array of snake_case rows; map to
+      // the camelCase form shape, preserving each id so edits update-by-id.
+      const variantRows = (
+        (existing as { product_variants?: Array<{
+          id: string;
+          label: string;
+          price: number | null;
+          sort_order: number;
+        }> }).product_variants ?? []
+      )
+        .slice()
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((vr) => ({
+          id: vr.id,
+          label: vr.label,
+          price: vr.price,
+          sortOrder: vr.sort_order,
+        }));
       return {
         name: existing.name ?? "",
         subtitle: existing.subtitle ?? "",
@@ -122,6 +165,7 @@ export default function ProductForm() {
         inStock: existing.in_stock ?? true,
         showPatchTestNote: existing.show_patch_test_note ?? false,
         imagePaths: existing.images ?? [],
+        variants: variantRows,
       };
     }
     return {
@@ -138,6 +182,7 @@ export default function ProductForm() {
       inStock: true, // new products start in stock
       showPatchTestNote: false, // opt-in: note hidden until the owner enables it
       imagePaths: [],
+      variants: [], // no variants -> single price above is used (backwards-compatible)
     };
   }, [existing]);
 
@@ -170,6 +215,7 @@ export default function ProductForm() {
       inStock: parsed.inStock,
       showPatchTestNote: parsed.showPatchTestNote,
       imagePaths: parsed.imagePaths,
+      variants: parsed.variants,
       slug: editSlug, // undefined on create -> insert with a unique slug
     };
     upsert.mutate(payload, {
@@ -288,6 +334,103 @@ export default function ProductForm() {
                   <FormMessage />
                 </FormItem>
               )}
+            />
+
+            {/* Weight/price variants (QUICK-VAR-01). Repeatable label + price +
+                sort rows. Empty -> the single price above is used. Each row's id
+                (hidden) is preserved so edits update-by-id, not delete+recreate. */}
+            <FormField
+              control={form.control}
+              name="variants"
+              render={({ field }) => {
+                const rows = field.value ?? [];
+                const updateRow = (i: number, patch: Record<string, unknown>) =>
+                  field.onChange(
+                    rows.map((r, j) => (j === i ? { ...r, ...patch } : r)),
+                  );
+                const removeRow = (i: number) =>
+                  field.onChange(rows.filter((_, j) => j !== i));
+                const addRow = () =>
+                  field.onChange([
+                    ...rows,
+                    { label: "", price: null, sortOrder: rows.length },
+                  ]);
+                return (
+                  <FormItem>
+                    <FormLabel>Weight options</FormLabel>
+                    <FormDescription>
+                      Add weight options (e.g. 70gm, 200gm) with their prices.
+                      Leave empty to use the single price above.
+                    </FormDescription>
+                    <div className="space-y-2">
+                      {rows.map((row, i) => (
+                        <div
+                          key={row.id ?? `new-${i}`}
+                          className="flex items-end gap-2"
+                        >
+                          <div className="flex-1">
+                            <Input
+                              aria-label={`Variant ${i + 1} label`}
+                              placeholder="Label (e.g. 70gm)"
+                              value={row.label}
+                              onChange={(e) =>
+                                updateRow(i, { label: e.target.value })
+                              }
+                            />
+                          </div>
+                          <div className="w-28">
+                            <Input
+                              aria-label={`Variant ${i + 1} price`}
+                              type="number"
+                              inputMode="numeric"
+                              min={0}
+                              step={1}
+                              placeholder="₹ price"
+                              value={row.price == null ? "" : String(row.price)}
+                              onChange={(e) =>
+                                updateRow(i, {
+                                  price:
+                                    e.target.value === ""
+                                      ? null
+                                      : Number(e.target.value),
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="w-20">
+                            <Input
+                              aria-label={`Variant ${i + 1} sort order`}
+                              type="number"
+                              inputMode="numeric"
+                              min={0}
+                              step={1}
+                              placeholder="Sort"
+                              value={String(row.sortOrder ?? 0)}
+                              onChange={(e) =>
+                                updateRow(i, {
+                                  sortOrder: Number(e.target.value || 0),
+                                })
+                              }
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => removeRow(i)}
+                            aria-label={`Remove variant ${i + 1}`}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                      <Button type="button" variant="outline" onClick={addRow}>
+                        Add weight option
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             {/* Benefits / Ingredients / Tips (D-06 repeatable rows) */}

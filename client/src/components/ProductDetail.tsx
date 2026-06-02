@@ -21,18 +21,42 @@ export default function ProductDetail({
   onClose,
 }: ProductDetailProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  // Selected weight option (QUICK-VAR-01). null when the product has no variants.
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   // D-20: the "Enquire on Instagram" CTA reads the live URL with a fallback.
   const { data } = useSiteContent();
   const instagramUrl = data?.instagram_url ?? SITE_CONTENT_DEFAULTS.instagram_url;
 
   useEffect(() => {
     setActiveIndex(0);
+    // Default selection to the LOWEST-PRICE variant (tie-break: lowest sortOrder).
+    // Variants arrive already sorted by sortOrder from catalog.ts.
+    const variants = product?.variants ?? [];
+    if (variants.length === 0) {
+      setSelectedVariantId(null);
+      return;
+    }
+    const withPrice = variants.filter((v) => v.price != null);
+    const pool = withPrice.length > 0 ? withPrice : variants;
+    const lowest = pool.reduce((best, v) => {
+      if (best == null) return v;
+      const bp = best.price ?? Infinity;
+      const vp = v.price ?? Infinity;
+      if (vp < bp) return v;
+      if (vp === bp && v.sortOrder < best.sortOrder) return v;
+      return best;
+    }, pool[0]);
+    setSelectedVariantId(lowest.id);
   }, [product]);
 
   if (!product) return null;
 
   const images = product.images;
   const hasMany = images.length > 1;
+  const variants = product.variants;
+  const hasVariants = variants.length > 0;
+  const selectedVariant =
+    variants.find((v) => v.id === selectedVariantId) ?? null;
 
   const prev = () => setActiveIndex((i) => (i - 1 + images.length) % images.length);
   const next = () => setActiveIndex((i) => (i + 1) % images.length);
@@ -103,8 +127,33 @@ export default function ProductDetail({
             <p className="text-sm text-foreground/60 mb-2">
               {product.subtitle}
             </p>
+
+            {/* Weight-option selector (QUICK-VAR-01). Shown only when variants
+                exist; the price line then reflects the SELECTED variant. With 0
+                variants this is unchanged — the single product.price renders. */}
+            {hasVariants && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {variants.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setSelectedVariantId(v.id)}
+                    className={`px-3 py-1.5 text-xs uppercase tracking-wider font-medium border transition-colors duration-300 ${
+                      v.id === selectedVariantId
+                        ? "bg-primary text-background border-primary"
+                        : "border-border text-foreground/70 hover:border-primary"
+                    }`}
+                  >
+                    {v.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <p className="text-xl font-semibold text-primary mb-2">
-              {formatPrice(product.price)}
+              {hasVariants
+                ? formatPrice(selectedVariant?.price ?? null)
+                : formatPrice(product.price)}
             </p>
             {/* Out-of-stock marker — the product is still shown; just not buyable now. */}
             {!product.inStock && (

@@ -1,5 +1,5 @@
 import type { Product } from "@/data/products";
-import { formatPrice } from "@/lib/format";
+import { displayPriceLabel } from "@/lib/variants";
 import WishlistButton from "@/components/WishlistButton";
 
 interface ProductCardProps {
@@ -54,7 +54,10 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
           {product.name}
         </h3>
         <p className="text-xs text-foreground/60 mb-2">{product.subtitle}</p>
-        <p className="text-sm font-medium">{formatPrice(product.price)}</p>
+        {/* "From ₹{lowest}" when variants exist; the single price otherwise. */}
+        <p className="text-sm font-medium">
+          {displayPriceLabel(product.price, product.variants)}
+        </p>
       </div>
     </div>
   );
