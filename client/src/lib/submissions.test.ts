@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { submissionSnippet } from "@/lib/submissions";
+import { submissionSnippet, isUnread } from "@/lib/submissions";
 
 // submissionSnippet is the pure one-line list-row helper shared by the admin
 // inbox (Submissions.tsx) and the customer's own history (Profile.tsx). It must
@@ -44,5 +44,18 @@ describe("submissionSnippet", () => {
   it("does not truncate a message of exactly 80 chars", () => {
     const exact = "b".repeat(80);
     expect(submissionSnippet(exact)).toBe(exact);
+  });
+});
+
+// isUnread is the single shared new-row predicate used by both the inbox
+// highlight/mark-on-open (Submissions.tsx) and the unread-count badge. It is the
+// testable shape assertion for the status column: 'new' -> true, 'read' -> false.
+describe("isUnread", () => {
+  it("is true for a new submission", () => {
+    expect(isUnread({ status: "new" })).toBe(true);
+  });
+
+  it("is false for a read submission", () => {
+    expect(isUnread({ status: "read" })).toBe(false);
   });
 });
