@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/lib/format";
 import {
@@ -259,10 +260,14 @@ export default function ProductDetail({
                 : "Currently unavailable — enquire on Instagram"}
             </a>
 
-            <p className="text-center text-xs text-foreground/50 mt-3">
+            <Link
+              href="/questionnaire"
+              onClick={onClose}
+              className="block text-center text-xs text-foreground/50 mt-3 underline underline-offset-2 hover:text-secondary transition-colors"
+            >
               Tell us your skin type &mdash; we&rsquo;ll customize the
               formulation for you.
-            </p>
+            </Link>
           </div>
         </div>
       </DialogContent>
