@@ -27,7 +27,9 @@ import {
 } from "@/components/ui/dialog";
 import {
   useSubmissions,
+  useMarkSubmissionRead,
   submissionSnippet,
+  isUnread,
   type SubmissionRow,
 } from "@/lib/submissions";
 
@@ -52,9 +54,17 @@ const header = (
 
 export default function Submissions() {
   const { data, isLoading, isError, refetch } = useSubmissions();
+  const markRead = useMarkSubmissionRead();
   const [selected, setSelected] = useState<SubmissionRow | null>(null);
 
   const submissions = (data ?? []) as SubmissionRow[];
+
+  // Open a submission and mark it read on open (CONTEXT: opening marks read).
+  // Guarded by isUnread so an already-read row never fires a needless write.
+  function openSubmission(row: SubmissionRow) {
+    setSelected(row);
+    if (isUnread(row)) markRead.mutate(row.id);
+  }
 
   // ── Loading: skeleton rows mirroring the columns ──────────────────────────
   if (isLoading) {
@@ -156,11 +166,24 @@ export default function Submissions() {
               <TableRow
                 key={row.id}
                 className="cursor-pointer"
-                onClick={() => setSelected(row)}
+                onClick={() => openSubmission(row)}
               >
                 <TableCell>
-                  <div className="text-base font-medium text-foreground">
-                    {displayName(row)}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={
+                        isUnread(row)
+                          ? "text-base font-semibold text-foreground"
+                          : "text-base font-medium text-foreground"
+                      }
+                    >
+                      {displayName(row)}
+                    </span>
+                    {isUnread(row) && (
+                      <Badge variant="secondary" className="text-xs">
+                        New
+                      </Badge>
+                    )}
                   </div>
                   {row.email && (
                     <div className="text-sm text-muted-foreground">
@@ -190,12 +213,25 @@ export default function Submissions() {
           <li key={row.id}>
             <button
               type="button"
-              onClick={() => setSelected(row)}
+              onClick={() => openSubmission(row)}
               className="w-full space-y-1 rounded-md border border-border p-4 text-left"
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="truncate text-base font-medium text-foreground">
-                  {displayName(row)}
+                <span className="flex min-w-0 items-center gap-2">
+                  <span
+                    className={
+                      isUnread(row)
+                        ? "truncate text-base font-semibold text-foreground"
+                        : "truncate text-base font-medium text-foreground"
+                    }
+                  >
+                    {displayName(row)}
+                  </span>
+                  {isUnread(row) && (
+                    <Badge variant="secondary" className="shrink-0 text-xs">
+                      New
+                    </Badge>
+                  )}
                 </span>
                 <span className="whitespace-nowrap text-xs text-muted-foreground">
                   {formatDate(row.created_at)}

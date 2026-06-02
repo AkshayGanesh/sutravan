@@ -14,6 +14,7 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/auth/useAuth";
+import { useUnreadSubmissionsCount } from "@/lib/submissions";
 
 interface NavItem {
   label: string;
@@ -48,6 +50,8 @@ const NAV_ITEMS: NavItem[] = [
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const { signOut } = useAuth();
+  // Unread-count badge on the Submissions nav link only (rows with status='new').
+  const { data: unreadCount } = useUnreadSubmissionsCount();
 
   return (
     <SidebarProvider>
@@ -66,6 +70,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 location === item.href ||
                 location.startsWith(`${item.href}/`);
               const Icon = item.icon;
+              const showBadge =
+                item.href === "/admin/submissions" &&
+                typeof unreadCount === "number" &&
+                unreadCount > 0;
               return (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton asChild isActive={isActive}>
@@ -74,6 +82,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
+                  {showBadge && (
+                    <SidebarMenuBadge>{unreadCount}</SidebarMenuBadge>
+                  )}
                 </SidebarMenuItem>
               );
             })}
