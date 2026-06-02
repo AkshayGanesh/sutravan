@@ -14,6 +14,7 @@ import {
   SLUG_TO_SOAP_FOLDER,
 } from './catalog-data';
 import type { Category, ProductMeta, CategoryMeta } from './catalog-data';
+import type { Variant } from '@/lib/variants';
 
 export { BATCH_NOTE, categoryMeta, productMeta, SLUG_TO_SOAP_FOLDER };
 export type { Category, ProductMeta, CategoryMeta };
@@ -37,6 +38,10 @@ export interface Product {
   // shows the fixed note "Always patch test first."; not a visibility flag.
   // Defaults false.
   showPatchTestNote: boolean;
+  // Weight/price variants (SKUs) (QUICK-VAR-01). An EMPTY array means the single
+  // products.price path is unchanged (backwards-compatible); >=1 variant drives
+  // display pricing instead.
+  variants: Variant[];
 }
 
 export interface CategoryInfo {
@@ -99,6 +104,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-turmeric',
@@ -123,6 +129,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-aloe-vera',
@@ -146,6 +153,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-multani-mitti',
@@ -170,6 +178,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-orange-peel',
@@ -194,6 +203,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-sandalwood',
@@ -218,6 +228,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-charcoal',
@@ -242,6 +253,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-rose',
@@ -266,6 +278,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-lemon-peel',
@@ -291,6 +304,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-rice',
@@ -316,6 +330,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-milk',
@@ -339,6 +354,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-oats',
@@ -362,6 +378,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'soap-coffee',
@@ -387,6 +404,7 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
 
   // ─── SCRUBS ──────────────────────────────────────────────
@@ -414,6 +432,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'scrub-multani-mitti',
@@ -440,6 +459,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'scrub-orange-peel',
@@ -464,6 +484,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'scrub-sandalwood',
@@ -489,6 +510,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'scrub-lemon-peel',
@@ -513,6 +535,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'scrub-rice',
@@ -539,6 +562,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'scrub-coffee-face',
@@ -564,6 +588,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'scrub-mix',
@@ -591,6 +616,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'scrub-coffee-body',
@@ -616,6 +642,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'scrub-lip',
@@ -639,6 +666,7 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
 
   // ─── CREAMS ──────────────────────────────────────────────
@@ -664,6 +692,7 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'cream-aloe-vera-body',
@@ -688,6 +717,7 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'cream-rice',
@@ -712,6 +742,7 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'cream-rose',
@@ -735,6 +766,7 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
   {
     id: 'cream-sandalwood',
@@ -759,6 +791,7 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    variants: [],
   },
 
 ];
