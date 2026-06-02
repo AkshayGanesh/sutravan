@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 Phase: 05
 Plan: Not started
 Status: All 4 Phase-5 plans complete (CUST-01..CUST-04 delivered). Awaiting orchestrator phase verification/close — do NOT mark phase verified here.
-Last activity: 2026-06-02 - Completed quick task 260602-c2y: Add out-of-stock toggle to products (pending live migration push)
+Last activity: 2026-06-02 - Completed quick task 260602-co6: Notify admins on new questionnaire submission (pending live migration push + Resend setup)
 
 Progress: [██████████] 100%
 
@@ -158,8 +158,11 @@ VERIFY items flagged in research (confirm against current Supabase docs before w
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260602-c2y | Add out-of-stock toggle to products (admin-controlled, product stays listed but shows unavailable) | 2026-06-02 | bf73ccc | [260602-c2y-add-out-of-stock-toggle-to-products-admi](./quick/260602-c2y-add-out-of-stock-toggle-to-products-admi/) |
+| 260602-co6 | Notify admins on new questionnaire submission (in-app unread badge via status column + email per submission) | 2026-06-02 | b8cd5b0 | [260602-co6-notify-admins-on-new-questionnaire-submi](./quick/260602-co6-notify-admins-on-new-questionnaire-submi/) |
 
-> ⚠ Outstanding human action: push migration `0008_products_in_stock.sql` to live Supabase (`supabase db push`) — feature errors at runtime until then.
+> ⚠ Outstanding human actions (live credentials required, project ref `wfbnrcnmpcqzeyjlfflv`):
+> 1. `supabase db push` — applies pending `0008_products_in_stock.sql` (c2y) then `0009_submissions_status.sql` (co6). Out-of-stock toggle + unread badge/mark-read error at runtime until pushed.
+> 2. Resend setup: `supabase secrets set RESEND_API_KEY=… ADMIN_NOTIFY_EMAIL=…` then `supabase functions deploy verify-and-submit`. Admin emails don't send until done; submissions keep working (best-effort) meanwhile.
 
 ## Deferred Items
 
