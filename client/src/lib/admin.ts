@@ -42,6 +42,7 @@ export type ProductFormValues = {
   batchNote?: string;
   isActive: boolean; // draft (false) / published (true) (ADMIN-08)
   inStock: boolean; // in stock (true) / out of stock (false). NOT a visibility flag.
+  showPatchTestNote: boolean; // shows "Always patch test first." on the public detail. Display-only, opt-in (default false).
   imagePaths: string[]; // Storage paths, NOT URLs (D-03)
   slug?: string;
 };
@@ -68,6 +69,7 @@ export type ProductRow = {
   images: string[];
   is_active: boolean;
   in_stock: boolean;
+  show_patch_test_note: boolean;
 };
 
 // ── Mapping boundary: camelCase form -> snake_case row (reverse of toProduct) ─
@@ -101,6 +103,7 @@ export function fromProductForm(
     images: v.imagePaths,
     is_active: v.isActive,
     in_stock: v.inStock,
+    show_patch_test_note: v.showPatchTestNote,
   };
 }
 
@@ -201,7 +204,7 @@ export async function insertProductWithUniqueSlug(
 // The admin product/category row shapes returned by the list queries (snake_case
 // straight from PostgREST; the admin tables render these directly).
 const ADMIN_PRODUCT_COLUMNS =
-  "slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, is_active, in_stock, categories(slug, label, sort_order)";
+  "slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, is_active, in_stock, show_patch_test_note, categories(slug, label, sort_order)";
 
 async function fetchAdminProducts() {
   // NOTE: no .eq('is_active', true) here — admins manage drafts too (Pitfall 4).

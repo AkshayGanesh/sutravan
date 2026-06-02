@@ -33,6 +33,10 @@ export interface Product {
   // Stock state (QUICK-OOS-01). Out-of-stock products stay visible on the Shop;
   // this only drives the client-side "unavailable" rendering. Defaults true.
   inStock: boolean;
+  // Display-only opt-in flag (QUICK-PTN-01). When true, the public product detail
+  // shows the fixed note "Always patch test first."; not a visibility flag.
+  // Defaults false.
+  showPatchTestNote: boolean;
 }
 
 export interface CategoryInfo {
@@ -94,6 +98,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-turmeric',
@@ -117,6 +122,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-aloe-vera',
@@ -139,6 +145,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-multani-mitti',
@@ -162,6 +169,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-orange-peel',
@@ -185,6 +193,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-sandalwood',
@@ -208,6 +217,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-charcoal',
@@ -231,6 +241,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-rose',
@@ -254,6 +265,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-lemon-peel',
@@ -278,6 +290,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-rice',
@@ -302,6 +315,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-milk',
@@ -324,6 +338,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-oats',
@@ -346,6 +361,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'soap-coffee',
@@ -370,6 +386,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [soapImg],
     inStock: true,
+    showPatchTestNote: false,
   },
 
   // ─── SCRUBS ──────────────────────────────────────────────
@@ -396,6 +413,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'scrub-multani-mitti',
@@ -421,6 +439,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'scrub-orange-peel',
@@ -444,6 +463,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'scrub-sandalwood',
@@ -468,6 +488,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'scrub-lemon-peel',
@@ -491,6 +512,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'scrub-rice',
@@ -516,6 +538,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'scrub-coffee-face',
@@ -540,6 +563,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'scrub-mix',
@@ -566,6 +590,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'scrub-coffee-body',
@@ -590,6 +615,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'scrub-lip',
@@ -612,6 +638,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [scrubImg],
     inStock: true,
+    showPatchTestNote: false,
   },
 
   // ─── CREAMS ──────────────────────────────────────────────
@@ -636,6 +663,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [creamImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'cream-aloe-vera-body',
@@ -659,6 +687,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [creamImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'cream-rice',
@@ -682,6 +711,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [creamImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'cream-rose',
@@ -704,6 +734,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [creamImg],
     inStock: true,
+    showPatchTestNote: false,
   },
   {
     id: 'cream-sandalwood',
@@ -727,6 +758,7 @@ export const products: Product[] = [
     batchNote: BATCH_NOTE,
     images: [creamImg],
     inStock: true,
+    showPatchTestNote: false,
   },
 
 ];

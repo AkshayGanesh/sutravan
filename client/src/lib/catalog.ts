@@ -56,6 +56,9 @@ function toProduct(row: any): Product {
     // default). Out-of-stock products are STILL returned by fetchProducts (no
     // in_stock filter); inStock only drives the client-side "unavailable" UI.
     inStock: row.in_stock ?? true,
+    // Default false so any unexpected null reads as "note hidden" (matches the
+    // column default). Display-only opt-in flag; NO read filter applied on it.
+    showPatchTestNote: row.show_patch_test_note ?? false,
   };
 }
 
@@ -76,7 +79,7 @@ async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
     .select(
-      'slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, in_stock, categories(slug, label, sort_order)'
+      'slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, in_stock, show_patch_test_note, categories(slug, label, sort_order)'
     )
     // PUB-02: published-only filter lives SERVER-SIDE. NOTE: deliberately NO
     // .eq('in_stock', ...) — out-of-stock products MUST stay visible on the Shop
