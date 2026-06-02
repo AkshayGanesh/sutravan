@@ -160,9 +160,10 @@ VERIFY items flagged in research (confirm against current Supabase docs before w
 | 260602-c2y | Add out-of-stock toggle to products (admin-controlled, product stays listed but shows unavailable) | 2026-06-02 | bf73ccc | [260602-c2y-add-out-of-stock-toggle-to-products-admi](./quick/260602-c2y-add-out-of-stock-toggle-to-products-admi/) |
 | 260602-co6 | Notify admins on new questionnaire submission (in-app unread badge via status column + email per submission) | 2026-06-02 | b8cd5b0 | [260602-co6-notify-admins-on-new-questionnaire-submi](./quick/260602-co6-notify-admins-on-new-questionnaire-submi/) |
 
-> ⚠ Outstanding human actions (live credentials required, project ref `wfbnrcnmpcqzeyjlfflv`):
-> 1. `supabase db push` — applies pending `0008_products_in_stock.sql` (c2y) then `0009_submissions_status.sql` (co6). Out-of-stock toggle + unread badge/mark-read error at runtime until pushed.
-> 2. Resend setup: `supabase secrets set RESEND_API_KEY=… ADMIN_NOTIFY_EMAIL=…` then `supabase functions deploy verify-and-submit`. Admin emails don't send until done; submissions keep working (best-effort) meanwhile.
+> ✅ RESOLVED (2026-06-02): live steps for c2y + co6 completed by owner —
+> `supabase db push` (applied 0008 + 0009), `supabase secrets set RESEND_API_KEY/ADMIN_NOTIFY_EMAIL`,
+> and `supabase functions deploy verify-and-submit`. Out-of-stock toggle, unread badge/mark-read,
+> and per-submission admin email are all live.
 
 ## Deferred Items
 
