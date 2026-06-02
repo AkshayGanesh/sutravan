@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 Phase: 05
 Plan: Not started
 Status: All 4 Phase-5 plans complete (CUST-01..CUST-04 delivered). Awaiting orchestrator phase verification/close — do NOT mark phase verified here.
-Last activity: 2026-06-01
+Last activity: 2026-06-02 - Completed quick task 260602-c2y: Add out-of-stock toggle to products (pending live migration push)
 
 Progress: [██████████] 100%
 
@@ -152,6 +152,14 @@ VERIFY items flagged in research (confirm against current Supabase docs before w
 
 - `storage.objects` RLS policy syntax (Phase 1)
 - ~~Auth URL-config setting names + email rate limits (Phase 3)~~ RESOLVED 03-01: Site URL + Redirect URLs allowlist set in hosted Dashboard (https://sutravan.in + /reset-password); built-in email fine at <=2/hr for owner resets
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260602-c2y | Add out-of-stock toggle to products (admin-controlled, product stays listed but shows unavailable) | 2026-06-02 | bf73ccc | [260602-c2y-add-out-of-stock-toggle-to-products-admi](./quick/260602-c2y-add-out-of-stock-toggle-to-products-admi/) |
+
+> ⚠ Outstanding human action: push migration `0008_products_in_stock.sql` to live Supabase (`supabase db push`) — feature errors at runtime until then.
 
 ## Deferred Items
 
