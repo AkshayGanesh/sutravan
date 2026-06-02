@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 Phase: 05
 Plan: Not started
 Status: All 4 Phase-5 plans complete (CUST-01..CUST-04 delivered). Awaiting orchestrator phase verification/close — do NOT mark phase verified here.
-Last activity: 2026-06-02 - Completed quick task 260602-t02: Per-product patch-test note toggle (pending live migration push)
+Last activity: 2026-06-02 - Completed quick task 260602-tf6: Per-product weight/price variants (pending live migration push 0010+0011)
 
 Progress: [██████████] 100%
 
@@ -160,16 +160,19 @@ VERIFY items flagged in research (confirm against current Supabase docs before w
 | 260602-c2y | Add out-of-stock toggle to products (admin-controlled, product stays listed but shows unavailable) | 2026-06-02 | bf73ccc | [260602-c2y-add-out-of-stock-toggle-to-products-admi](./quick/260602-c2y-add-out-of-stock-toggle-to-products-admi/) |
 | 260602-co6 | Notify admins on new questionnaire submission (in-app unread badge via status column + email per submission) | 2026-06-02 | b8cd5b0 | [260602-co6-notify-admins-on-new-questionnaire-submi](./quick/260602-co6-notify-admins-on-new-questionnaire-submi/) |
 | 260602-t02 | Per-product admin toggle to show 'Always patch test first.' note (opt-in, default OFF) | 2026-06-02 | 2134724 | [260602-t02-per-product-admin-toggle-to-show-always-](./quick/260602-t02-per-product-admin-toggle-to-show-always-/) |
+| 260602-tf6 | Per-product weight/price variants (SKUs): product_variants table + admin CRUD + public selector + 'From' card | 2026-06-02 | ac0e3ce | [260602-tf6-per-product-weight-price-variants-skus-a](./quick/260602-tf6-per-product-weight-price-variants-skus-a/) |
 
 > ✅ RESOLVED (2026-06-02): live steps for c2y + co6 completed by owner —
 > `supabase db push` (applied 0008 + 0009), `supabase secrets set RESEND_API_KEY/ADMIN_NOTIFY_EMAIL`,
 > and `supabase functions deploy verify-and-submit`. Out-of-stock toggle, unread badge/mark-read,
 > and per-submission admin email are all live.
 >
-> ⚠ Outstanding (t02, project ref `wfbnrcnmpcqzeyjlfflv`): `supabase db push` for migration
-> `0010_products_show_patch_test_note.sql`. Until pushed, the patch-test toggle errors at runtime.
-> NOTE: default OFF means the previously-always-shown "Always patch test first." note is now hidden
-> on every product until the owner enables it per product.
+> ⚠ Outstanding live `supabase db push` (project ref `wfbnrcnmpcqzeyjlfflv`):
+> - `0010_products_show_patch_test_note.sql` (t02) — patch-test toggle errors at runtime until pushed.
+>   NOTE: default OFF means the previously-always-shown "Always patch test first." note is now hidden
+>   on every product until the owner enables it per product.
+> - `0011_product_variants.sql` (tf6) — product variants/SKUs error at runtime until pushed.
+> Both ship in one `echo y | ./node_modules/.bin/supabase db push --linked`.
 
 ## Deferred Items
 
