@@ -20,6 +20,7 @@ function baseForm(overrides: Partial<ProductFormValues> = {}): ProductFormValues
     batchNote: "Small batch",
     isActive: true,
     inStock: true,
+    showPatchTestNote: false,
     imagePaths: ["products/neem/1.jpg"],
     slug: "neem",
     ...overrides,
@@ -127,6 +128,18 @@ describe("fromProductForm in_stock mapping", () => {
   it("maps inStock: false -> row.in_stock === false", () => {
     const row = fromProductForm(baseForm({ inStock: false }), CATEGORY_ID);
     expect(row.in_stock).toBe(false);
+  });
+});
+
+describe("fromProductForm show_patch_test_note mapping", () => {
+  it("maps showPatchTestNote: true -> row.show_patch_test_note === true", () => {
+    const row = fromProductForm(baseForm({ showPatchTestNote: true }), CATEGORY_ID);
+    expect(row.show_patch_test_note).toBe(true);
+  });
+
+  it("maps showPatchTestNote: false -> row.show_patch_test_note === false", () => {
+    const row = fromProductForm(baseForm({ showPatchTestNote: false }), CATEGORY_ID);
+    expect(row.show_patch_test_note).toBe(false);
   });
 });
 
