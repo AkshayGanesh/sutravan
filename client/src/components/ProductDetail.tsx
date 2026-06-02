@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
+import { CUSTOMIZATION_PRICING_CAVEAT } from "@/lib/copy";
 import WishlistButton from "@/components/WishlistButton";
 
 interface ProductDetailProps {
@@ -268,6 +269,9 @@ export default function ProductDetail({
               Tell us your skin type &mdash; we&rsquo;ll customize the
               formulation for you.
             </Link>
+            <p className="text-xs text-foreground/50 mt-2 text-center">
+              {CUSTOMIZATION_PRICING_CAVEAT}
+            </p>
           </div>
         </div>
       </DialogContent>

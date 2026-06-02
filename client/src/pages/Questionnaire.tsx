@@ -33,6 +33,7 @@ import {
   type QuestionnaireValues,
 } from "@/lib/questionnaire";
 import { loadTurnstile } from "@/lib/turnstile";
+import { CUSTOMIZATION_PRICING_CAVEAT } from "@/lib/copy";
 
 // ── Static field option sets (D-04: designed fresh, brand-styled) ────────────
 const SKIN_TYPES = [
@@ -207,6 +208,9 @@ export default function Questionnaire() {
           <p className="text-foreground/70 max-w-xl mx-auto">
             Tell us about your skin and what you're looking for — we craft each
             batch by hand to suit you.
+          </p>
+          <p className="text-xs text-foreground/50 mt-3 max-w-xl mx-auto">
+            {CUSTOMIZATION_PRICING_CAVEAT}
           </p>
         </div>
       </section>
@@ -463,6 +467,10 @@ export default function Questionnaire() {
                         value={values.message || "—"}
                       />
                     </dl>
+
+                    <p className="text-xs text-foreground/50">
+                      {CUSTOMIZATION_PRICING_CAVEAT}
+                    </p>
 
                     {/* Turnstile widget — discreet block above the final CTA */}
                     <div className="pt-2">
