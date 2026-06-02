@@ -237,7 +237,10 @@ export default function ProductDetail({
             {/* Shelf life & batch note */}
             <div className="mt-4 pt-4 border-t border-border/50 space-y-1">
               <p className="text-xs text-foreground/50 italic">
-                {product.batchNote} {product.shelfLife}.
+                {product.batchNote}
+              </p>
+              <p className="text-xs text-foreground/50 italic">
+                {product.shelfLife}.
               </p>
               {/* Opt-in safety note (QUICK-PTN-01): shown only when the owner
                   enables it per product; hidden by default. */}
