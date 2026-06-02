@@ -19,6 +19,7 @@ function baseForm(overrides: Partial<ProductFormValues> = {}): ProductFormValues
     shelfLife: "12 months",
     batchNote: "Small batch",
     isActive: true,
+    inStock: true,
     imagePaths: ["products/neem/1.jpg"],
     slug: "neem",
     ...overrides,
@@ -58,6 +59,7 @@ describe("fromProductForm", () => {
     expect(row.shelf_life).toBe("12 months");
     expect(row.batch_note).toBe("Small batch");
     expect(row.is_active).toBe(true);
+    expect(row.in_stock).toBe(true);
     expect(row.images).toEqual(["products/neem/1.jpg"]);
     expect(row.category_id).toBe(CATEGORY_ID);
     expect(row.slug).toBe("neem");
@@ -113,6 +115,18 @@ describe("fromProductForm", () => {
     // catalog.ts toProduct uses `?? ''` so a null shelf_life reads back as ''.
     expect(back.shelfLife).toBe("");
     expect(back.batchNote).toBe("");
+  });
+});
+
+describe("fromProductForm in_stock mapping", () => {
+  it("maps inStock: true -> row.in_stock === true", () => {
+    const row = fromProductForm(baseForm({ inStock: true }), CATEGORY_ID);
+    expect(row.in_stock).toBe(true);
+  });
+
+  it("maps inStock: false -> row.in_stock === false", () => {
+    const row = fromProductForm(baseForm({ inStock: false }), CATEGORY_ID);
+    expect(row.in_stock).toBe(false);
   });
 });
 
