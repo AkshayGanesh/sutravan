@@ -11,6 +11,13 @@
 //      Using the service-role key here would bypass RLS and break the invariant
 //      (Pitfall 4 / T-05-06) — so this function deliberately uses only the anon key
 //      scoped to the caller's JWT, never the elevated key.
+//   3. BEST-EFFORT admin notification email (quick task 260602-co6). After the
+//      insert succeeds, send ONE email to ADMIN_NOTIFY_EMAIL via the Resend HTTP
+//      API. RESEND_API_KEY + ADMIN_NOTIFY_EMAIL live ONLY in this function's env
+//      (same T-05-09 pattern as TURNSTILE_SECRET_KEY — never VITE_/bundled). The
+//      send is wrapped in its own try/catch and MUST NEVER regress the submission:
+//      any email failure (missing secret, non-2xx, network error) is logged
+//      server-side only and the function still returns { ok: true } (T-CO6-03).
 //
 // CORS: Access-Control-Allow-Origin is restricted to the production site origin
 // (https://sutravan.in) plus localhost dev — never a wildcard (Pitfall 2 /
@@ -142,6 +149,62 @@ Deno.serve(async (req) => {
         status: 400,
         headers: jsonHeaders,
       })
+    }
+
+    // 3. BEST-EFFORT admin notification email (quick task 260602-co6).
+    //    Runs ONLY on the insert-success path. Secrets are read from the function
+    //    env (Deno.env) — NEVER VITE_/bundled (T-05-09 pattern). The whole send is
+    //    wrapped in its own try/catch: on ANY failure (missing secret, non-2xx
+    //    from Resend, network error) we console.error server-side and continue, so
+    //    the customer's submission still returns { ok: true }. This MUST NOT change
+    //    the 200 success contract questionnaire.ts depends on (T-CO6-03).
+    try {
+      const resendKey = Deno.env.get('RESEND_API_KEY')
+      const adminEmail = Deno.env.get('ADMIN_NOTIFY_EMAIL')
+      if (!resendKey || !adminEmail) {
+        // Pre-secrets / misconfig: skip gracefully so the function keeps working
+        // before the human deploys the secrets (quick task Task 4).
+        console.warn(
+          'verify-and-submit: RESEND_API_KEY/ADMIN_NOTIFY_EMAIL unset — skipping admin email',
+        )
+      } else {
+        const name = (clean.name as string | undefined) ?? 'Anonymous'
+        const email = (clean.email as string | undefined) ?? '—'
+        const skinType = (clean.skin_type as string | undefined) ?? '—'
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            // Resend onboarding sender works before a domain is verified; switch
+            // to a verified-domain sender once the owner sets one up.
+            from: 'Sutravan <onboarding@resend.dev>',
+            to: adminEmail,
+            subject: 'New skin care guide submission',
+            html:
+              `<p>A customer submitted the skin care guide questionnaire.</p>` +
+              `<ul>` +
+              `<li><strong>Name:</strong> ${name}</li>` +
+              `<li><strong>Email:</strong> ${email}</li>` +
+              `<li><strong>Skin type:</strong> ${skinType}</li>` +
+              `</ul>` +
+              `<p><a href="https://sutravan.in/admin/submissions">Open the submissions inbox</a></p>`,
+          }),
+        })
+        if (!res.ok) {
+          // Non-2xx from Resend — log and continue; submission already succeeded.
+          console.error(
+            'verify-and-submit: Resend send failed',
+            res.status,
+            await res.text().catch(() => ''),
+          )
+        }
+      }
+    } catch (mailErr) {
+      // Network/other error — best-effort, never block the submission.
+      console.error('verify-and-submit: admin email error', mailErr)
     }
 
     return new Response(JSON.stringify({ ok: true }), {
