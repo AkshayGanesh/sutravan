@@ -11,6 +11,7 @@ import soapImg from '@/assets/images/product-soap.png';
 import scrubImg from '@/assets/images/product-scrub.png';
 import creamImg from '@/assets/images/product-cream.png';
 import type { Product, Category, CategoryInfo } from '@/data/products';
+import { toVariant } from './variants';
 
 // Bundled category placeholders for empty image sets (scrub/cream are seeded with
 // images: []) and for the category showcase tiles.
@@ -59,6 +60,10 @@ function toProduct(row: any): Product {
     // Default false so any unexpected null reads as "note hidden" (matches the
     // column default). Display-only opt-in flag; NO read filter applied on it.
     showPatchTestNote: row.show_patch_test_note ?? false,
+    // Embedded product_variants (QUICK-VAR-01). Empty array -> unchanged
+    // single-price behaviour. The nested select + sort ordering are wired in the
+    // data layer (Task 3); a product with no variant rows gets [].
+    variants: (row.product_variants ?? []).map(toVariant),
   };
 }
 
@@ -79,12 +84,16 @@ async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
     .select(
-      'slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, in_stock, show_patch_test_note, categories(slug, label, sort_order)'
+      'slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, in_stock, show_patch_test_note, categories(slug, label, sort_order), product_variants(id, label, price, sort_order)'
     )
     // PUB-02: published-only filter lives SERVER-SIDE. NOTE: deliberately NO
     // .eq('in_stock', ...) — out-of-stock products MUST stay visible on the Shop
     // (in_stock is not a visibility flag; it only drives the "unavailable" UI).
     .eq('is_active', true)
+    // Order the embedded variants by sort_order so the public detail selector and
+    // "From ₹{lowest}" derivation see them in display order (supabase-js v2
+    // referencedTable embedded-order param).
+    .order('sort_order', { referencedTable: 'product_variants', ascending: true })
     .order('slug', { ascending: true }); // D-08: deterministic featured ordering
   if (error) throw error; // surfaces to useQuery isError -> Retry
   return (data ?? []).map(toProduct);

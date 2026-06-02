@@ -44,7 +44,18 @@ export type ProductFormValues = {
   inStock: boolean; // in stock (true) / out of stock (false). NOT a visibility flag.
   showPatchTestNote: boolean; // shows "Always patch test first." on the public detail. Display-only, opt-in (default false).
   imagePaths: string[]; // Storage paths, NOT URLs (D-03)
+  variants: VariantFormValues[]; // weight/price SKUs (QUICK-VAR-01); [] = unchanged single-price path
   slug?: string;
+};
+
+// A single weight/price variant row in the admin product form. `id` is present
+// only for an EXISTING row (loaded from the DB); a new row has no id (the diff
+// uses its absence to mean "insert").
+export type VariantFormValues = {
+  id?: string;
+  label: string;
+  price: number | null;
+  sortOrder: number;
 };
 
 export type CategoryFormValues = {
@@ -105,6 +116,127 @@ export function fromProductForm(
     in_stock: v.inStock,
     show_patch_test_note: v.showPatchTestNote,
   };
+}
+
+// ── Variant write helpers (product_variants table) ───────────────────────────
+
+// The snake_case product_variants payload this layer writes (sans id/product_id;
+// the caller adds product_id, and update keys off the existing id).
+type VariantRow = { label: string; price: number | null; sort_order: number };
+
+/** Map a camelCase VariantFormValues -> its snake_case row (reverse of toVariant). */
+export function fromVariantForm(v: VariantFormValues): VariantRow {
+  return { label: v.label, price: v.price, sort_order: v.sortOrder };
+}
+
+// The existing-row shape diffVariants compares against (straight from PostgREST).
+type ExistingVariant = {
+  id: string;
+  label: string;
+  price: number | null;
+  sort_order: number;
+};
+
+/**
+ * PURE diff of submitted variant rows against the existing DB rows.
+ *  - submitted row with no id            -> toInsert
+ *  - submitted id matches but a field    -> toUpdate
+ *    (label/price/sortOrder) differs
+ *  - submitted id matches and unchanged  -> no-op (neither array)
+ *  - existing id absent from submitted   -> toDelete (its id)
+ *
+ * No Supabase calls here — saveProductVariants applies the result under RLS.
+ */
+export function diffVariants(
+  existing: ExistingVariant[],
+  submitted: VariantFormValues[],
+): {
+  toInsert: VariantFormValues[];
+  toUpdate: VariantFormValues[];
+  toDelete: string[];
+} {
+  const existingById = new Map(existing.map((e) => [e.id, e]));
+  const submittedIds = new Set(
+    submitted.filter((s) => s.id != null).map((s) => s.id as string),
+  );
+
+  const toInsert: VariantFormValues[] = [];
+  const toUpdate: VariantFormValues[] = [];
+
+  for (const s of submitted) {
+    if (s.id == null) {
+      toInsert.push(s);
+      continue;
+    }
+    const prev = existingById.get(s.id);
+    if (!prev) {
+      // An id that isn't in the existing set (shouldn't normally happen) — treat
+      // as an insert of a brand-new row (drop the stale id at the call site).
+      toInsert.push({ label: s.label, price: s.price, sortOrder: s.sortOrder });
+      continue;
+    }
+    const changed =
+      prev.label !== s.label ||
+      prev.price !== s.price ||
+      prev.sort_order !== s.sortOrder;
+    if (changed) toUpdate.push(s);
+  }
+
+  const toDelete = existing
+    .filter((e) => !submittedIds.has(e.id))
+    .map((e) => e.id);
+
+  return { toInsert, toUpdate, toDelete };
+}
+
+/**
+ * Persist a product's variants via the diff path under admin RLS
+ * (product_variants_admin_write). Fetches the existing rows, diffs against the
+ * submitted set, then inserts new / updates changed-by-id / deletes removed.
+ * Skips the no-op arrays (no empty insert/delete calls). Throws on any error so
+ * useUpsertProduct's onError toast fires.
+ *
+ * @param productId - the products UUID (NOT the slug; resolve it before calling).
+ */
+export async function saveProductVariants(
+  productId: string,
+  submitted: VariantFormValues[],
+): Promise<void> {
+  const { data: existing, error: readError } = await supabase
+    .from("product_variants")
+    .select("id, label, price, sort_order")
+    .eq("product_id", productId);
+  if (readError) throw readError;
+
+  const { toInsert, toUpdate, toDelete } = diffVariants(
+    (existing ?? []) as ExistingVariant[],
+    submitted,
+  );
+
+  if (toInsert.length > 0) {
+    const rows = toInsert.map((v) => ({
+      ...fromVariantForm(v),
+      product_id: productId,
+    }));
+    const { error } = await supabase.from("product_variants").insert(rows);
+    if (error) throw error;
+  }
+
+  for (const v of toUpdate) {
+    const { error } = await supabase
+      .from("product_variants")
+      .update({ ...fromVariantForm(v), updated_at: new Date().toISOString() })
+      .eq("id", v.id as string);
+    if (error) throw error;
+  }
+
+  if (toDelete.length > 0) {
+    const { error } = await supabase
+      .from("product_variants")
+      .delete()
+      .in("id", toDelete);
+    if (error) throw error;
+  }
 }
 
 // ── Storage image helpers (product-images bucket) ────────────────────────────
@@ -204,7 +336,7 @@ export async function insertProductWithUniqueSlug(
 // The admin product/category row shapes returned by the list queries (snake_case
 // straight from PostgREST; the admin tables render these directly).
 const ADMIN_PRODUCT_COLUMNS =
-  "slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, is_active, in_stock, show_patch_test_note, categories(slug, label, sort_order)";
+  "slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, is_active, in_stock, show_patch_test_note, categories(slug, label, sort_order), product_variants(id, label, price, sort_order)";
 
 async function fetchAdminProducts() {
   // NOTE: no .eq('is_active', true) here — admins manage drafts too (Pitfall 4).
@@ -264,8 +396,12 @@ export function useUpsertProduct() {
       const categoryId = await categoryIdForSlug(v.category);
       const row = fromProductForm(v, categoryId);
       const isCreate = !v.slug;
+      // The product's fixed slug — known up front on edit, returned by the
+      // unique-slug insert on create. product_variants.product_id is the products
+      // UUID (NOT the slug), so we resolve the UUID by slug before writing variants.
+      let productSlug: string;
       if (isCreate) {
-        await insertProductWithUniqueSlug(row);
+        productSlug = await insertProductWithUniqueSlug(row);
       } else {
         // slug stays fixed; do not write it back as a changeable column.
         const { slug, ...changes } = row;
@@ -274,7 +410,17 @@ export function useUpsertProduct() {
           .update(changes)
           .eq("slug", v.slug);
         if (error) throw error;
+        productSlug = v.slug as string;
       }
+      // Resolve the products UUID by slug, then persist the variant diff under
+      // product_variants_admin_write RLS.
+      const { data: prod, error: idError } = await supabase
+        .from("products")
+        .select("id")
+        .eq("slug", productSlug)
+        .single();
+      if (idError) throw idError;
+      await saveProductVariants((prod as { id: string }).id, v.variants);
       return { isCreate };
     },
     onSuccess: ({ isCreate }) => {

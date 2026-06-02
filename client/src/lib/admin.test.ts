@@ -2,7 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   fromProductForm,
   imageStoragePath,
+  diffVariants,
+  fromVariantForm,
   type ProductFormValues,
+  type VariantFormValues,
 } from "@/lib/admin";
 
 // A representative camelCase form payload. categoryId is resolved by the caller
@@ -22,6 +25,7 @@ function baseForm(overrides: Partial<ProductFormValues> = {}): ProductFormValues
     inStock: true,
     showPatchTestNote: false,
     imagePaths: ["products/neem/1.jpg"],
+    variants: [],
     slug: "neem",
     ...overrides,
   };
@@ -146,5 +150,83 @@ describe("fromProductForm show_patch_test_note mapping", () => {
 describe("imageStoragePath", () => {
   it("builds the D-08 convention products/{slug}/{filename}", () => {
     expect(imageStoragePath("neem", "1.jpg")).toBe("products/neem/1.jpg");
+  });
+});
+
+describe("fromVariantForm", () => {
+  it("maps camelCase VariantFormValues -> snake_case row (sans id/product_id)", () => {
+    const row = fromVariantForm({ label: "70gm", price: 120, sortOrder: 2 });
+    expect(row).toEqual({ label: "70gm", price: 120, sort_order: 2 });
+  });
+
+  it("keeps a null price untouched", () => {
+    const row = fromVariantForm({ label: "200gm", price: null, sortOrder: 0 });
+    expect(row.price).toBeNull();
+  });
+});
+
+describe("diffVariants", () => {
+  const existing = [
+    { id: "a", label: "70gm", price: 120, sort_order: 0 },
+    { id: "b", label: "200gm", price: 300, sort_order: 1 },
+  ];
+
+  it("flags a submitted row with no id as toInsert", () => {
+    const submitted: VariantFormValues[] = [
+      ...existing.map((e) => ({
+        id: e.id,
+        label: e.label,
+        price: e.price,
+        sortOrder: e.sort_order,
+      })),
+      { label: "500gm", price: 600, sortOrder: 2 },
+    ];
+    const { toInsert, toUpdate, toDelete } = diffVariants(existing, submitted);
+    expect(toInsert).toEqual([{ label: "500gm", price: 600, sortOrder: 2 }]);
+    expect(toUpdate).toEqual([]);
+    expect(toDelete).toEqual([]);
+  });
+
+  it("flags a submitted row whose id matches but fields differ as toUpdate", () => {
+    const submitted: VariantFormValues[] = [
+      { id: "a", label: "70gm", price: 150, sortOrder: 0 }, // price changed
+      { id: "b", label: "200gm", price: 300, sortOrder: 1 }, // unchanged
+    ];
+    const { toInsert, toUpdate, toDelete } = diffVariants(existing, submitted);
+    expect(toInsert).toEqual([]);
+    expect(toUpdate).toEqual([
+      { id: "a", label: "70gm", price: 150, sortOrder: 0 },
+    ]);
+    expect(toDelete).toEqual([]);
+  });
+
+  it("treats an unchanged matching row as a no-op (in neither insert nor update)", () => {
+    const submitted: VariantFormValues[] = existing.map((e) => ({
+      id: e.id,
+      label: e.label,
+      price: e.price,
+      sortOrder: e.sort_order,
+    }));
+    const { toInsert, toUpdate, toDelete } = diffVariants(existing, submitted);
+    expect(toInsert).toEqual([]);
+    expect(toUpdate).toEqual([]);
+    expect(toDelete).toEqual([]);
+  });
+
+  it("flags an existing id absent from submitted as toDelete", () => {
+    const submitted: VariantFormValues[] = [
+      { id: "a", label: "70gm", price: 120, sortOrder: 0 },
+    ];
+    const { toInsert, toUpdate, toDelete } = diffVariants(existing, submitted);
+    expect(toInsert).toEqual([]);
+    expect(toUpdate).toEqual([]);
+    expect(toDelete).toEqual(["b"]);
+  });
+
+  it("empty submitted + empty existing -> all three arrays empty (0-variant product)", () => {
+    const { toInsert, toUpdate, toDelete } = diffVariants([], []);
+    expect(toInsert).toEqual([]);
+    expect(toUpdate).toEqual([]);
+    expect(toDelete).toEqual([]);
   });
 });
