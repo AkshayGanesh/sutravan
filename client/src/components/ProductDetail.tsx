@@ -188,9 +188,13 @@ export default function ProductDetail({
               <p className="text-xs text-foreground/50 italic">
                 {product.batchNote} {product.shelfLife}.
               </p>
-              <p className="text-xs text-foreground/40">
-                Always patch test first.
-              </p>
+              {/* Opt-in safety note (QUICK-PTN-01): shown only when the owner
+                  enables it per product; hidden by default. */}
+              {product.showPatchTestNote && (
+                <p className="text-xs text-foreground/40">
+                  Always patch test first.
+                </p>
+              )}
             </div>
 
             {/* CTA — out of stock keeps the Instagram enquiry available but the

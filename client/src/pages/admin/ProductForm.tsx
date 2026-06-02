@@ -67,6 +67,9 @@ const productSchema = z.object({
   // Carried hidden value (like isActive) so create/edit never resets stock; the
   // visible stock toggle lives on the products list, not in this form.
   inStock: z.boolean(),
+  // Visible toggle (below) — when true, the public detail shows "Always patch
+  // test first." Opt-in: defaults false for new products (QUICK-PTN-01).
+  showPatchTestNote: z.boolean(),
   imagePaths: z.array(z.string()),
 });
 
@@ -117,6 +120,7 @@ export default function ProductForm() {
         price: existing.price ?? null,
         isActive: existing.is_active ?? false,
         inStock: existing.in_stock ?? true,
+        showPatchTestNote: existing.show_patch_test_note ?? false,
         imagePaths: existing.images ?? [],
       };
     }
@@ -132,6 +136,7 @@ export default function ProductForm() {
       price: null,
       isActive: false, // D-08: new products start as draft
       inStock: true, // new products start in stock
+      showPatchTestNote: false, // opt-in: note hidden until the owner enables it
       imagePaths: [],
     };
   }, [existing]);
@@ -163,6 +168,7 @@ export default function ProductForm() {
       price: parsed.price,
       isActive: parsed.isActive,
       inStock: parsed.inStock,
+      showPatchTestNote: parsed.showPatchTestNote,
       imagePaths: parsed.imagePaths,
       slug: editSlug, // undefined on create -> insert with a unique slug
     };
@@ -412,6 +418,33 @@ export default function ProductForm() {
                       checked={field.value}
                       onCheckedChange={field.onChange}
                       aria-label="Published"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {/* Show patch-test note toggle (QUICK-PTN-01). Opt-in: defaults OFF.
+                When ON, the public detail shows the fixed "Always patch test
+                first." line; when OFF, no note renders. */}
+            <FormField
+              control={form.control}
+              name="showPatchTestNote"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-4 rounded-md border border-border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Show patch-test note</FormLabel>
+                    <FormDescription>
+                      {field.value
+                        ? 'Shows "Always patch test first." on the product page.'
+                        : "Hidden — no patch-test note shown."}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      aria-label="Show patch-test note"
                     />
                   </FormControl>
                 </FormItem>
