@@ -8,7 +8,7 @@ import { useProducts, useCategories } from "@/lib/catalog";
 import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 import type { Product, Category } from "@/data/products";
 
-const allTab = { id: "all" as const, label: "All Products" };
+const allTab = { id: "all" as const, label: "All" };
 
 export default function Shop() {
   const params = useParams<{ category?: string }>();
