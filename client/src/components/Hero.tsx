@@ -28,7 +28,7 @@ export default function Hero() {
         <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl text-background mb-6 leading-tight drop-shadow-md animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-150 fill-mode-both">
           {heroTitle}
         </h1>
-        <p className="whitespace-pre-line text-background/90 text-lg md:text-xl font-light tracking-wide mb-4 max-w-2xl mx-auto drop-shadow animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 fill-mode-both">
+        <p className="whitespace-pre-line text-background/90 text-lg md:text-xl font-light tracking-wide mb-4 max-w-3xl mx-auto drop-shadow animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 fill-mode-both">
           {heroSubtitle}
         </p>
         <p className="text-background/70 text-sm md:text-base tracking-wider mb-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 fill-mode-both">
