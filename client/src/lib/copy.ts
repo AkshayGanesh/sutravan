@@ -5,4 +5,4 @@
 // from the fixed catalog/variant prices. Brand-approved verbatim wording —
 // do NOT paraphrase.
 export const CUSTOMIZATION_PRICING_CAVEAT =
-  "Customized products may have different pricing based on ingredients and personalization requirements";
+  "🪄 Each Sutravan product is handcrafted to suit your unique skin type & concerns. As a result, pricing may vary depending on the ingredients & level of customization requested";

@@ -86,7 +86,9 @@ export default function Shop() {
           <div className="w-16 h-0.5 bg-secondary mx-auto mb-6" />
           <p className="text-foreground/70 max-w-2xl mx-auto">
             Each formulation is handcrafted with natural, earth-inspired
-            ingredients. Simple. Honest. Made with care.
+            ingredients.
+            <br />
+            Simple. Honest. Made with care.
           </p>
         </div>
 

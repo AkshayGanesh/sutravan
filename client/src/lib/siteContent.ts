@@ -22,7 +22,7 @@ export const SITE_CONTENT_DEFAULTS: Record<string, string> = {
   // Hero.tsx
   hero_title: "Formulas Born From The Purity of Earth",
   hero_subtitle:
-    "Experience earthen luxury with our handcrafted botanical skincare. Nourishing soaps, revitalizing scrubs, and rich creams.",
+    "Experience earthen luxury with our handcrafted botanical skincare.\nNourishing soaps, revitalizing scrubs, and rich creams.",
   hero_cta: "Explore Collection",
   // OurStory body (sanitized HTML, matches migration 0006 seed opening).
   our_story_body:

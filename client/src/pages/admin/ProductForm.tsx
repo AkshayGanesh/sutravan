@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/ui/spinner";
@@ -269,7 +270,8 @@ export default function ProductForm() {
                 <FormItem>
                   <FormLabel>Subtitle</FormLabel>
                   <FormControl>
-                    <Input
+                    <Textarea
+                      rows={2}
                       placeholder="A short tagline (optional)"
                       {...field}
                       value={field.value ?? ""}
@@ -491,7 +493,8 @@ export default function ProductForm() {
                 <FormItem>
                   <FormLabel>Shelf life</FormLabel>
                   <FormControl>
-                    <Input
+                    <Textarea
+                      rows={2}
                       placeholder="e.g. 12 months (optional)"
                       {...field}
                       value={field.value ?? ""}
@@ -510,7 +513,8 @@ export default function ProductForm() {
                 <FormItem>
                   <FormLabel>Batch note</FormLabel>
                   <FormControl>
-                    <Input
+                    <Textarea
+                      rows={2}
                       placeholder="e.g. Made in small batches (optional)"
                       {...field}
                       value={field.value ?? ""}

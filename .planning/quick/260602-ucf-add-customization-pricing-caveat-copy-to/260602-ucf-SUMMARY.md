@@ -30,7 +30,7 @@ metrics:
 
 # Quick Task 260602-ucf: Customization-pricing caveat copy Summary
 
-Added a static, muted caveat — "Customized products may have different pricing based on ingredients and personalization requirements" — sourced from one shared constant and rendered in the questionnaire intro, the questionnaire review step, and the product detail modal next to the universal questionnaire link.
+Added a static, muted caveat — "🪄 Each Sutravan product is handcrafted to suit your unique skin type & concerns. As a result, pricing may vary depending on the ingredients & level of customization requested" — sourced from one shared constant and rendered in the questionnaire intro, the questionnaire review step, and the product detail modal next to the universal questionnaire link.
 
 ## What Was Built
 

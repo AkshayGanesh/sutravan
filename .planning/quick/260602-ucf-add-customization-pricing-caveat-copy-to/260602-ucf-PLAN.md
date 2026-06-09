@@ -73,7 +73,7 @@ migration, no admin field, no live step — pure presentational copy.
 Create `client/src/lib/copy.ts` exporting a single plain string constant
 `CUSTOMIZATION_PRICING_CAVEAT` with the EXACT verbatim wording from CONTEXT.md
 (do NOT paraphrase, do NOT add or remove a trailing period):
-"Customized products may have different pricing based on ingredients and personalization requirements".
+"🪄 Each Sutravan product is handcrafted to suit your unique skin type & concerns. As a result, pricing may vary depending on the ingredients & level of customization requested".
 Keep the file trivial — one named export, no functions, no logic.
 
 In `client/src/pages/Questionnaire.tsx`: import the constant from `@/lib/copy`.

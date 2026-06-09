@@ -84,14 +84,38 @@ export default function ProductDetail({
                     aria-label="Previous image"
                     className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-background/70 backdrop-blur-sm hover:bg-background/90 transition-colors"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M15 18l-6-6 6-6" />
+                    </svg>
                   </button>
                   <button
                     onClick={next}
                     aria-label="Next image"
                     className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-background/70 backdrop-blur-sm hover:bg-background/90 transition-colors"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
                   </button>
                 </>
               )}
@@ -110,6 +134,16 @@ export default function ProductDetail({
                 ))}
               </div>
             )}
+            {/* Handmade-variation disclaimer — images are illustrative only. */}
+            <p className="px-4 py-3 text-xs text-foreground/50 italic leading-relaxed">
+              ✨ Images are for reference only. As each product is freshly
+              handmade in small batches using natural ingredients, slight
+              variations in color, texture &amp; appearance may occur.
+            </p>
+            {/* Customization pricing caveat — moved to the left column. */}
+            <p className="mt-auto px-4 pb-4 text-xs text-foreground/50 leading-relaxed">
+              {CUSTOMIZATION_PRICING_CAVEAT}
+            </p>
           </div>
 
           {/* Details */}
@@ -125,9 +159,12 @@ export default function ProductDetail({
                 </h2>
               </div>
               {/* Same toggle, same ['wishlist'] cache as the card — stays in sync (D-13). */}
-              <WishlistButton productSlug={product.id} className="-mr-2 -mt-1 shrink-0" />
+              <WishlistButton
+                productSlug={product.id}
+                className="-mr-2 -mt-1 shrink-0"
+              />
             </div>
-            <p className="text-sm text-foreground/60 mb-2">
+            <p className="text-sm text-foreground/60 mb-2 whitespace-pre-line">
               {product.subtitle}
             </p>
 
@@ -206,13 +243,33 @@ export default function ProductDetail({
               <h3 className="text-xs uppercase tracking-widest text-foreground/50 mb-2">
                 Ingredients
               </h3>
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {product.ingredients.map((ing, i) => (
                   <li
                     key={i}
-                    className="text-sm text-foreground/70 pl-3 relative whitespace-pre-line before:content-['·'] before:absolute before:left-0 before:text-secondary before:font-bold"
+                    className="flex items-start gap-2 text-sm text-foreground/70"
                   >
-                    {normalizeMultiline(ing)}
+                    <span className="text-secondary mt-0.5 shrink-0">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M7 20h10" />
+                        <path d="M10 20c5.5-2.5.8-6.4 3-10" />
+                        <path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z" />
+                        <path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z" />
+                      </svg>
+                    </span>
+                    <span className="whitespace-pre-line">
+                      {normalizeMultiline(ing)}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -239,17 +296,21 @@ export default function ProductDetail({
 
             {/* Shelf life & batch note */}
             <div className="mt-4 pt-4 border-t border-border/50 space-y-1">
-              <p className="text-xs text-foreground/50 italic">
-                {product.batchNote}
-              </p>
-              <p className="text-xs text-foreground/50 italic">
-                {product.shelfLife}.
-              </p>
+              {product.batchNote && (
+                <p className="text-xs text-foreground/50 italic whitespace-pre-line">
+                  {product.batchNote}
+                </p>
+              )}
+              {product.shelfLife && (
+                <p className="text-xs text-foreground/50 italic whitespace-pre-line">
+                  {product.shelfLife}
+                </p>
+              )}
               {/* Opt-in safety note (QUICK-PTN-01): shown only when the owner
                   enables it per product; hidden by default. */}
               {product.showPatchTestNote && (
                 <p className="text-xs text-foreground/40">
-                  Always patch test first.
+                  Always patch test first
                 </p>
               )}
             </div>
@@ -270,13 +331,28 @@ export default function ProductDetail({
             <Link
               href="/questionnaire"
               onClick={onClose}
-              className="block text-center text-xs text-foreground/50 mt-3 underline underline-offset-2 hover:text-secondary transition-colors"
+              className="mt-3 flex w-full items-center justify-center gap-2 border border-primary text-primary py-3 text-sm uppercase tracking-wider font-medium text-center hover:bg-primary hover:text-primary-foreground transition-colors duration-300"
             >
-              Tell us your skin type &mdash; we&rsquo;ll customize the
-              formulation for you.
+              Customize this for your skin
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5l7 7-7 7" />
+              </svg>
             </Link>
             <p className="text-xs text-foreground/50 mt-2 text-center">
-              {CUSTOMIZATION_PRICING_CAVEAT}
+              Share your skin type, concerns, allergies &amp; preferences, and
+              we&rsquo;ll create a personalized Sutravan product using natural
+              ingredients selected just for you.
             </p>
           </div>
         </div>

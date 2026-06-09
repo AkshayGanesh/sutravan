@@ -20,7 +20,7 @@ a global footer/banner.
 - STATIC hardcoded copy. No site_content key, no admin-editable field. (Rewording later = code change.)
 
 ### Exact wording (use VERBATIM, do not paraphrase)
-- "Customized products may have different pricing based on ingredients and personalization requirements"
+- "🪄 Each Sutravan product is handcrafted to suit your unique skin type & concerns. As a result, pricing may vary depending on the ingredients & level of customization requested"
 
 ### Placements (3)
 1. Questionnaire **intro** — under the intro paragraph in the header section
