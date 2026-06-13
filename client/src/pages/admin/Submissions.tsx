@@ -29,6 +29,8 @@ import {
   useSubmissions,
   useMarkSubmissionRead,
   submissionSnippet,
+  submissionPreview,
+  submissionAnswers,
   isUnread,
   type SubmissionRow,
 } from "@/lib/submissions";
@@ -195,7 +197,7 @@ export default function Submissions() {
                   {formatDate(row.created_at)}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {submissionSnippet(row.message)}
+                  {submissionSnippet(submissionPreview(row))}
                 </TableCell>
               </TableRow>
             ))}
@@ -238,7 +240,7 @@ export default function Submissions() {
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                {submissionSnippet(row.message)}
+                {submissionSnippet(submissionPreview(row))}
               </p>
             </button>
           </li>
@@ -265,30 +267,17 @@ export default function Submissions() {
                 {selected.email && (
                   <Field label="Email" value={selected.email} />
                 )}
-                {selected.skin_type && (
+                {submissionAnswers(selected).map((answer, i) => (
                   <Field
-                    label="Skin type"
-                    value={<Badge variant="outline">{selected.skin_type}</Badge>}
-                  />
-                )}
-                <Field
-                  label="Message"
-                  value={
-                    <p className="whitespace-pre-wrap">
-                      {selected.message?.trim() || "—"}
-                    </p>
-                  }
-                />
-                {selected.payload != null && (
-                  <Field
-                    label="Details"
+                    key={`${answer.label}-${i}`}
+                    label={answer.label}
                     value={
-                      <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">
-                        {JSON.stringify(selected.payload, null, 2)}
-                      </pre>
+                      <p className="whitespace-pre-wrap">
+                        {answer.value.trim() || "—"}
+                      </p>
                     }
                   />
-                )}
+                ))}
               </div>
             </>
           )}

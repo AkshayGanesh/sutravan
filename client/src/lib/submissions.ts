@@ -85,6 +85,95 @@ export function isUnread(row: Pick<SubmissionRow, 'status'>): boolean {
   return row.status === 'new';
 }
 
+// ── Unified answer rendering (new snapshot shape + legacy fallback) ───────────
+//
+// A submission's answers are displayed identically in the admin inbox and the
+// customer Profile history. Two shapes exist in the wild:
+//   NEW: payload.answers = [{ question_id, label, field_type, value }] — the
+//        question label + answer are SNAPSHOTTED at submit time (migration 0012
+//        questionnaire), so they render verbatim and survive question edits.
+//   LEGACY: the skin_type column + payload.{concerns,productInterest,allergies}
+//        + the message column (the pre-0012 hard-coded form). Mapped to the same
+//        label/value pairs so old rows keep rendering correctly.
+// Pure (no React, no I/O) so both pages share one source of truth + get coverage.
+
+export interface DisplayAnswer {
+  label: string;
+  value: string;
+}
+
+function joinValue(value: unknown): string {
+  if (Array.isArray(value)) return value.map((v) => String(v)).join(', ');
+  return value == null ? '' : String(value);
+}
+
+/**
+ * The label→value pairs to render for a submission. New rows map straight from
+ * payload.answers; legacy rows are reconstructed from the old columns/payload.
+ * Values may be '' (an unanswered optional question) — the UI shows '—' for those.
+ */
+export function submissionAnswers(
+  row: Pick<SubmissionRow, 'skin_type' | 'message' | 'payload'>,
+): DisplayAnswer[] {
+  const payload = row.payload;
+
+  // NEW shape: payload.answers is an array of snapshotted answers.
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    Array.isArray((payload as { answers?: unknown }).answers)
+  ) {
+    const answers = (payload as { answers: unknown[] }).answers;
+    return answers
+      .map((a) => {
+        const entry = a as { label?: unknown; value?: unknown };
+        return {
+          label: typeof entry.label === 'string' ? entry.label : '',
+          value: joinValue(entry.value),
+        };
+      })
+      .filter((a) => a.label !== '');
+  }
+
+  // LEGACY shape: skin_type column + payload object + message column.
+  const out: DisplayAnswer[] = [];
+  if (row.skin_type) out.push({ label: 'Skin type', value: row.skin_type });
+  if (payload && typeof payload === 'object') {
+    const legacy = payload as Record<string, unknown>;
+    if (Array.isArray(legacy.concerns) && legacy.concerns.length > 0) {
+      out.push({ label: 'Concerns', value: joinValue(legacy.concerns) });
+    }
+    if (
+      typeof legacy.productInterest === 'string' &&
+      legacy.productInterest.trim()
+    ) {
+      out.push({ label: 'Looking for', value: legacy.productInterest });
+    }
+    if (typeof legacy.allergies === 'string' && legacy.allergies.trim()) {
+      out.push({ label: 'Allergies / avoid', value: legacy.allergies });
+    }
+  }
+  if (row.message && row.message.trim()) {
+    out.push({ label: 'Message', value: row.message });
+  }
+  return out;
+}
+
+/**
+ * The raw preview string for a list row (truncate it with submissionSnippet).
+ * New rows have a null `message` column, so fall back to the first non-empty
+ * snapshotted answer value; returns '' when nothing is fillable (-> '—').
+ */
+export function submissionPreview(
+  row: Pick<SubmissionRow, 'skin_type' | 'message' | 'payload'>,
+): string {
+  if (row.message && row.message.trim()) return row.message;
+  const firstFilled = submissionAnswers(row).find(
+    (a) => a.value.trim() !== '',
+  );
+  return firstFilled?.value ?? '';
+}
+
 // ── Unread badge + mark-read (admin only) ────────────────────────────────────
 //
 // Both mirror the admin.ts conventions: a plain fetch split from the hook, and a

@@ -170,7 +170,35 @@ Deno.serve(async (req) => {
       } else {
         const name = (clean.name as string | undefined) ?? 'Anonymous'
         const email = (clean.email as string | undefined) ?? '—'
-        const skinType = (clean.skin_type as string | undefined) ?? '—'
+
+        // Render the submitted answers generically. New submissions carry
+        // payload.answers (snapshotted label + value per admin-configured
+        // question, migration 0012); fall back to the legacy skin_type column
+        // for any pre-0012 row. HTML-escape values since they are customer input.
+        const escapeHtml = (s: string) =>
+          s
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+        const payload = clean.payload as { answers?: unknown } | undefined
+        const answers = Array.isArray(payload?.answers)
+          ? (payload!.answers as Array<{ label?: unknown; value?: unknown }>)
+          : []
+        const answerItems =
+          answers.length > 0
+            ? answers
+                .map((a) => {
+                  const label =
+                    typeof a.label === 'string' ? escapeHtml(a.label) : ''
+                  const raw = Array.isArray(a.value)
+                    ? a.value.map((v) => String(v)).join(', ')
+                    : String(a.value ?? '')
+                  return `<li><strong>${label}:</strong> ${escapeHtml(raw) || '—'}</li>`
+                })
+                .join('')
+            : `<li><strong>Skin type:</strong> ${
+                escapeHtml((clean.skin_type as string | undefined) ?? '—')
+              }</li>`
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -186,9 +214,9 @@ Deno.serve(async (req) => {
             html:
               `<p>A customer submitted the skin care guide questionnaire.</p>` +
               `<ul>` +
-              `<li><strong>Name:</strong> ${name}</li>` +
-              `<li><strong>Email:</strong> ${email}</li>` +
-              `<li><strong>Skin type:</strong> ${skinType}</li>` +
+              `<li><strong>Name:</strong> ${escapeHtml(name)}</li>` +
+              `<li><strong>Email:</strong> ${escapeHtml(email)}</li>` +
+              answerItems +
               `</ul>` +
               `<p><a href="https://sutravan.in/admin/submissions">Open the submissions inbox</a></p>`,
           }),

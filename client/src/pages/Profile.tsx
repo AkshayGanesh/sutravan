@@ -17,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardHeader,
@@ -42,6 +41,8 @@ import { useAuth } from "@/auth/useAuth";
 import {
   useMySubmissions,
   submissionSnippet,
+  submissionPreview,
+  submissionAnswers,
   type SubmissionRow,
 } from "@/lib/submissions";
 import {
@@ -362,7 +363,7 @@ function HistorySection() {
               className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-muted/50"
             >
               <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
-                {submissionSnippet(row.message)}
+                {submissionSnippet(submissionPreview(row))}
               </span>
               <span className="whitespace-nowrap text-sm text-muted-foreground">
                 {formatDate(row.created_at)}
@@ -387,7 +388,7 @@ function HistorySection() {
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                {submissionSnippet(row.message)}
+                {submissionSnippet(submissionPreview(row))}
               </p>
             </button>
           </li>
@@ -414,32 +415,17 @@ function HistorySection() {
                 {selected.email && (
                   <Field label="Email" value={selected.email} />
                 )}
-                {selected.skin_type && (
+                {submissionAnswers(selected).map((answer, i) => (
                   <Field
-                    label="Skin type"
+                    key={`${answer.label}-${i}`}
+                    label={answer.label}
                     value={
-                      <Badge variant="outline">{selected.skin_type}</Badge>
+                      <p className="whitespace-pre-wrap">
+                        {answer.value.trim() || "—"}
+                      </p>
                     }
                   />
-                )}
-                <Field
-                  label="Message"
-                  value={
-                    <p className="whitespace-pre-wrap">
-                      {selected.message?.trim() || "—"}
-                    </p>
-                  }
-                />
-                {selected.payload != null && (
-                  <Field
-                    label="Details"
-                    value={
-                      <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">
-                        {JSON.stringify(selected.payload, null, 2)}
-                      </pre>
-                    }
-                  />
-                )}
+                ))}
               </div>
             </>
           )}

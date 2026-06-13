@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { supabase } from "./supabase";
 import { slugify } from "./slug";
 import { mapWriteError } from "./adminErrors";
+import type { QuestionFieldType } from "./questionnaire";
 // Re-export the public image-URL resolvers so admin thumbnails resolve Storage
 // paths the SAME way the public Shop does — never hand-build URLs (Pitfall 3).
 export { productImageUrls } from "./catalog";
@@ -573,6 +574,117 @@ export function useDeleteCategory() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["catalog"] });
       toast.success("Category deleted.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+// ── Questionnaire question CRUD (questionnaire_questions, migration 0012) ─────
+//
+// The admin-configurable Skin Guide questions. Mirrors the category hooks but
+// lives under its OWN ['questionnaire'] query-key family (never ['catalog']) so
+// it does not collide with the product/category cache. Mutations invalidate the
+// ['questionnaire'] prefix so the public form (['questionnaire','questions'])
+// reflects edits with no redeploy (staleTime: Infinity → invalidation is
+// MANDATORY). Answers are snapshotted into submissions, so deletes need no
+// in-use/FK guard.
+
+// The camelCase form shape edited by QuestionsList. `id` is present only on EDIT.
+export type QuestionFormValues = {
+  label: string;
+  helpText?: string;
+  fieldType: QuestionFieldType;
+  options: string[]; // ignored (stored as []) for the text types
+  placeholder?: string;
+  required: boolean;
+  sortOrder: number;
+  id?: string;
+};
+
+const ADMIN_QUESTION_COLUMNS =
+  "id, label, help_text, field_type, options, placeholder, required, sort_order";
+
+async function fetchAdminQuestions() {
+  const { data, error } = await supabase
+    .from("questionnaire_questions")
+    .select(ADMIN_QUESTION_COLUMNS)
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Admin question list ordered by sort_order (distinct key from the public read). */
+export function useAdminQuestions() {
+  return useQuery({
+    queryKey: ["questionnaire", "admin-questions"],
+    queryFn: fetchAdminQuestions,
+  });
+}
+
+// Select types carry their options; text types store [] (no options to render).
+function optionsForType(v: QuestionFormValues): string[] {
+  return v.fieldType === "single_select" || v.fieldType === "multi_select"
+    ? v.options.filter((o) => o.trim() !== "")
+    : [];
+}
+
+/**
+ * Create or update a question.
+ * - CREATE (no v.id): insert a new row.
+ * - EDIT (v.id set): update by id.
+ */
+export function useUpsertQuestion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: QuestionFormValues) => {
+      const row = {
+        label: v.label,
+        help_text: v.helpText?.trim() ? v.helpText : null,
+        field_type: v.fieldType,
+        options: optionsForType(v),
+        placeholder: v.placeholder?.trim() ? v.placeholder : null,
+        required: v.required,
+        sort_order: v.sortOrder,
+      };
+      if (!v.id) {
+        const { error } = await supabase
+          .from("questionnaire_questions")
+          .insert(row);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("questionnaire_questions")
+          .update({ ...row, updated_at: new Date().toISOString() })
+          .eq("id", v.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["questionnaire"] });
+      toast.success("Question saved.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+/**
+ * Delete a question by id. No in-use guard is needed: each submission snapshots
+ * its answers (label + value) into payload, so deleting a question never
+ * orphans or corrupts historical submissions.
+ */
+export function useDeleteQuestion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase
+        .from("questionnaire_questions")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["questionnaire"] });
+      toast.success("Question deleted.");
     },
     onError: (e) => toast.error(mapWriteError(e)),
   });

@@ -4,6 +4,7 @@ import {
   ExternalLink,
   FileText,
   Inbox,
+  ListChecks,
   LogOut,
   Package,
   Tags,
@@ -35,6 +36,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Categories", href: "/admin/categories", icon: Tags },
+  { label: "Skin Guide", href: "/admin/questions", icon: ListChecks },
   { label: "Site Content", href: "/admin/content", icon: FileText },
   { label: "Submissions", href: "/admin/submissions", icon: Inbox },
 ];

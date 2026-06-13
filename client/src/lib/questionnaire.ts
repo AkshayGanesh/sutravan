@@ -1,109 +1,180 @@
-// The customer questionnaire data layer (CUST-03): the Zod schema, the pure
-// camelCase-wizard -> D-05 snake/payload mapper, and the thin Edge-Function
-// invoke wrapper. This is the symmetric customer-side analogue of admin.ts
-// fromProductForm — the camelCase form shape is mapped to its DB row shape ONCE
-// at this boundary, never per component.
+// The customer questionnaire data layer: the public read of the
+// admin-configurable questions (migration 0012), a dynamic Zod schema built
+// from those questions, the form-defaults builder, the pure wizard -> DB-row
+// mapper, and the thin Edge-Function invoke wrapper.
 //
-// D-05 field destinations (the binding contract):
-//   name              -> `name`   column
-//   email             -> `email`  column
-//   skin type         -> `skin_type` column (admin inbox renders it as a Badge)
-//   message / note    -> `message` column
-//   skin concerns     -> payload.concerns       (jsonb)
-//   product interest  -> payload.productInterest (jsonb)
-//   allergies / avoid -> payload.allergies       (jsonb)
+// The questions are NO LONGER hard-coded — the owner manages them from
+// /admin/questions. Name + Email stay the FIXED contact step in code (Email
+// drives the admin notification email + account linking), so they are part of
+// the schema here but are not configurable questions.
 //
-// The admin inbox (pages/admin/Submissions.tsx) pretty-prints `payload` via
-// JSON.stringify(payload, null, 2) under a "Details" field, so the payload keys
-// are deliberately human-readable — they render verbatim for the owner.
+// Submission shape (binding contract with the admin inbox + Profile history):
+//   name  -> `name`  column        (fixed contact field)
+//   email -> `email` column        (fixed contact field)
+//   every configurable question's answer -> payload.answers[] as a SNAPSHOT
+//     ({ question_id, label, field_type, value }). Snapshotting keeps historical
+//     submissions readable after a question is edited/deleted (no FK to chase).
+// The legacy `skin_type` / `message` columns are left unset on new rows; old
+// rows keep them and lib/submissions.ts renders both shapes uniformly.
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./supabase";
 
-// ── Schema (RHF + zodResolver source of truth) ───────────────────────────────
-//
-// name/email are required + email-format validated on the anon path (D-02);
-// for logged-in users they are prefilled from the account and locked (D-08) but
-// still satisfy these same rules. skinType is required (single-select);
-// concerns is a (possibly empty) multi-select array; productInterest/allergies
-// are free text (may be empty); message is optional.
-export const questionnaireSchema = z.object({
-  name: z.string().trim().min(1, "Please add your name so we can reply."),
-  email: z.string().trim().email("Enter a valid email address."),
-  skinType: z.string().min(1, "Please choose your skin type."),
-  concerns: z.array(z.string()).default([]),
-  productInterest: z.string().default(""),
-  allergies: z.string().default(""),
-  message: z.string().optional(),
-});
+// ── Question model (migration 0012) ──────────────────────────────────────────
 
-export type QuestionnaireValues = z.infer<typeof questionnaireSchema>;
+export type QuestionFieldType =
+  | "single_select"
+  | "multi_select"
+  | "short_text"
+  | "long_text";
 
-// Per-step field groups for the multi-step wizard (D-06). `next()` runs
-// form.trigger(STEP_FIELDS[step]) and only advances when that step's fields are
-// valid. The review step (no input fields of its own) is not listed here.
-export const STEP_FIELDS: Record<number, (keyof QuestionnaireValues)[]> = {
-  0: ["name", "email"], // About you
-  1: ["skinType", "concerns"], // Your skin
-  2: ["productInterest", "allergies", "message"], // What you're looking for
+/** A configurable question row as read by the public form (snake_case). */
+export interface QuestionnaireQuestion {
+  id: string;
+  label: string;
+  help_text: string | null;
+  field_type: QuestionFieldType;
+  options: string[]; // [] for the text types
+  placeholder: string | null;
+  required: boolean;
+  sort_order: number;
+}
+
+const QUESTION_SELECT =
+  "id, label, help_text, field_type, options, placeholder, required, sort_order";
+
+async function fetchQuestionnaireQuestions(): Promise<QuestionnaireQuestion[]> {
+  const { data, error } = await supabase
+    .from("questionnaire_questions")
+    .select(QUESTION_SELECT)
+    .order("sort_order", { ascending: true });
+  if (error) throw error; // surfaces to useQuery isError -> Retry
+  return (data ?? []) as QuestionnaireQuestion[];
+}
+
+/**
+ * Public read of the live questionnaire questions (anon + authenticated via the
+ * questionnaire_questions_public_read RLS, migration 0012). The ['questionnaire']
+ * key family is invalidated by the admin write hooks (lib/admin.ts) so the form
+ * reflects edits with no redeploy.
+ */
+export function useQuestionnaireQuestions() {
+  return useQuery({
+    queryKey: ["questionnaire", "questions"],
+    queryFn: fetchQuestionnaireQuestions,
+  });
+}
+
+// ── Dynamic form plumbing (schema + defaults keyed by question id) ────────────
+
+const isSelect = (t: QuestionFieldType) =>
+  t === "single_select" || t === "multi_select";
+
+/**
+ * Build the RHF/zodResolver schema for a given question set. Name + Email are
+ * always present (required; email format-checked). Each question contributes one
+ * field keyed by its id: multi_select -> string[]; everything else -> string.
+ * `required` adds a min(1) so empty answers fail validation for that step.
+ *
+ * Pure (no React/IO) and built ONCE from the loaded questions by the form
+ * component, so the resolver is stable for the session.
+ */
+export function buildQuestionnaireSchema(questions: QuestionnaireQuestion[]) {
+  const shape: Record<string, z.ZodTypeAny> = {
+    name: z.string().trim().min(1, "Please add your name so we can reply."),
+    email: z.string().trim().email("Enter a valid email address."),
+  };
+  for (const q of questions) {
+    if (q.field_type === "multi_select") {
+      const arr = z.array(z.string());
+      shape[q.id] = q.required
+        ? arr.min(1, "Please choose at least one option.")
+        : arr;
+    } else {
+      const str = z.string();
+      shape[q.id] = q.required ? str.min(1, "This field is required.") : str;
+    }
+  }
+  return z.object(shape);
+}
+
+/** Form values: fixed name/email plus one entry per question id. */
+export type QuestionnaireValues = {
+  name: string;
+  email: string;
+  [questionId: string]: string | string[];
 };
 
-// ── D-05 mapping boundary: camelCase wizard values -> snake/payload DB row ────
+/**
+ * Default values for the form: empty name/email (email prefilled by the caller
+ * for logged-in users) plus a per-question default — [] for multi_select, ''
+ * otherwise — so every field is controlled from first render.
+ */
+export function buildDefaultValues(
+  questions: QuestionnaireQuestion[],
+  email = "",
+): QuestionnaireValues {
+  const values: QuestionnaireValues = { name: "", email };
+  for (const q of questions) {
+    values[q.id] = q.field_type === "multi_select" ? [] : "";
+  }
+  return values;
+}
 
-/** The exact insertable shape for `customization_submissions` (0001 columns). */
+// ── Mapping boundary: wizard values -> snake/payload DB row ───────────────────
+
+/** A single snapshotted answer stored in payload.answers. */
+export type SubmissionAnswer = {
+  question_id: string;
+  label: string;
+  field_type: QuestionFieldType;
+  value: string | string[];
+};
+
+/** The exact insertable shape for `customization_submissions` (new rows). */
 export type QuestionnaireSubmission = {
   name: string;
   email: string;
-  skin_type: string;
-  message: string;
-  payload: {
-    concerns: string[];
-    productInterest: string;
-    allergies: string;
-  };
+  payload: { answers: SubmissionAnswer[] };
   user_id: string | null;
 };
 
 /**
- * Map the camelCase wizard values to the D-05 row shape.
+ * Map the wizard values to the DB row. name/email are the fixed contact
+ * columns; every configurable question becomes a SNAPSHOT entry in
+ * payload.answers (label + field_type captured at submit time). `user_id` is
+ * the caller's id when logged in, or `null` on the anon path (required by the
+ * 0007 INSERT RLS WITH CHECK — anon rows must carry user_id = null).
  *
- * skin_type and message are dedicated columns; concerns/productInterest/
- * allergies live ONLY inside `payload`. `user_id` is the caller's id when
- * logged in, or `null` on the anon path (required by the 0007 INSERT RLS
- * WITH CHECK — anon rows must carry user_id = null). A missing/undefined
- * message collapses to '' so the column is never null.
- *
- * Pure and side-effect-free so it is trivially unit-testable (mirrors
- * admin.ts fromProductForm).
+ * Pure and side-effect-free so it is trivially unit-testable.
  */
 export function toSubmission(
   values: QuestionnaireValues,
+  questions: QuestionnaireQuestion[],
   userId: string | null,
 ): QuestionnaireSubmission {
   return {
-    name: values.name,
-    email: values.email,
-    skin_type: values.skinType,
-    message: values.message ?? "",
+    name: String(values.name ?? ""),
+    email: String(values.email ?? ""),
     payload: {
-      concerns: values.concerns,
-      productInterest: values.productInterest,
-      allergies: values.allergies,
+      answers: questions.map((q) => ({
+        question_id: q.id,
+        label: q.label,
+        field_type: q.field_type,
+        value: values[q.id] ?? (q.field_type === "multi_select" ? [] : ""),
+      })),
     },
     user_id: userId,
   };
 }
 
-// ── Edge-Function invoke wrapper (Plan 02 `verify-and-submit`) ────────────────
+// ── Edge-Function invoke wrapper (verify-and-submit) ──────────────────────────
 
 /**
- * Send a verified submission through the `verify-and-submit` Edge Function
- * (Plan 02). The function verifies the Turnstile `token` server-side, then
- * inserts `submission` under the caller's JWT so the 0007 RLS WITH CHECK is the
- * real ownership gate. Throws on error so the caller can toast.
- *
- * functions.invoke automatically attaches the session JWT (the logged-in
- * Authorization header); anon submitters reach the function with no auth header
- * and the row's user_id must be null.
+ * Send a verified submission through the `verify-and-submit` Edge Function. The
+ * function verifies the Turnstile `token` server-side, then inserts `submission`
+ * under the caller's JWT so the 0007 RLS WITH CHECK is the real ownership gate.
+ * Throws on error so the caller can toast.
  */
 export async function submitQuestionnaire(
   token: string,
@@ -116,3 +187,7 @@ export async function submitQuestionnaire(
     throw error;
   }
 }
+
+// Re-exported only so existing call sites that imported it keep type-checking;
+// the select-vs-text branch is also used by the form renderer.
+export { isSelect };
