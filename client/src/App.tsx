@@ -23,6 +23,7 @@ import ProductsList from "@/pages/admin/ProductsList";
 import ProductForm from "@/pages/admin/ProductForm";
 import CategoriesList from "@/pages/admin/CategoriesList";
 import QuestionsList from "@/pages/admin/QuestionsList";
+import SectionsList from "@/pages/admin/SectionsList";
 import SiteContent from "@/pages/admin/SiteContent";
 import Submissions from "@/pages/admin/Submissions";
 import type { ReactNode } from "react";
@@ -104,6 +105,13 @@ function Router() {
           {() => (
             <AdminRoute>
               <QuestionsList />
+            </AdminRoute>
+          )}
+        </Route>
+        <Route path="/admin/sections">
+          {() => (
+            <AdminRoute>
+              <SectionsList />
             </AdminRoute>
           )}
         </Route>

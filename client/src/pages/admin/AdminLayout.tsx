@@ -4,6 +4,7 @@ import {
   ExternalLink,
   FileText,
   Inbox,
+  LayoutList,
   ListChecks,
   LogOut,
   Package,
@@ -37,6 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Categories", href: "/admin/categories", icon: Tags },
   { label: "Skin Guide", href: "/admin/questions", icon: ListChecks },
+  { label: "Sections", href: "/admin/sections", icon: LayoutList },
   { label: "Site Content", href: "/admin/content", icon: FileText },
   { label: "Submissions", href: "/admin/submissions", icon: Inbox },
 ];

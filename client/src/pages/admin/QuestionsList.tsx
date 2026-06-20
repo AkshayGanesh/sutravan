@@ -51,6 +51,7 @@ import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import RepeatableRows from "@/components/admin/RepeatableRows";
 import {
   useAdminQuestions,
+  useAdminSections,
   useUpsertQuestion,
   useDeleteQuestion,
   type QuestionFormValues,
@@ -67,6 +68,17 @@ interface AdminQuestionRow {
   options: string[];
   placeholder: string | null;
   required: boolean;
+  sort_order: number;
+  section_id: string | null;
+}
+
+// Section <Select> can't use "" as a value (Radix reserves it), so a sentinel
+// represents "no section" in the form; it maps to null at the write boundary.
+const NO_SECTION = "__none__";
+
+interface AdminSectionOption {
+  id: string;
+  title: string;
   sort_order: number;
 }
 
@@ -93,6 +105,7 @@ const questionSchema = z
     ]),
     options: z.array(z.string()),
     placeholder: z.string().trim().optional(),
+    sectionId: z.string(), // NO_SECTION sentinel or a real section id
     required: z.boolean(),
     sortOrder: z.coerce
       .number({ invalid_type_error: "Display order must be a number." })
@@ -119,8 +132,11 @@ const COLUMN_COUNT = 4;
 
 export default function QuestionsList() {
   const { data, isLoading, isError, refetch } = useAdminQuestions();
+  const { data: sectionData } = useAdminSections();
   const upsertQuestion = useUpsertQuestion();
   const deleteQuestion = useDeleteQuestion();
+
+  const sectionOptions = (sectionData ?? []) as AdminSectionOption[];
 
   // Form dialog: null = closed; an AdminQuestionRow = editing; "new" = creating.
   const [formTarget, setFormTarget] = useState<
@@ -144,6 +160,7 @@ export default function QuestionsList() {
       fieldType: "single_select",
       options: [],
       placeholder: "",
+      sectionId: NO_SECTION,
       required: false,
       sortOrder: 0,
     },
@@ -161,6 +178,7 @@ export default function QuestionsList() {
       fieldType: "single_select",
       options: [],
       placeholder: "",
+      sectionId: NO_SECTION,
       required: false,
       sortOrder: nextOrder,
     });
@@ -174,6 +192,7 @@ export default function QuestionsList() {
       fieldType: row.field_type,
       options: row.options ?? [],
       placeholder: row.placeholder ?? "",
+      sectionId: row.section_id ?? NO_SECTION,
       required: row.required,
       sortOrder: row.sort_order,
     });
@@ -190,6 +209,7 @@ export default function QuestionsList() {
       placeholder: values.placeholder,
       required: values.required,
       sortOrder: values.sortOrder,
+      sectionId: values.sectionId === NO_SECTION ? null : values.sectionId,
       ...(editing ? { id: (formTarget as AdminQuestionRow).id } : {}),
     };
     upsertQuestion.mutate(payload, {
@@ -358,6 +378,40 @@ export default function QuestionsList() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sectionId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Section</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NO_SECTION}>
+                          No section (“More questions”)
+                        </SelectItem>
+                        {sectionOptions.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Which step this question appears in on the public form.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

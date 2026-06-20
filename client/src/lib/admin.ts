@@ -598,11 +598,12 @@ export type QuestionFormValues = {
   placeholder?: string;
   required: boolean;
   sortOrder: number;
+  sectionId?: string | null; // null/undefined = ungrouped ("More questions")
   id?: string;
 };
 
 const ADMIN_QUESTION_COLUMNS =
-  "id, label, help_text, field_type, options, placeholder, required, sort_order";
+  "id, label, help_text, field_type, options, placeholder, required, sort_order, section_id";
 
 async function fetchAdminQuestions() {
   const { data, error } = await supabase
@@ -645,6 +646,7 @@ export function useUpsertQuestion() {
         placeholder: v.placeholder?.trim() ? v.placeholder : null,
         required: v.required,
         sort_order: v.sortOrder,
+        section_id: v.sectionId ? v.sectionId : null,
       };
       if (!v.id) {
         const { error } = await supabase
@@ -685,6 +687,99 @@ export function useDeleteQuestion() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["questionnaire"] });
       toast.success("Question deleted.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+// ── Questionnaire section CRUD (questionnaire_sections, migration 0013) ───────
+//
+// Sections group questions into one-at-a-time wizard steps on the public form.
+// Same ['questionnaire'] key family + invalidation contract as the question
+// hooks above, so editing a section reflects live with no redeploy. Deleting a
+// section is unconditionally safe: the section_id FK is ON DELETE SET NULL, so
+// its questions just fall back into the client-side "More questions" bucket.
+
+// The camelCase form shape edited by SectionsList. `id` is present only on EDIT.
+export type SectionFormValues = {
+  title: string;
+  description?: string;
+  sortOrder: number;
+  id?: string;
+};
+
+const ADMIN_SECTION_COLUMNS = "id, title, description, sort_order";
+
+async function fetchAdminSections() {
+  const { data, error } = await supabase
+    .from("questionnaire_sections")
+    .select(ADMIN_SECTION_COLUMNS)
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Admin section list ordered by sort_order. */
+export function useAdminSections() {
+  return useQuery({
+    queryKey: ["questionnaire", "admin-sections"],
+    queryFn: fetchAdminSections,
+  });
+}
+
+/**
+ * Create or update a section.
+ * - CREATE (no v.id): insert a new row.
+ * - EDIT (v.id set): update by id.
+ */
+export function useUpsertSection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: SectionFormValues) => {
+      const row = {
+        title: v.title,
+        description: v.description?.trim() ? v.description : null,
+        sort_order: v.sortOrder,
+      };
+      if (!v.id) {
+        const { error } = await supabase
+          .from("questionnaire_sections")
+          .insert(row);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("questionnaire_sections")
+          .update({ ...row, updated_at: new Date().toISOString() })
+          .eq("id", v.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["questionnaire"] });
+      toast.success("Section saved.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+/**
+ * Delete a section by id. No in-use guard needed: the question.section_id FK is
+ * ON DELETE SET NULL, so the section's questions fall back to the "More
+ * questions" bucket rather than being deleted or orphaned.
+ */
+export function useDeleteSection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase
+        .from("questionnaire_sections")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["questionnaire"] });
+      toast.success("Section deleted.");
     },
     onError: (e) => toast.error(mapWriteError(e)),
   });
