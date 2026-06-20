@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,9 @@ import {
 import { supabase } from "@/lib/supabase";
 import { mapAuthError } from "@/lib/authErrors";
 import { useToast } from "@/hooks/use-toast";
+import TurnstileWidget, {
+  type TurnstileWidgetHandle,
+} from "@/components/auth/TurnstileWidget";
 
 // Password minimum mirrors the Supabase default (D-07).
 const registerSchema = z.object({
@@ -39,6 +42,8 @@ export default function Register() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [formError, setFormError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null);
 
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
@@ -54,12 +59,15 @@ export default function Register() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: { data: { name }, captchaToken: captchaToken ?? undefined },
     });
 
     if (error) {
       // Let signUp surface the error; map it — no pre-flight email-exists check.
+      // Reset the widget so the single-use token refreshes before a retry.
       setFormError(mapAuthError(error));
+      turnstileRef.current?.reset();
+      setCaptchaToken(null);
       return;
     }
 
@@ -171,6 +179,11 @@ export default function Register() {
                   )}
                 />
 
+                <TurnstileWidget
+                  ref={turnstileRef}
+                  onToken={setCaptchaToken}
+                />
+
                 {formError && (
                   <p
                     role="alert"
@@ -183,7 +196,7 @@ export default function Register() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={form.formState.isSubmitting}
+                  disabled={form.formState.isSubmitting || !captchaToken}
                 >
                   {form.formState.isSubmitting
                     ? "Creating account…"

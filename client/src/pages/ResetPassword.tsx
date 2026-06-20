@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,9 @@ import {
 import { supabase } from "@/lib/supabase";
 import { mapAuthError } from "@/lib/authErrors";
 import { useToast } from "@/hooks/use-toast";
+import TurnstileWidget, {
+  type TurnstileWidgetHandle,
+} from "@/components/auth/TurnstileWidget";
 
 const requestSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address."),
@@ -63,6 +66,10 @@ export default function ResetPassword() {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  // Captcha is REQUEST-only — the RECOVERY set-new-password sub-form runs on an
+  // already-authenticated recovery session and stays captcha-free (D-2).
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null);
 
   const requestForm = useForm<RequestValues>({
     resolver: zodResolver(requestSchema),
@@ -93,12 +100,16 @@ export default function ResetPassword() {
     setRequestError(null);
     const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
       redirectTo: buildResetRedirect(),
+      captchaToken: captchaToken ?? undefined,
     });
 
     if (error) {
       // Map errors (incl. the 2/hr rate-limit message — Pitfall 5) to friendly
       // copy. Note: even on success we show a non-committal message below.
+      // Reset the widget so the single-use token refreshes before a retry.
       setRequestError(mapAuthError(error));
+      turnstileRef.current?.reset();
+      setCaptchaToken(null);
       return;
     }
 
@@ -108,6 +119,10 @@ export default function ResetPassword() {
       description: "If an account exists, a reset link has been sent.",
     });
     requestForm.reset();
+    // Stay on-page: reset the widget + clear the token so a second request gets
+    // a fresh single-use token.
+    turnstileRef.current?.reset();
+    setCaptchaToken(null);
   }
 
   async function onSetNewPassword(values: NewPasswordValues) {
@@ -271,6 +286,11 @@ export default function ResetPassword() {
                       )}
                     />
 
+                    <TurnstileWidget
+                      ref={turnstileRef}
+                      onToken={setCaptchaToken}
+                    />
+
                     {requestError && (
                       <p
                         role="alert"
@@ -283,7 +303,9 @@ export default function ResetPassword() {
                     <Button
                       type="submit"
                       className="w-full"
-                      disabled={requestForm.formState.isSubmitting}
+                      disabled={
+                        requestForm.formState.isSubmitting || !captchaToken
+                      }
                     >
                       {requestForm.formState.isSubmitting
                         ? "Sending…"

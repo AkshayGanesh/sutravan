@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,9 @@ import {
 import { supabase } from "@/lib/supabase";
 import { mapAuthError } from "@/lib/authErrors";
 import { useToast } from "@/hooks/use-toast";
+import TurnstileWidget, {
+  type TurnstileWidgetHandle,
+} from "@/components/auth/TurnstileWidget";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address."),
@@ -54,6 +57,8 @@ export default function Login() {
   const search = useSearch();
   const { toast } = useToast();
   const [formError, setFormError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -65,12 +70,18 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({
       email: values.email,
       password: values.password,
+      // Submit is gated on a non-null token; ?? undefined satisfies the
+      // supabase-js `captchaToken?: string` type.
+      options: { captchaToken: captchaToken ?? undefined },
     });
 
     if (error) {
       // mapAuthError collapses invalid-credentials / email-not-found into one
-      // generic message (anti-enumeration, D-14 / T-3-06).
+      // generic message (anti-enumeration, D-14 / T-3-06). Reset the widget so
+      // the single-use token is refreshed before the next attempt.
       setFormError(mapAuthError(error));
+      turnstileRef.current?.reset();
+      setCaptchaToken(null);
       return;
     }
 
@@ -164,6 +175,11 @@ export default function Login() {
                   )}
                 />
 
+                <TurnstileWidget
+                  ref={turnstileRef}
+                  onToken={setCaptchaToken}
+                />
+
                 {formError && (
                   <p
                     role="alert"
@@ -176,7 +192,7 @@ export default function Login() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={form.formState.isSubmitting}
+                  disabled={form.formState.isSubmitting || !captchaToken}
                 >
                   {form.formState.isSubmitting ? "Signing in…" : "Log in"}
                 </Button>
