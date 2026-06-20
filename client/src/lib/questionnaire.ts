@@ -38,10 +38,21 @@ export interface QuestionnaireQuestion {
   placeholder: string | null;
   required: boolean;
   sort_order: number;
+  section_id: string | null; // null = ungrouped (falls into "More questions")
+}
+
+/** A section row (migration 0013) — groups questions into a wizard step. */
+export interface QuestionnaireSection {
+  id: string;
+  title: string;
+  description: string | null;
+  sort_order: number;
 }
 
 const QUESTION_SELECT =
-  "id, label, help_text, field_type, options, placeholder, required, sort_order";
+  "id, label, help_text, field_type, options, placeholder, required, sort_order, section_id";
+
+const SECTION_SELECT = "id, title, description, sort_order";
 
 async function fetchQuestionnaireQuestions(): Promise<QuestionnaireQuestion[]> {
   const { data, error } = await supabase
@@ -50,6 +61,15 @@ async function fetchQuestionnaireQuestions(): Promise<QuestionnaireQuestion[]> {
     .order("sort_order", { ascending: true });
   if (error) throw error; // surfaces to useQuery isError -> Retry
   return (data ?? []) as QuestionnaireQuestion[];
+}
+
+async function fetchQuestionnaireSections(): Promise<QuestionnaireSection[]> {
+  const { data, error } = await supabase
+    .from("questionnaire_sections")
+    .select(SECTION_SELECT)
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as QuestionnaireSection[];
 }
 
 /**
@@ -63,6 +83,79 @@ export function useQuestionnaireQuestions() {
     queryKey: ["questionnaire", "questions"],
     queryFn: fetchQuestionnaireQuestions,
   });
+}
+
+/** Public read of the live sections (migration 0013), ordered by sort_order. */
+export function useQuestionnaireSections() {
+  return useQuery({
+    queryKey: ["questionnaire", "sections"],
+    queryFn: fetchQuestionnaireSections,
+  });
+}
+
+// ── Section grouping (the wizard's step model) ────────────────────────────────
+
+/** A wizard step: a section (real or the synthetic bucket) + its questions. */
+export type QuestionGroup = {
+  /** Stable key for React + the synthetic bucket sentinel. */
+  id: string;
+  title: string;
+  description: string | null;
+  questions: QuestionnaireQuestion[];
+};
+
+/** Sentinel id/title for the trailing bucket of ungrouped questions. */
+export const UNGROUPED_SECTION_ID = "__ungrouped__";
+const UNGROUPED_TITLE = "More questions";
+
+/**
+ * Group questions into ordered wizard steps. Real sections come first (in
+ * sort_order, as returned), each carrying its questions (in their own
+ * sort_order). Any question whose section_id is null OR points at a missing
+ * section is collected into a single trailing "More questions" group. Groups
+ * with zero questions are dropped so the wizard never shows an empty step.
+ *
+ * Pure (no React/IO) so it is trivially unit-testable and stable per render.
+ */
+export function groupIntoSections(
+  sections: QuestionnaireSection[],
+  questions: QuestionnaireQuestion[],
+): QuestionGroup[] {
+  const byId = new Map<string, QuestionnaireQuestion[]>();
+  const ungrouped: QuestionnaireQuestion[] = [];
+  const known = new Set(sections.map((s) => s.id));
+
+  for (const q of questions) {
+    if (q.section_id && known.has(q.section_id)) {
+      const bucket = byId.get(q.section_id) ?? [];
+      bucket.push(q);
+      byId.set(q.section_id, bucket);
+    } else {
+      ungrouped.push(q);
+    }
+  }
+
+  const groups: QuestionGroup[] = [];
+  for (const s of sections) {
+    const qs = byId.get(s.id);
+    if (qs && qs.length > 0) {
+      groups.push({
+        id: s.id,
+        title: s.title,
+        description: s.description,
+        questions: qs,
+      });
+    }
+  }
+  if (ungrouped.length > 0) {
+    groups.push({
+      id: UNGROUPED_SECTION_ID,
+      title: UNGROUPED_TITLE,
+      description: null,
+      questions: ungrouped,
+    });
+  }
+  return groups;
 }
 
 // ── Dynamic form plumbing (schema + defaults keyed by question id) ────────────

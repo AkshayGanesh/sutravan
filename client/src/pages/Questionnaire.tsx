@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,24 +31,26 @@ import { useAuth } from "@/auth/useAuth";
 import { supabase } from "@/lib/supabase";
 import {
   useQuestionnaireQuestions,
+  useQuestionnaireSections,
+  groupIntoSections,
   buildQuestionnaireSchema,
   buildDefaultValues,
   toSubmission,
   submitQuestionnaire,
   type QuestionnaireQuestion,
+  type QuestionnaireSection,
   type QuestionnaireValues,
 } from "@/lib/questionnaire";
 import { loadTurnstile } from "@/lib/turnstile";
 import { CUSTOMIZATION_PRICING_CAVEAT } from "@/lib/copy";
 
-// Wizard steps (auto-grouped): 0 = fixed "About you" (name/email), 1 = all
-// configurable questions, 2 = review + submit, 3 = thank-you finale. The
-// owner manages the QUESTIONS, not the step grouping.
+// Wizard steps. Step 0 is the fixed "About you" (name/email) step, in code.
+// Steps 1..G are one configurable SECTION each (G = number of non-empty
+// sections, including the synthetic "More questions" bucket for ungrouped
+// questions). Step G+1 is Review + submit; step G+2 is the thank-you finale.
+// The owner manages the questions AND their sections; the step grouping is
+// derived from the sections at render time.
 const ABOUT_STEP = 0;
-const QUESTIONS_STEP = 1;
-const REVIEW_STEP = 2;
-const THANKYOU_STEP = 3;
-const TOTAL_INPUT_STEPS = 3; // shown in "Step n of total" (About / Questions / Review)
 
 /** Branded intro section — shared by the loading/empty/form states. */
 function Intro() {
@@ -72,7 +74,25 @@ function Intro() {
 }
 
 export default function Questionnaire() {
-  const { data, isLoading, isError, refetch } = useQuestionnaireQuestions();
+  const {
+    data,
+    isLoading: questionsLoading,
+    isError: questionsError,
+    refetch: refetchQuestions,
+  } = useQuestionnaireQuestions();
+  const {
+    data: sections,
+    isLoading: sectionsLoading,
+    isError: sectionsError,
+    refetch: refetchSections,
+  } = useQuestionnaireSections();
+
+  const isLoading = questionsLoading || sectionsLoading;
+  const isError = questionsError || sectionsError;
+  const refetch = () => {
+    refetchQuestions();
+    refetchSections();
+  };
 
   return (
     <Layout>
@@ -109,16 +129,37 @@ export default function Questionnaire() {
           // Mount the form ONLY once questions are loaded so the Zod schema +
           // defaults are built once from a stable question set (no dynamic
           // resolver churn). `key` re-inits if the set changes mid-session.
-          <QuestionnaireForm key={data.length} questions={data} />
+          <QuestionnaireForm
+            key={`${data.length}:${sections?.length ?? 0}`}
+            questions={data}
+            sections={sections ?? []}
+          />
         )}
       </section>
     </Layout>
   );
 }
 
-function QuestionnaireForm({ questions }: { questions: QuestionnaireQuestion[] }) {
+function QuestionnaireForm({
+  questions,
+  sections,
+}: {
+  questions: QuestionnaireQuestion[];
+  sections: QuestionnaireSection[];
+}) {
   const { session, user } = useAuth();
   const isLoggedIn = !!session;
+
+  // Derived wizard model: one step per non-empty section (+ trailing bucket).
+  // Stable for the mounted form (key re-inits on a question/section change).
+  const groups = useMemo(
+    () => groupIntoSections(sections, questions),
+    [sections, questions],
+  );
+  const sectionCount = groups.length;
+  const REVIEW_STEP = sectionCount + 1;
+  const THANKYOU_STEP = sectionCount + 2;
+  const TOTAL_INPUT_STEPS = sectionCount + 2; // About + sections + Review
 
   const [step, setStep] = useState(ABOUT_STEP);
   const [submitting, setSubmitting] = useState(false);
@@ -203,12 +244,15 @@ function QuestionnaireForm({ questions }: { questions: QuestionnaireQuestion[] }
     }
   }
 
-  // Per-step field groups: step 0 validates the fixed contact fields; the
-  // questions step validates every configurable field (keyed by question id).
+  // Per-step field groups: step 0 validates the fixed contact fields; each
+  // section step validates only that section's question ids (keyed by id), so
+  // a required answer gates advancing past its own section.
   const stepFields: Record<number, string[]> = {
     [ABOUT_STEP]: ["name", "email"],
-    [QUESTIONS_STEP]: questions.map((q) => q.id),
   };
+  groups.forEach((g, i) => {
+    stepFields[i + 1] = g.questions.map((q) => q.id);
+  });
 
   // Advance only when the current step's fields validate.
   async function next() {
@@ -251,12 +295,19 @@ function QuestionnaireForm({ questions }: { questions: QuestionnaireQuestion[] }
   }
 
   const values = form.getValues();
+  const isSectionStep = step >= 1 && step <= sectionCount;
+  const currentGroup = isSectionStep ? groups[step - 1] : null;
   const stepTitle =
     step === ABOUT_STEP
       ? "About you"
-      : step === QUESTIONS_STEP
-        ? "Tell us about your skin"
+      : currentGroup
+        ? currentGroup.title
         : "Review & send";
+  // Eyebrow: section steps get a "Section x of N" counter; others a step counter.
+  const eyebrow = currentGroup
+    ? `Section ${step} of ${sectionCount}`
+    : `Step ${step + 1} of ${TOTAL_INPUT_STEPS}`;
+  const progressPct = Math.round(((step + 1) / TOTAL_INPUT_STEPS) * 100);
 
   if (step === THANKYOU_STEP) {
     return (
@@ -284,10 +335,27 @@ function QuestionnaireForm({ questions }: { questions: QuestionnaireQuestion[] }
 
   return (
     <>
+      {/* Progress bar across the input steps (About → sections → Review). */}
+      <div className="mb-3 h-1 w-full overflow-hidden rounded-full bg-border/50">
+        <div
+          className="h-full rounded-full bg-secondary transition-all duration-300"
+          style={{ width: `${progressPct}%` }}
+          role="progressbar"
+          aria-valuenow={progressPct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        />
+      </div>
       <p className="text-xs uppercase tracking-wide text-foreground/50 mb-2">
-        Step {step + 1} of {TOTAL_INPUT_STEPS}
+        {eyebrow}
       </p>
-      <h2 className="font-serif text-2xl text-primary mb-6">{stepTitle}</h2>
+      <h2 className="font-serif text-2xl text-primary mb-2">{stepTitle}</h2>
+      {currentGroup?.description && (
+        <p className="text-sm text-foreground/60 mb-6">
+          {currentGroup.description}
+        </p>
+      )}
+      {!currentGroup && <div className="mb-6" />}
 
       <Form {...form}>
         <form
@@ -352,16 +420,16 @@ function QuestionnaireForm({ questions }: { questions: QuestionnaireQuestion[] }
             </>
           )}
 
-          {/* Step 1 — configurable questions */}
-          {step === QUESTIONS_STEP && (
+          {/* Section steps — only the current section's questions render */}
+          {currentGroup && (
             <>
-              {questions.map((q) => (
+              {currentGroup.questions.map((q) => (
                 <QuestionField key={q.id} question={q} form={form} />
               ))}
             </>
           )}
 
-          {/* Step 2 — Review & send */}
+          {/* Review & send (after the last section) */}
           {step === REVIEW_STEP && (
             <div className="space-y-4">
               <dl className="space-y-3 text-sm">
