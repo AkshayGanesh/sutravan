@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 Phase: 05
 Plan: Not started
 Status: All 4 Phase-5 plans complete (CUST-01..CUST-04 delivered). Awaiting orchestrator phase verification/close — do NOT mark phase verified here.
-Last activity: 2026-06-02 - Completed quick task 260602-vbr: Multi-line bullets in product list fields (no live step)
+Last activity: 2026-06-20 - Completed quick task 260620-p6p: Cloudflare Turnstile CAPTCHA on login/register/reset (owner must enable Supabase Bot Protection)
 
 Progress: [██████████] 100%
 
@@ -165,6 +165,7 @@ VERIFY items flagged in research (confirm against current Supabase docs before w
 | 260602-ucf | Customization-pricing caveat copy (questionnaire intro + review + product modal; static) | 2026-06-02 | f78af54 | [260602-ucf-add-customization-pricing-caveat-copy-to](./quick/260602-ucf-add-customization-pricing-caveat-copy-to/) |
 | 260602-uxl | Drag-to-reorder admin ProductForm repeatable rows (Benefits/Ingredients/Usage tips, framer-motion) | 2026-06-02 | 6a6446f | [260602-uxl-add-drag-to-reorder-to-admin-productform](./quick/260602-uxl-add-drag-to-reorder-to-admin-productform/) |
 | 260602-vbr | Multi-line bullets in Benefits/Ingredients/Usage tips (textarea + whitespace-pre-line + legacy /n normalize) | 2026-06-02 | c4cc445 | [260602-vbr-support-multi-line-bullets-in-product-be](./quick/260602-vbr-support-multi-line-bullets-in-product-be/) |
+| 260620-p6p | Cloudflare Turnstile CAPTCHA on Login + Register + Reset-request (Supabase native bot-protection, hosted-CDN widget, captchaToken) | 2026-06-20 | a24e232 | [260620-p6p-add-the-cloudflare-turnstile-in-the-user](./quick/260620-p6p-add-the-cloudflare-turnstile-in-the-user/) |
 
 > ✅ RESOLVED (2026-06-02): live steps for c2y + co6 completed by owner —
 > `supabase db push` (applied 0008 + 0009), `supabase secrets set RESEND_API_KEY/ADMIN_NOTIFY_EMAIL`,
