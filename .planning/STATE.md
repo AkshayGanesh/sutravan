@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-31)
 Phase: 05
 Plan: Not started
 Status: All 4 Phase-5 plans complete (CUST-01..CUST-04 delivered). Awaiting orchestrator phase verification/close — do NOT mark phase verified here.
-Last activity: 2026-06-20 - Completed quick task 260620-pt8: Fix Skin Guide edit-question modal remount on keystroke (focus loss + save-once) — validated via Playwright
+Last activity: 2026-06-20 - Completed quick task 260620-q5k: Google-Forms-style Skin Guide sections + one-section-at-a-time wizard (migration 0013 applied live) — validated via Playwright
 
 Progress: [██████████] 100%
 
@@ -167,6 +167,7 @@ VERIFY items flagged in research (confirm against current Supabase docs before w
 | 260602-vbr | Multi-line bullets in Benefits/Ingredients/Usage tips (textarea + whitespace-pre-line + legacy /n normalize) | 2026-06-02 | c4cc445 | [260602-vbr-support-multi-line-bullets-in-product-be](./quick/260602-vbr-support-multi-line-bullets-in-product-be/) |
 | 260620-p6p | Cloudflare Turnstile CAPTCHA on Login + Register + Reset-request (Supabase native bot-protection, hosted-CDN widget, captchaToken) | 2026-06-20 | a24e232 | [260620-p6p-add-the-cloudflare-turnstile-in-the-user](./quick/260620-p6p-add-the-cloudflare-turnstile-in-the-user/) |
 | 260620-pt8 | Fix Skin Guide edit-question modal remount on first keystroke (focus loss + save-once not persisting): useWatch + render dialog via call not nested component | 2026-06-20 | 196b47a | [260620-pt8-fix-skin-guide-edit-question-modal-re-re](./quick/260620-pt8-fix-skin-guide-edit-question-modal-re-re/) |
+| 260620-q5k | Google-Forms-style Skin Guide sections: questionnaire_sections table + admin CRUD + per-question section dropdown + public one-section-at-a-time wizard (progress bar, Back/Next, "More questions" bucket) | 2026-06-20 | a277034 | [260620-q5k-add-google-forms-style-sections-to-the-s](./quick/260620-q5k-add-google-forms-style-sections-to-the-s/) |
 
 > ✅ RESOLVED (2026-06-02): live steps for c2y + co6 completed by owner —
 > `supabase db push` (applied 0008 + 0009), `supabase secrets set RESEND_API_KEY/ADMIN_NOTIFY_EMAIL`,
