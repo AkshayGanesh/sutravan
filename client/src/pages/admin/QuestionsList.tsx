@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Pencil, Trash2 } from "lucide-react";
@@ -149,7 +149,10 @@ export default function QuestionsList() {
     },
   });
 
-  const fieldType = form.watch("fieldType");
+  // useWatch (not form.watch) so subscribing to fieldType does NOT force a root
+  // re-render of this list on every keystroke — that re-render is what used to
+  // remount the dialog and steal input focus after the first character.
+  const fieldType = useWatch({ control: form.control, name: "fieldType" });
 
   function openCreate() {
     form.reset({
@@ -264,13 +267,18 @@ export default function QuestionsList() {
             Retry
           </Button>
         </div>
-        <QuestionFormDialog />
+        {renderQuestionFormDialog()}
       </section>
     );
   }
 
   // ── Reusable form dialog (create + edit share one surface) ────────────────
-  function QuestionFormDialog() {
+  // Rendered by CALLING this (`{renderQuestionFormDialog()}`), never mounted as
+  // `<… />`. A nested component gets a new function identity on every parent
+  // render, which made React remount the whole dialog (and steal input focus)
+  // on the first keystroke. Calling it inlines the JSX so React reconciles the
+  // <Dialog> in place. It uses no hooks, so a plain call is safe.
+  function renderQuestionFormDialog() {
     const editing = formTarget !== "new" && formTarget !== null;
     return (
       <Dialog
@@ -466,7 +474,7 @@ export default function QuestionsList() {
             <Button onClick={openCreate}>+ Add question</Button>
           </EmptyContent>
         </Empty>
-        <QuestionFormDialog />
+        {renderQuestionFormDialog()}
       </section>
     );
   }
@@ -579,7 +587,7 @@ export default function QuestionsList() {
         ))}
       </ul>
 
-      <QuestionFormDialog />
+      {renderQuestionFormDialog()}
 
       <ConfirmDialog
         open={pendingDelete !== null}
