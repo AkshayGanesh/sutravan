@@ -1,8 +1,10 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import {
-  Turnstile,
-  type TurnstileInstance,
-} from "@marsidev/react-turnstile";
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from "react";
+import { loadTurnstile } from "@/lib/turnstile";
 
 /**
  * Public handle exposed to parent forms — lets the auth pages reset the widget
@@ -22,8 +24,12 @@ interface TurnstileWidgetProps {
 
 /**
  * Reusable Cloudflare Turnstile widget for the unauthenticated auth surfaces
- * (Login / Register / Reset REQUEST). Wraps `@marsidev/react-turnstile`, which
- * owns the widget lifecycle, single-use token expiry, and React cleanup.
+ * (Login / Register / Reset REQUEST). Loads the hosted CDN script via
+ * `@/lib/turnstile` and drives `window.turnstile.render/reset/remove` directly
+ * — the SAME pattern the questionnaire uses (D-03). No npm wrapper is added:
+ * `client/src/lib/turnstile.ts` documents that this path mandates no new client
+ * packages, and a wrapper's global `window.turnstile` typing collides with the
+ * ambient one declared there.
  *
  * The PUBLIC site key is read from `VITE_TURNSTILE_SITE_KEY` (mirrors the VITE_
  * pattern in `@/lib/supabase`). The SECRET key never touches the client — token
@@ -40,28 +46,59 @@ const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidgetProps>(
       | string
       | undefined;
 
-    const innerRef = useRef<TurnstileInstance | undefined>(undefined);
-    const devEmitted = useRef(false);
-
-    // Dev-bypass: emit a placeholder token once so the submit-gate clears when
-    // no site key is configured. Guarded so it fires a single time per mount.
-    useEffect(() => {
-      if (!siteKey && !devEmitted.current) {
-        devEmitted.current = true;
-        onToken("dev-bypass");
-      }
-    }, [siteKey, onToken]);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const widgetId = useRef<string | null>(null);
+    // Hold the latest onToken so the render callbacks (registered once) always
+    // call the current handler without re-rendering the widget.
+    const onTokenRef = useRef(onToken);
+    onTokenRef.current = onToken;
 
     useImperativeHandle(
       ref,
       () => ({
         reset: () => {
-          // No-op in the dev-bypass branch (no underlying widget).
-          innerRef.current?.reset();
+          onTokenRef.current(null);
+          if (window.turnstile && widgetId.current) {
+            window.turnstile.reset(widgetId.current);
+          }
         },
       }),
       [],
     );
+
+    useEffect(() => {
+      // Dev-bypass: emit a placeholder token once so the submit-gate clears when
+      // no site key is configured. Real enforcement lives in Supabase.
+      if (!siteKey) {
+        onTokenRef.current("dev-bypass");
+        return;
+      }
+
+      let active = true;
+      loadTurnstile()
+        .then(() => {
+          const container = containerRef.current;
+          if (!active || !window.turnstile || !container) return;
+          container.innerHTML = "";
+          widgetId.current = window.turnstile.render(container, {
+            sitekey: siteKey,
+            callback: (token: string) => onTokenRef.current(token),
+            "expired-callback": () => onTokenRef.current(null),
+            "error-callback": () => onTokenRef.current(null),
+          });
+        })
+        .catch(() => {
+          if (active) onTokenRef.current(null);
+        });
+
+      return () => {
+        active = false;
+        if (window.turnstile && widgetId.current) {
+          window.turnstile.remove(widgetId.current);
+          widgetId.current = null;
+        }
+      };
+    }, [siteKey]);
 
     if (!siteKey) {
       return (
@@ -71,15 +108,7 @@ const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidgetProps>(
       );
     }
 
-    return (
-      <Turnstile
-        ref={innerRef}
-        siteKey={siteKey}
-        onSuccess={(token) => onToken(token)}
-        onError={() => onToken(null)}
-        onExpire={() => onToken(null)}
-      />
-    );
+    return <div ref={containerRef} />;
   },
 );
 
