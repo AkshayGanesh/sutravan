@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
+status: Awaiting next milestone
 stopped_at: Completed 05-04-PLAN.md (customer profile slice — CUST-04 delivered; all 4 Phase-5 plans complete, pending phase verification)
-last_updated: "2026-06-01T18:01:45.772Z"
-last_activity: 2026-06-01
+last_updated: "2026-06-27T08:06:22.789Z"
+last_activity: 2026-06-27 — Milestone v1.0 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
@@ -18,19 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-31)
+See: .planning/PROJECT.md (updated 2026-06-27)
 
 **Core value:** The owner can manage the entire product catalog (products, categories, images, prices) through an admin portal — no code changes, no redeploys.
-**Current focus:** Phase 05 — customer-experience-wishlist-profile-native-questionnaire
+**Current focus:** v1.0 shipped — planning next milestone (e-commerce: cart / checkout / payments)
 
 ## Current Position
 
-Phase: 05
-Plan: Not started
-Status: All 4 Phase-5 plans complete (CUST-01..CUST-04 delivered). Awaiting orchestrator phase verification/close — do NOT mark phase verified here.
-Last activity: 2026-06-20 - Completed quick task 260620-q5k: Google-Forms-style Skin Guide sections + one-section-at-a-time wizard (migration 0013 applied live) — validated via Playwright
-
-Progress: [██████████] 100%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-27 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -188,8 +186,23 @@ Items acknowledged and carried forward from previous milestone close:
 | E-commerce | Cart / checkout / Razorpay / inventory (ECOM-01..04) | Deferred to next milestone | Roadmap creation |
 | Admin enhancements | Image reorder, bulk ops, multi-admin, analytics (ADME-01..04) | Deferred to v2 | Roadmap creation |
 
+### Acknowledged at v1.0 close (2026-06-27)
+
+Open verification/UAT sign-offs accepted as deferred tech debt when closing v1.0 (milestone audit status `tech_debt`: requirements 23/23, phases 5/5, integration 23/23, flows 2/2 — no hard gaps). 7 genuine open items carried forward; the 9 "quick task" audit hits are false positives (all complete with commits, logged in Quick Tasks Completed above).
+
+| Category | Item | Status | Deferred At |
+|----------|------|--------|-------------|
+| UAT | Phase 03 (auth & roles) HUMAN-UAT — 7 pending scenarios (register, session, logout, role self-escalation, route guards, admin bootstrap, password reset) | Partial — human UAT not run | v1.0 close |
+| UAT | Phase 05 (customer experience) HUMAN-UAT — 2 pending scenarios (wishlist sync, logged-out heart redirect) | Partial — human UAT not run | v1.0 close |
+| Verification | Phases 01–05 VERIFICATION.md — `human_needed` final human sign-off (agent-verified GREEN; Phase 02 HUMAN-UAT passed 5/5 on 2026-06-27) | Human sign-off pending | v1.0 close |
+| Tech debt (audit warnings) | AUTH-05 AdminGuard inline `startsWith('/')` vs shared `safeReturnTo` sanitizer (defense-in-depth holds); PUB-01 Home.tsx import indirection | Cosmetic / pattern consistency | v1.0 close |
+
 ## Session Continuity
 
 Last session: 2026-06-01T17:05:00.000Z
 Stopped at: Completed 05-04-PLAN.md (customer profile slice — CUST-04 delivered; all 4 Phase-5 plans complete, pending phase verification)
 Resume file: None — all Phase-5 plans complete; awaiting orchestrator phase verification/close
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
