@@ -1,192 +1,275 @@
 # Pitfalls Research
 
-**Domain:** Supabase-direct (no backend server) auth + admin CMS + Storage bolted onto a static React/Vite SPA deployed to GitHub Pages
-**Researched:** 2026-05-31
-**Confidence:** HIGH (security core verified against Supabase official docs + community post-mortems; a few API-syntax items marked VERIFY)
+**Domain:** Pincode delivery estimator (Indian courier/aggregator rate API) bolted onto a static React/Vite SPA (GitHub Pages) backed by Supabase Postgres + RLS + Deno Edge Functions, with no cart/checkout to reconcile against
+**Researched:** 2026-06-27
+**Confidence:** HIGH (Supabase Edge Function security + Delhivery/Shiprocket API behavior verified against official docs + vendor help centers; estimate/legal framing is judgement-based, marked MEDIUM)
 
-> **Why this matters for THIS project:** PROJECT.md already commits to "Supabase-direct — frontend talks to Supabase via its client; no custom Express API layer" and "Admin-only actions must be enforced server-side via Supabase RLS, not just hidden in the UI." That single architectural choice means **the Postgres database (via RLS) is the only trust boundary** — there is no server to check anything. Every critical pitfall below flows from getting that boundary right. CONCERNS.md also confirms the existing Express/Passport/Drizzle scaffolding is being dropped, so none of the prior server-side security model carries over.
+> **Why this matters for THIS project:** v1.1 introduces the project's **first outbound call to a paid third-party API that requires onboarding/KYC and holds a money-bearing secret.** Everything before this was self-contained inside Supabase. Three structural facts drive every pitfall below:
+> 1. **There is no checkout.** The estimate is the *entire* customer-facing artifact — it is never reconciled against a real charged amount, so an inaccurate or stale number is the deliverable, not a transient pre-checkout guess.
+> 2. **The frontend is a public static SPA.** The courier API key cannot ever touch the client. The only server-side seam is a Supabase Edge Function — the same pattern already proven by `verify-and-submit` (Turnstile). Reuse it; do not invent a second pattern.
+> 3. **The aggregator account is a real-world dependency with a human approval loop** (KYC 24–48h, wallet recharge). This can block the milestone for days and is invisible to a code-first plan.
 
 ## Phase shorthand
 
-Map to real roadmap when created. Used throughout:
+Map to the real roadmap when created. Used throughout:
 
-- **P0 – Supabase foundation:** project, schema, RLS, env wiring, CI secrets
-- **P1 – Auth:** signup/login, sessions, redirect/confirmation, role model
-- **P2 – Admin CMS:** admin-only writes, role gating, dashboard, content/social edits
-- **P3 – Storage/Images:** buckets, upload, public/signed URLs
-- **P4 – Data migration:** 68 products + repo images into Supabase
-- **P5 – Public/customer features:** native questionnaire, wishlist, profile/history, public reads
-- **P-deploy:** GitHub Pages build/routing config
+- **P0 – Aggregator selection & onboarding:** choose vendor (Shiprocket vs Delhivery-direct vs alt), create account, KYC, obtain **sandbox + prod** tokens, confirm rate/serviceability endpoints exist on the chosen plan
+- **P1 – Edge Function rate proxy:** Deno function holding the secret, serviceability + rate call, normalization, caching, timeout/fallback, abuse protection (Turnstile/rate-limit reuse), CORS
+- **P2 – Product-detail estimator UI:** pincode input → cost + ETA + COD, weight resolution from `product_variants`, disclaimers, unavailable states
+- **P3 – Global "Deliver to [pincode]" navbar widget:** site-wide persistence, cross-page reflection
+- **P4 – Admin origin pincode config + hardening:** admin-set dispatch pincode, edge cases, holiday/ETA, monitoring
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Admin authorization enforced only on the client
+### Pitfall 1: Aggregator onboarding/KYC blocks the milestone (discovered too late)
 
 **What goes wrong:**
-The app hides the admin dashboard and write buttons behind a React check (`if (user.role === 'admin')`) but the underlying tables allow any authenticated user — or even `anon` — to write. The "admin CMS" is cosmetic: anyone can open devtools, read the anon key from the bundle (it ships in the JS, see Pitfall 4), and call `supabase.from('products').insert(...)` directly. It succeeds.
+The team scaffolds the Edge Function and UI first, then discovers at integration time that the rate/serviceability API is gated behind an *approved, KYC-completed, wallet-funded* seller account. Shiprocket manually reviews KYC in **24–48 business hours** and can reject. Delhivery-direct is **enterprise-contract gated** (custom quotes, volume negotiation) and is effectively unavailable to a low-volume handmade brand except through an aggregator. The "code is done" but cannot be tested against prod, and the milestone stalls waiting on a human approval loop nobody scheduled.
 
 **Why it happens:**
-Teams coming from Express/Passport (exactly this project's prior scaffolding) treat the API as the trust boundary and React route guards as security. In Supabase-direct there is no API and no server — the database is the only boundary, and that mental shift is easy to miss.
+Onboarding is invisible in a code-first plan. Developers assume "API = sign up and get a key in 5 minutes" (true for Stripe/Turnstile, false for Indian logistics). Delhivery's public developer portal makes it *look* self-serve, but rate-card access depends on a commercial relationship.
 
 **How to avoid:**
-- Treat **RLS policies as the security boundary; client checks are UX only** (this is already a stated PROJECT.md decision — enforce it).
-- Enable RLS on **every** table at creation. No policy = no access (default-deny is correct).
-- Gate all CMS writes (`products`, `categories`, `site_content`, `contact/social`) with an `is_admin()` SQL check (Pitfall 2), never a client flag.
-- Write a negative test: as a logged-in non-admin holding only the anon key, attempt every write — all must fail with an RLS error.
+- Make P0 a **real, human, blocking task started on day one**: register the account, submit PAN/Aadhaar KYC, recharge the minimum wallet, and confirm the *rate calculator + pincode serviceability* endpoints are accessible on the chosen plan — **before** any estimator code is written.
+- **Default recommendation: Shiprocket** (or an equivalent pay-as-you-go aggregator such as iThink/Shipway) for a low-volume D2C brand — no minimum-volume commitment, multi-carrier, self-serve KYC. Treat Delhivery-direct as out of reach unless volume justifies a contract.
+- Have the owner (not the developer) do KYC — it needs their business identity documents.
+- Build the Edge Function against a **mocked/recorded response** in parallel so code progress doesn't block on approval.
 
 **Warning signs:**
-RLS toggled off on any table; policies like `USING (true)` for writes; admin gating that lives only in `.tsx`; no test proving a non-admin is blocked at the DB.
+"We'll sign up for the API when we get to that phase." Rate endpoint returns 401/403 with a valid-looking token (account not activated). Sandbox works but prod rates return empty (wallet not funded / plan lacks rate access).
 
-**Phase to address:** P0 (enable RLS everywhere), enforced again in P2 (admin writes) and P5 (wishlist/questionnaire ownership).
+**Phase to address:** P0 (start before code; gate the whole milestone on it)
 
 ---
 
-### Pitfall 2: Recursive RLS policy on the `profiles`/roles table (and the SQL-inlining trap)
+### Pitfall 2: Showing an "estimate" that the customer treats as a promise (no checkout to reconcile)
 
 **What goes wrong:**
-Admin role lives in a `profiles` table (`role = 'admin'`). The naive RLS check on `profiles` queries `profiles` — e.g. `USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role='admin'))`. Postgres re-evaluates the policy on that inner select → **`infinite recursion detected in policy for relation "profiles"`** (error 42P17). Same trap when other tables' policies subquery `profiles`.
-
-**Subtle second trap:** the standard fix is a `SECURITY DEFINER` helper — **but if you write it as a plain `language sql` function, Postgres inlines it during planning, the definer context is lost, RLS applies to the inner query, and the recursion comes back.** This is the gotcha most blog posts get wrong.
+The number shown (cost + ETA + COD) is, in this app, the *final* customer-facing figure — there is no checkout where a real shipping charge later corrects it. If the displayed cost is lower than what the courier actually charges, or the ETA is missed, the customer feels misled. Quoted aggregator rates frequently **exclude GST and fuel surcharge**, are computed on **volumetric (dimensional) weight** the app doesn't know, and **change without notice** as the courier revises its rate card. An estimate presented as a hard price becomes an implied commitment the brand can't honor.
 
 **Why it happens:**
-The self-referencing subquery is the obvious way to express "admins can see all profiles," and the SQL-vs-plpgsql inlining nuance is invisible until it recurses at runtime.
+Devs surface the raw API number as if it were authoritative. Rate APIs return a "freight charge" that looks final but is pre-tax/pre-surcharge and assumes a dead-weight the app guessed at. With no checkout, there's no later step that quietly fixes the discrepancy, so the gap lands directly on the customer.
 
-**How to avoid (in order of preference):**
-1. **Store role in the JWT, not in a self-referencing table read.** Put `role`/`is_admin` in **`app_metadata`** (admin-controlled, not user-editable — see Pitfall 3) and read it in policies via `auth.jwt()`. No table read → no recursion. (For richer RBAC, Supabase's documented pattern is a **Custom Access Token Auth Hook** that injects the role claim.) **VERIFY** exact claim-access syntax for current version.
-2. **`SECURITY DEFINER` helper written in `plpgsql` (not `sql`)** so it is never inlined:
-   ```sql
-   create or replace function public.is_admin()
-   returns boolean
-   language plpgsql            -- MUST be plpgsql, not sql, to prevent inlining
-   security definer
-   set search_path = ''        -- prevent search_path hijack (Pitfall 13)
-   stable
-   as $$
-   begin
-     return exists (
-       select 1 from public.profiles
-       where id = auth.uid() and role = 'admin'
-     );
-   end;
-   $$;
-   ```
-   Call `public.is_admin()` in policies instead of an inline subquery.
-
-**Caveat (verified):** a JWT-based role is not refreshed instantly — changing `app_metadata` won't reflect in `auth.jwt()` until the user's token refreshes. For a single owner-admin that's fine; just know it.
+**How to avoid:**
+- **Label everything as an estimate, prominently and inline** — not buried in a tooltip. e.g. "Estimated shipping — final charge confirmed when you order." ETA: "Estimated delivery in X–Y working days, excluding weekends/holidays."
+- **Show a range, not a false-precision single rupee value** where possible; round sensibly (see Pitfall 11).
+- Add a short standing disclaimer near the estimator: rates are indicative, may vary by final weight/dimensions/taxes and courier rate revisions, COD availability subject to courier serviceability. (MEDIUM confidence on exact legal wording — under India's Consumer Protection (E-Commerce) Rules, misleading price/ETA claims are a real exposure; keep it clearly conditional.)
+- Decide the **rounding/markup policy explicitly with the owner** (e.g., round up, or add a small buffer) so the estimate is more likely to be a ceiling than a floor the brand eats.
+- Persist nothing about the estimate as an order obligation — it is display-only.
 
 **Warning signs:**
-`infinite recursion detected in policy`; any policy whose `USING`/`WITH CHECK` subqueries its own table; a `language sql` security-definer helper used in policies.
+Copy says "Shipping: ₹63" with no "estimated" qualifier. ETA shown as a single date. Owner asks "why did the customer expect free/cheaper shipping?" QA never compared a quoted rate against an actual courier invoice.
 
-**Phase to address:** P0/P1 — decide the role model and write `is_admin()` before any admin policy exists. Wrong here = redo every downstream policy.
+**Phase to address:** P2 (UI/copy), policy decided with owner in P0/P2
 
 ---
 
-### Pitfall 3: Insecure admin-role assignment (role stored where the user can edit it)
+### Pitfall 3: Courier API key leaks via a client-direct shortcut
 
 **What goes wrong:**
-Role kept in **`user_metadata`** (`raw_user_meta_data`), which **the user can modify themselves** via `supabase.auth.updateUser({ data: { role: 'admin' }})`. A customer self-promotes to admin. Variant: a `profiles` UPDATE policy lets users edit their own row including the `role` column.
+Under deadline pressure someone calls the courier/aggregator API directly from the React client (or puts the token in a `VITE_` env var) to "just get it working." Because the frontend is a **public static bundle on GitHub Pages**, the token ships to every visitor in plain JS. A leaked aggregator token can create shipments, drain the prepaid wallet, and expose the seller account — real money loss, not just data exposure.
 
 **Why it happens:**
-`user_metadata` and `app_metadata` look interchangeable; the user-editability of `user_metadata` is easy to miss. Verified: `raw_user_meta_data` is user-updatable and is explicitly the wrong place for authorization data; `app_metadata` cannot be updated by the user.
+The existing Supabase anon-key pattern conditions devs to think "frontend keys are fine." They are — for the anon key protected by RLS — but a courier token has no RLS equivalent. `VITE_`-prefixed vars are inlined into the bundle by Vite.
 
 **How to avoid:**
-- Put privilege data in **`app_metadata`** (writable only by service role / admin API), never `user_metadata`.
-- If using a `profiles.role` column: the self-UPDATE policy must **exclude `role`** (column grants, or a trigger/`WITH CHECK` that forbids changing `role`).
-- Make the **first admin** a deliberate one-time act via the Supabase SQL editor/dashboard or a service-role script on a trusted machine — **never** a self-serve "make me admin" path in the SPA. Given this is a single-owner brand, manual bootstrap is ideal.
-- Any future "promote user to admin" is a privileged op requiring the service role (run manually or via a locked-down Edge Function — never from the browser).
+- **One rule, enforced: the courier token lives only in Supabase Edge Function secrets** (`supabase secrets set`), exactly like the existing Turnstile secret in `verify-and-submit`. The client calls the Edge Function; the Edge Function calls the courier.
+- Add a grep/CI check that no `VITE_*COURIER*`/`*DELHIVERY*`/`*SHIPROCKET*` var exists and no courier hostname appears in `client/`.
+- Code review gate: any direct `fetch` to a courier domain from `client/src` is an automatic reject.
 
 **Warning signs:**
-Role read from `user_metadata`; any code letting a logged-in user write their own role; ability to flip role via the normal client.
+A courier hostname or token string appears anywhere under `client/`. Network tab shows the browser hitting the courier API directly. Token in `.env` without the Edge-Function-only boundary.
 
-**Phase to address:** P1 (role model + first-admin bootstrap), reinforced P2.
+**Phase to address:** P1 (establish the proxy boundary first; never let UI work outrun it)
 
 ---
 
-### Pitfall 4: Exposing the service-role key (or any secret) in the client bundle
+### Pitfall 4: Unauthenticated estimate endpoint gets abused / runs up the wallet or rate-limit
 
 **What goes wrong:**
-The `service_role` key (which **bypasses all RLS**) gets imported into client code or — most common with Vite — placed in a **`VITE_`-prefixed** env var. Verified: anything `VITE_*` is **inlined into the public JS bundle at build time**. On GitHub Pages that bundle is a public static asset. Leaking the service-role key = total DB compromise (read/write/delete everything, ignore all policies).
+The estimator must work for logged-out visitors, so the Edge Function is `auth: 'none'` (public). Without protection, bots/scrapers hammer it: every call hits the upstream courier API (which has its own rate limits and, on some plans, per-call cost), exhausts the courier rate-limit for real users, and can inflate Supabase Edge Function invocation usage. With no auth, the handler is *fully* responsible for vetting callers.
 
 **Why it happens:**
-Misreading Vite's env model: people assume `VITE_` means "managed/secret." It means the opposite — `VITE_` = published to the browser. The service-role key also "just works" in quick tests because it bypasses RLS, which is exactly the temptation. (CONCERNS.md notes there's currently *no* `.env` parser and vars are read from the environment — so env discipline must be established fresh.)
+"It's just a read, what's the harm?" The endpoint is the cheapest possible scraping target — a pincode→price oracle. Supabase ships **no bot protection by default**; a public function is open to unmetered abuse unless you add it.
 
 **How to avoid:**
-- **Only two values belong in the SPA: the project URL and the `anon` (publishable) key.** Both are designed to be public; verified that the anon key is safe in a browser **only because RLS is enabled and correct** — which is why Pitfalls 1–2 are non-negotiable.
-- The `service_role` key never touches client code, the repo, `VITE_` vars, or any CI step that feeds the bundle. If a server-side action truly needs it, use a Supabase **Edge Function** with the key as a function secret.
-- Add `.env` to `.gitignore`; ship a `.env.example`. If the key was ever committed/exposed, **rotate it immediately** in the dashboard.
+- **Reuse the Turnstile pattern already in the codebase** (memory note: hosted-CDN `loadTurnstile()` loader; no npm wrapper). Gate the estimate call with a Turnstile token verified server-side in the Edge Function, OR
+- Add a lightweight **rate limit keyed by IP + pincode** (Supabase documents an Upstash Redis pattern; for this scale a short-window in-memory or Postgres counter may suffice).
+- **Cache aggressively** (Pitfall 8) so repeat lookups never reach the courier.
+- Validate pincode format server-side *before* the upstream call (reject non-6-digit / non-numeric early).
+- Never use `service_role` in this user-facing function.
 
 **Warning signs:**
-`service_role` / `SUPABASE_SERVICE` string anywhere under `client/src/`; a `VITE_*SERVICE*` var; secret-scanning alerts; the key visible in built `dist/assets/*.js`.
+Edge Function invocation count spikes without matching traffic. Courier API starts returning 429s during normal use. Same pincode queried thousands of times. No Turnstile/rate-limit on a public endpoint.
 
-**Phase to address:** P0 (env + secrets discipline before any code), re-audited at P-deploy.
+**Phase to address:** P1
 
 ---
 
-### Pitfall 5: Overly-permissive `anon` / `authenticated` policies (`USING (true)`)
+### Pitfall 5: Sandbox-vs-production data divergence gives false confidence
 
 **What goes wrong:**
-To silence dev errors, tables get blanket policies (`FOR ALL USING (true)` or `FOR SELECT TO anon USING (true)`) applied to tables holding private data — wishlists, questionnaire submissions (PII: skin type, contact), customer profiles. Public reads are correct for `products`/`categories`; they are a breach for user data.
+Everything passes against the sandbox/testing token, then prod returns different serviceability flags, different (or empty) rates, different COD availability, or different response shapes. Delhivery explicitly uses **different tokens per environment** and testing data does not mirror live serviceability or live rate cards. The team ships believing it's verified.
 
 **Why it happens:**
-One permissive policy makes everything work during development; differentiating per-table/role/operation is more effort and gets deferred.
+Sandbox endpoints return canned/optimistic data (often "serviceable everywhere," fixed rates). Wallet/plan gating that suppresses rates only bites in prod. The response schema can differ subtly (extra wrapper, different field names for tax/surcharge).
 
 **How to avoid:**
-- Decide a per-table intent matrix up front:
-  - `products`, `categories`, `site_content`, contact/social → **SELECT public (anon ok); write admin-only.**
-  - `wishlist`, `questionnaire_submissions`, `profiles` → **owner-only** (`auth.uid() = user_id`); admin read via `is_admin()`. **No anon read.**
-- Prefer specific policies per operation and per role over one `FOR ALL`.
-- Native questionnaire from logged-out visitors: allow **`anon INSERT` only**, with a `WITH CHECK` constraining fields, and **never `anon SELECT`** on that table.
+- Treat sandbox as **schema/contract validation only**, not data validation.
+- Do a **prod smoke test with the real token** against a handful of known pincodes (a metro, a remote/NE pincode, a non-serviceable PO, a COD-restricted area) before sign-off.
+- Pin to the response *shape* defensively (tolerate missing fields, never assume a field is present).
+- Keep the env switch (sandbox/prod token) in Edge Function secrets, not code.
 
 **Warning signs:**
-`USING (true)` on anything non-public; `TO anon` on a user-data table; one user able to read another's wishlist or submissions.
+"It worked in testing." Rates present in sandbox, empty/zero in prod. Serviceability always `true` in tests. Field that exists in sandbox response is absent in prod.
 
-**Phase to address:** P0 (policy matrix), P5 (wishlist/questionnaire ownership).
+**Phase to address:** P1 (contract), P4 (prod smoke test before sign-off)
 
 ---
 
-### Pitfall 6: Storage bucket misconfiguration — leaking files, or unrestricted upload
+### Pitfall 6: Token expiry / auth assumptions break silently in production
 
 **What goes wrong:**
-Two opposite failures: (1) a **public bucket** correctly used for catalog images, but later reused for sensitive files → world-readable via predictable URLs. (2) **Upload/delete not restricted:** Storage is backed by `storage.objects` with its own RLS, separate from table RLS. With no policies, uploads either fail entirely or a permissive policy lets any authenticated user (or anon) upload/overwrite/delete product images. Image writes must be **admin-only**, same as `products`.
+The integration assumes a static token forever. If the chosen vendor uses **expiring tokens** (Shiprocket's API auth token expires and must be refreshed; Delhivery's is comparatively static but env-scoped), the estimator silently starts returning errors days later when the token lapses — and because there's no checkout, nobody notices until a customer reports a broken widget.
 
 **Why it happens:**
-Storage RLS is a separate system that's easy to forget; "public bucket" gets conflated with "anyone can upload."
+The Delhivery model (constant token) and the Shiprocket model (email/password → expiring bearer token, typically ~10 days) are different. Devs code to one and assume the other behaves the same. No refresh logic, no expiry alerting.
 
 **How to avoid:**
-- Product images → dedicated **public bucket; read = public, but write/update/delete = admin-only** via policies on `storage.objects` (`bucket_id = '...' AND public.is_admin()`).
-- Any future user-private files → **private bucket + short-TTL signed URLs** (`createSignedUrl`). Do not serve private content via public URLs, and do not put catalog images behind signed URLs (needless churn/expiry).
-- Validate file type/size client-side AND constrain via policy/path (client validation is bypassable).
-
-**Confidence:** HIGH on concepts; MEDIUM on exact `storage.objects` policy syntax — **VERIFY** current Storage access-control API.
+- Confirm the **exact auth model of the chosen vendor in P0** and design refresh accordingly. For Shiprocket-style expiring tokens, fetch/refresh the token inside the Edge Function and cache it (with margin before expiry); store API credentials (not just the derived token) in secrets.
+- Handle 401 from the courier as "refresh token and retry once," then fall back gracefully.
+- **Alert on sustained estimate failures** (the only failure detector, since there's no checkout funnel to reveal breakage).
 
 **Warning signs:**
-Catalog images served via signed URLs; private files via public URL; no admin gate on `storage.objects` insert/delete; any user can replace a product image.
+Estimator works for a week then every lookup fails. 401s from the courier with a previously-valid token. No code path that re-authenticates.
 
-**Phase to address:** P3 (buckets + policies before upload UI), P4 (migration writes via service role/admin).
+**Phase to address:** P1 (auth model + refresh), P4 (failure alerting)
 
 ---
 
-### Pitfall 7: Data migration without RLS-aware tooling — failed inserts, broken images, or accidental exposure
+### Pitfall 7: Slow courier responses make the whole estimator feel broken (no timeout/fallback)
 
 **What goes wrong:**
-Migrating 68 hardcoded products + repo images: the importer runs with the **anon key**, silently hits admin-only RLS → partial/empty import; OR the team disables RLS "just for migration" and **forgets to re-enable it**, leaving production wide open. Image variant: product rows reference **paths that don't match** the Storage bucket layout after upload → broken `<img>` everywhere. CONCERNS.md notes the current images come from fragile `import.meta.glob` folders keyed loosely to product IDs — that mapping must be rebuilt deliberately, not guessed.
+Indian courier/aggregator rate APIs can be **slow and variable (multi-second, occasionally timing out)**. If the Edge Function awaits the courier with no timeout, the user stares at a spinner; combined with Edge Function cold starts, the first lookup of the day can be especially slow. A hung upstream call can also pin the function until it times out at the platform limit.
 
 **Why it happens:**
-The migration is a one-off, run differently from the app, often hastily.
+Devs test on a fast day and never set a timeout. Logistics APIs are not built for synchronous, user-facing, sub-second use — they're built for batch/order flows.
 
 **How to avoid:**
-- Run migration with the **service-role key from a local/trusted script** (Node/`psql`/SQL editor) — never shipped to the static site. RLS stays enabled; service role legitimately bypasses it.
-- If RLS is ever toggled off for bulk load, make re-enabling it a hard checklist gate verified by the Pitfall 1 negative test.
-- **Upload images first → capture the real public URL/path → insert product rows referencing those exact paths.** Store the path/key (not a transient signed URL).
-- Make migration **idempotent** (upsert on slug/SKU) so re-runs don't duplicate the 68 products. Diff counts: 68 in → 68 rows.
-- Keep `client/src/data/products.ts` as source of truth until parity is verified; also populate the currently-empty `price` fields as part of migration (or explicitly leave blank by design).
+- Set an explicit **upstream timeout** (e.g., 3–5s) inside the Edge Function with `AbortController`; on timeout return a graceful "estimate temporarily unavailable, try again" state, not a hang.
+- **Cache** so the common case never waits on the courier (Pitfall 8).
+- Optimistic UI: show the input as responsive, stream the result in; don't block the product page render on the estimate.
+- Consider a tiny "warm" ping if cold starts prove material (measure first — Supabase Edge cold starts are typically small, don't over-engineer).
 
 **Warning signs:**
-Migration run from browser/anon; RLS left off; broken images post-migration; duplicate rows on re-run.
+Spinner that sometimes never resolves. P95 latency on the estimate visibly worse than the rest of the site. No `AbortController`/timeout in the fetch to the courier.
 
-**Phase to address:** P4 (depends on P3 buckets + P0 RLS/service-role discipline).
+**Phase to address:** P1
+
+---
+
+### Pitfall 8: Caching staleness — rates change without notice, but no caching means slow + abused
+
+**What goes wrong:**
+Two opposite failures. (a) **No cache:** every keystroke/lookup hits the courier → slow, rate-limited, abusable. (b) **Cache too long / never invalidated:** courier revises its rate card or serviceability and the app keeps quoting **stale prices for weeks**. Couriers change rates "without notice," so an indefinite cache quietly serves wrong numbers — the worst kind of bug because it looks fine.
+
+**Why it happens:**
+Caching is added for speed/cost and then forgotten. There's no event that tells the app "the rate card changed," so a TTL is the only safety valve and it's often set to "forever" or omitted.
+
+**How to avoid:**
+- Cache keyed by **(origin pincode, destination pincode, weight bucket)** with a **bounded TTL** (e.g., 6–24h) — long enough to absorb traffic, short enough to re-pull rate changes within a day. Store in Postgres (a simple `rate_cache` table) or KV.
+- Treat serviceability flags as more cacheable (change rarely) than rate amounts.
+- Make the TTL a **single configurable constant** so the owner/dev can shorten it after a known rate-card change.
+- Always re-label as "estimated" so a slightly-stale cached number is still framed as indicative (Pitfall 2 backstops this).
+
+**Warning signs:**
+Quoted shipping hasn't changed in months despite a known courier price hike. Or: courier invocation count == site lookup count (no cache hits). Hardcoded/absent TTL.
+
+**Phase to address:** P1
+
+---
+
+### Pitfall 9: Missing product weight → wrong or crashing estimate
+
+**What goes wrong:**
+The estimate is weight-driven (project uses `product_variants` weight). If a product/variant has **null/zero/unset weight**, the rate call either errors, returns ₹0, or quotes the lowest slab — under-estimating shipping on every weightless product. Worse, couriers bill on **max(dead weight, volumetric weight)**; the app only knows dead weight, so bulky-but-light items (a boxed cream set) get under-quoted regardless.
+
+**Why it happens:**
+Not every product has weight populated (catalog was migrated from a static file with empty prices/fields). Devs assume weight is always present. Volumetric weight requires dimensions the catalog doesn't store.
+
+**How to avoid:**
+- Define a **sensible default fallback weight** (admin-configurable, e.g., 250g for a soap) used when a variant weight is missing — never send 0.
+- Validate weight server-side before the courier call; clamp to a minimum.
+- Flag in the admin UI which products lack weight so the owner can fill them (data-quality nudge).
+- Accept that **volumetric under-quoting is unavoidable without dimensions** — backstop it with the "estimated" framing and a small buffer/round-up (Pitfall 2/11) rather than pretending precision.
+
+**Warning signs:**
+₹0 or suspiciously low shipping on some products. Rate API errors only for certain SKUs. No fallback constant in the weight path.
+
+**Phase to address:** P2 (fallback + weight resolution), P4 (admin data-quality flag)
+
+---
+
+### Pitfall 10: Origin (dispatch) pincode misconfiguration silently skews every estimate
+
+**What goes wrong:**
+Origin pincode is admin-configurable and feeds *every* estimate. If it's blank, wrong, or a non-serviceable pincode, **100% of estimates are wrong or fail** — and since there's no checkout to catch it, it can ship broken. A typo (5 digits, transposed) is easy and catastrophic because it's a single global input.
+
+**Why it happens:**
+Single config value treated as low-risk. No validation on the admin form. No "what does a real estimate look like right now?" preview after saving.
+
+**How to avoid:**
+- Validate the origin pincode on save: 6-digit numeric **and** confirm it's serviceable via the serviceability API before accepting.
+- Provide a **live preview** in admin ("From <origin> to <test pincode>: ₹X, Y days") so a bad origin is obvious immediately.
+- Ship a sane default origin and prevent saving an empty/invalid one.
+- Surface the active origin pincode somewhere in admin so it's auditable.
+
+**Warning signs:**
+All estimates wrong/failing after an admin edit. Origin field accepts non-pincode input. No serviceability check on the admin save.
+
+**Phase to address:** P4 (admin config + validation + preview)
+
+---
+
+### Pitfall 11: ETA timezone/holiday handling and INR rounding produce nonsense
+
+**What goes wrong:**
+ETA returned as "X days" or a raw date gets rendered wrong: counting weekends/holidays as transit days, computing "today + N" in the browser's local timezone (wrong for users abroad, or across the IST midnight boundary), or showing a delivery date that already passed. Separately, raw INR rates arrive as floats (e.g., `62.7`) and get shown as `₹62.7` or `₹62.70000001`, looking unprofessional and inconsistent.
+
+**Why it happens:**
+Date math done naively in client local time. Courier "estimated days" is working days but rendered as calendar days. Float arithmetic on currency. Indian public/regional holidays aren't modeled.
+
+**How to avoid:**
+- Anchor ETA math to **IST**, not browser local time; label as **working/business days** and say weekends/holidays are excluded rather than trying to model every regional holiday (don't over-engineer a holiday calendar for an estimate).
+- Prefer showing a **range in days** ("3–5 working days") over a hard date, sidestepping holiday precision.
+- Format INR with a single helper: integer rupees (round per the agreed policy — recommend round **up**), thousands separators, `₹` prefix, no stray decimals. Reuse one formatter app-wide.
+
+**Warning signs:**
+`₹62.7` or long-decimal prices. Delivery date in the past. Same product shows different ETA depending on the viewer's timezone. ETA counts Sundays.
+
+**Phase to address:** P2 (formatting + ETA rendering)
+
+---
+
+### Pitfall 12: Vendor lock-in via leaky response coupling
+
+**What goes wrong:**
+The UI and DB cache are coded against the courier's exact JSON shape (field names, COD flag format, tax breakdown). When the owner later switches aggregators (cost, service, or because Shiprocket pricing changed), it requires touching the client, the cache schema, and the Edge Function — a rewrite instead of a swap.
+
+**Why it happens:**
+Fastest path is to pass the raw vendor payload straight to the client. No normalization layer.
+
+**How to avoid:**
+- The Edge Function returns a **normalized, vendor-agnostic shape** (`{ serviceable, cod, costInr, etaMinDays, etaMaxDays, estimatedAt }`). All vendor-specific parsing stays inside the Edge Function.
+- Cache stores the normalized shape, not the raw payload.
+- This makes "swap Shiprocket → iThink" a single-file change.
+
+**Warning signs:**
+Client code references vendor-specific field names. Switching vendors is estimated in days. Cache table columns mirror a vendor's JSON.
+
+**Phase to address:** P1 (define the normalized contract up front)
 
 ---
 
@@ -194,124 +277,107 @@ Migration run from browser/anon; RLS left off; broken images post-migration; dup
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Disable RLS to "ship faster" | Everything works instantly | Public read/write API; full data compromise | **Never** in any deployed env |
-| `USING (true)` blanket policy | Silences dev errors | Leaks user PII; rewrite of policy layer | Only on truly-public read tables (`products`) |
-| `language sql` security-definer helper | Slightly simpler | Inlined → recursion returns silently | Never for RLS-used helpers — use `plpgsql` |
-| Role in `user_metadata` | Easy to set from client | Self-promotion to admin | Never for authorization data |
-| Skip email confirmation | Faster signup | Spam/fake accounts | Acceptable for low-volume single-brand MVP — a deliberate choice, not an oversight |
-| Hardcode Supabase URL in source | One less env var | Harder env switching; URL leak is harmless but messy | Tolerable (URL is public); still prefer env var |
+| Hardcode a flat shipping table instead of live API for launch | Ships without onboarding/KYC dependency | Stale, no real serviceability/COD, defeats the milestone goal | Acceptable as a **temporary fallback** behind the same normalized contract while KYC is pending — never as the final state |
+| Skip caching, call courier on every lookup | Less code | Slow, rate-limited, abusable, higher cost | Only in a throwaway spike, never shipped |
+| Pass raw vendor JSON to the client | Fast to wire | Vendor lock-in, breaks on schema drift | Never — normalize in the Edge Function |
+| No upstream timeout | Simpler fetch | Hung spinners, pinned function on slow courier days | Never for a user-facing call |
+| Single shared default weight, ignore per-product | Quick | Systematic under-quoting on heavier items | Acceptable at launch **if** admin can set per-product weight and a flag surfaces missing ones |
+| `auth:'none'` with no Turnstile/rate-limit | Works for logged-out users immediately | Wallet drain / courier 429 / scraping oracle | Never — reuse existing Turnstile pattern |
 
 ## Integration Gotchas
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Vite env | Putting secrets in `VITE_*` | Only URL + anon key as `VITE_*`; secrets never client-side |
-| Supabase Auth (email) | Site URL/redirect left at localhost defaults | Set Site URL + redirect allowlist to the Pages sub-path URL + localhost dev |
-| Supabase Auth (SSR assumption) | Expecting session in query string server-side | Pure SPA — session arrives in URL fragment; handle client-side; use `/auth/confirm` not `/auth/callback` for email |
-| Supabase Storage | Forgetting `storage.objects` has its own RLS | Add explicit admin-only write policies per bucket |
-| Edge Function (if added) | No CORS / preflight handling | Handle `OPTIONS`, restrict `Access-Control-Allow-Origin` to the Pages origin |
-| GitHub Pages | Wrong/absent Vite `base` for project sub-path | Set `base` to `/Repo/` (or custom domain); keep router basename consistent |
+| Delhivery-direct | Assuming self-serve rate API like Stripe | Enterprise-contract gated; for low volume use an aggregator (Shiprocket) instead |
+| Shiprocket auth | Treating token as permanent | Token expires (~10 days); refresh inside Edge Function, store credentials in secrets |
+| Serviceability API | Calling rate API first / skipping serviceability | Check serviceability **before** rate; treat non-serviceable as a first-class UI state |
+| Quoted rate | Showing it as final price | Rate excludes GST + fuel surcharge and assumes dead weight; label "estimated", round up |
+| COD flag | Assuming COD == serviceable | COD has separate flags and limits per pincode; surface COD availability independently |
+| Sandbox token | Trusting sandbox data as live | Sandbox = schema only; prod smoke test with real token + real pincodes |
+| Supabase Edge Function | service_role in user-facing function / reflected CORS | Anon context, explicit CORS allowlist (your GitHub Pages origin), Turnstile/rate-limit |
 
 ## Performance Traps
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| `auth.uid()`/`is_admin()` re-evaluated per row | Slow admin list queries | Wrap as `(select auth.uid())` so Postgres caches it per-statement (Supabase RLS perf guidance) | Noticeable at thousands of rows; fine at 68 products now |
-| Eager glob-import of all images (existing) | Large bundle | Moving images to Storage with lazy `<img>` fixes this | Already flagged in CONCERNS.md; worsens as scrub/cream images added |
-| Fetching full product list with images each load | Slow Shop page | Cache via TanStack Query (already wired); paginate later | Fine at 68; revisit at hundreds |
+| No cache, courier per lookup | Slow widget, courier 429s | Cache by (origin,dest,weight bucket) with bounded TTL | As soon as a few users (or a bot) repeatedly query |
+| Estimate blocks product page render | Page feels slow | Async/optimistic; render page, stream estimate | Immediately on slow courier days / cold start |
+| Per-keystroke lookups in pincode field | Burst of calls, rate-limit hit | Debounce + only fire on 6-digit complete + button/blur | Any real typing user |
+| Cache never expires | Quotes stale for weeks after a rate hike | Bounded TTL (6–24h), single config constant | Silently, after any courier rate-card change |
 
 ## Security Mistakes
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Client-only admin gate | Anyone with anon key writes catalog | RLS `is_admin()` on all writes (Pitfall 1) |
-| Service-role key in bundle | Total DB compromise | Only URL + anon key client-side (Pitfall 4) |
-| Role in user_metadata / editable `role` column | Self-promotion to admin | `app_metadata` / column-locked role (Pitfall 3) |
-| Recursive / SQL-inlined RLS helper | Policies fail or recurse, tempting a "disable RLS" hack | `plpgsql` security-definer + `search_path=''` (Pitfall 2) |
-| `anon SELECT` on questionnaire/wishlist | Customer PII leak | Owner-only reads; anon INSERT-only on public form (Pitfall 5) |
-| Unrestricted Storage upload | Visitors overwrite/delete product images | Admin-only `storage.objects` write policies (Pitfall 6) |
-| Over-broad SELECT columns via auto REST API | Internal columns queryable by clients | Tight SELECT policies / views / column grants |
+| Courier token in `VITE_` env / client fetch | Token in public bundle → wallet drain, account abuse | Token only in Edge Function secrets; CI grep guard |
+| Public estimate endpoint with no abuse control | Scraping oracle, wallet/rate-limit exhaustion | Turnstile (reuse existing) + IP/pincode rate-limit |
+| Reflected/wildcard CORS on the function | Any site invokes your paid endpoint | Explicit allowlist of your GitHub Pages origin |
+| `service_role` used in the estimate function | Privilege escalation if abused | Use anon context; function needs no DB writes beyond cache |
+| Logging full courier responses with token echoes | Secret leakage in logs | Log normalized result only, never the auth header |
 
 ## UX Pitfalls
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Email confirmation link 404s on Pages sub-path | User "can't sign up" | Site URL/redirect incl. sub-path; test full round trip on live site |
-| Hard refresh on `/admin` → GitHub 404 | Admin locked out of deep links | Keep `404.html`=`index.html` (repo already does this) or hash router |
-| Random logout after token expiry | Admin loses work mid-edit | supabase-js auto-refresh + `onAuthStateChange`; gate UI on live session |
-| Default SMTP rate limits in prod | Confirmation emails stop arriving | Configure real SMTP, or disable confirmation for low-volume MVP |
-| Stale `is_admin` after role change | Admin sees wrong UI until re-login | Re-derive on auth change; accept JWT-refresh lag |
+| No "not serviceable" state | Confusing blank/error on remote pincodes | Explicit "Not serviceable to <pincode>" with contact CTA |
+| Estimate shown as exact price | Customer feels misled when real charge differs | Prominent "Estimated", show range, disclaimer |
+| Invalid/partial pincode silently ignored | User thinks it's broken | Inline validation: 6-digit numeric, only query when complete |
+| Pincode not remembered across pages | Re-enter on every product | Global navbar widget persists site-wide (localStorage) |
+| Spinner with no timeout/fallback | Appears frozen | Timeout → "temporarily unavailable, retry" |
+| COD availability hidden | COD-only customers can't tell | Show COD yes/no explicitly alongside cost+ETA |
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Admin CMS:** UI hides write buttons — verify a non-admin with the anon key is **blocked at the DB**, not just in React.
-- [ ] **RLS:** Looks enabled — verify **every** table has it on AND has explicit policies (enabled with no policy = locked, which can also masquerade as "broken").
-- [ ] **`is_admin()` helper:** Works in SQL editor — verify it's `plpgsql` (not `sql`) and has `set search_path=''`, else recursion/hijack risk.
-- [ ] **Env/secrets:** App runs — grep built `dist/` for `service_role`; confirm only URL + anon key shipped.
-- [ ] **Auth email flow:** Works locally — verify confirmation/reset round trip on the **deployed Pages URL** (sub-path included).
-- [ ] **SPA routing:** Home loads — verify **hard refresh** on `/admin` and a `/product/:id` deep link don't 404.
-- [ ] **Storage:** Upload works as admin — verify a normal user **cannot** upload/delete; verify public catalog URLs resolve.
-- [ ] **Migration:** 68 rows present — verify image URLs resolve, no duplicates on re-run, RLS still enabled, prices handled.
-- [ ] **Questionnaire (anon):** Submit works — verify anon **cannot read** submissions; admin inbox can.
-- [ ] **Wishlist:** Saves — verify user A cannot read user B's wishlist.
+- [ ] **Estimate display:** Often missing the "estimated / not final" label and disclaimer — verify copy on product detail AND navbar widget
+- [ ] **Serviceability:** Often only tests metro pincodes — verify a remote/NE pincode, a non-serviceable PO box area, and a COD-restricted pincode
+- [ ] **Weight fallback:** Often assumes weight present — verify a product with null/zero variant weight still returns a sane estimate
+- [ ] **Origin pincode:** Often unvalidated — verify saving an invalid/non-serviceable origin is rejected with a live preview
+- [ ] **Token boundary:** Often a `VITE_` leak — verify no courier token/hostname anywhere under `client/`
+- [ ] **Abuse control:** Often skipped on the public endpoint — verify Turnstile/rate-limit fires for logged-out callers
+- [ ] **Timeout/fallback:** Often missing — verify slow/timed-out courier yields a graceful state, not a hang
+- [ ] **Cache TTL:** Often "forever" or absent — verify a bounded, configurable TTL and that repeat lookups hit cache
+- [ ] **Prod vs sandbox:** Often only sandbox-tested — verify a prod smoke test with the real token
+- [ ] **INR/ETA formatting:** Often raw floats / calendar days — verify integer ₹ and "working days" framing in IST
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Service-role key leaked | HIGH | Rotate key in dashboard immediately; purge from repo history; audit data for tampering |
-| Recursive RLS in prod | MEDIUM | Replace inline subquery with `plpgsql` `is_admin()`; re-test all policies |
-| `user_metadata` role used | MEDIUM | Migrate role to `app_metadata`; revoke self-promoted accounts; force token refresh |
-| RLS left disabled post-migration | LOW (if caught fast) | Re-enable RLS; run negative test; assume breach if public for any window |
-| Broken image paths post-migration | LOW | Re-derive paths from Storage; bulk-update product image refs |
-| Auth redirect misconfigured | LOW | Fix Site URL + allowlist + `emailRedirectTo`; resend confirmations |
+| KYC/onboarding blocks milestone | MEDIUM | Ship flat-table fallback behind normalized contract; swap to live API when approved |
+| Token leaked to client bundle | HIGH | Rotate courier token immediately, audit wallet for fraudulent shipments, move to Edge Function, redeploy |
+| Stale cache serving wrong rates | LOW | Shorten/clear TTL constant; re-pull |
+| Vendor lock-in discovered at swap time | HIGH | Retrofit normalization layer in Edge Function, migrate cache schema, update client |
+| Estimate accuracy complaints | MEDIUM | Add/strengthen disclaimer, apply round-up buffer, populate per-product weights |
+| Public endpoint being scraped | LOW–MEDIUM | Enable Turnstile + rate-limit, tighten CORS, raise cache TTL |
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| #1 Client-only admin check | P0 + P2 | Non-admin write attempt fails at DB |
-| #2 Recursive / inlined RLS helper | P0/P1 | No 42P17 error; helper is `plpgsql`; admin policies pass |
-| #3 Insecure role assignment | P1 | Role in `app_metadata`; user cannot change own role |
-| #4 Service-role key in bundle | P0 + P-deploy | `dist/` grep clean; only URL + anon key present |
-| #5 Permissive anon policies | P0 + P5 | User B cannot read user A's data; anon cannot read submissions |
-| #6 Storage misconfig | P3 + P4 | Non-admin cannot upload/delete; public URLs resolve |
-| #7 Migration mistakes | P4 | 68 rows, images resolve, idempotent, RLS on |
-| #8 Auth redirect/email on Pages | P1 + P-deploy | Confirmation round trip on live sub-path URL |
-| #9 SPA 404 routing | P-deploy/P1 | Hard refresh on deep routes + auth callback works |
-| #10 Session/token handling | P1 | No surprise logout; UI tracks `onAuthStateChange` |
-| #11 CORS (Edge Fn only) | P3 (if used) | Preflight OK from Pages origin |
-| #12 Vite `base` sub-path | P-deploy | Assets/images load on deployed Pages |
-| #13 Definer `search_path` | P0/P1 | Helper has `set search_path=''` |
-| #14 Missing `WITH CHECK` | P0/P5 | Cannot insert rows scoped to another user |
-
-> Pitfalls #8–#14 are documented inline within the critical entries above and this table; they are moderate/minor relative to the security core (#1–#7) but each maps to a concrete verification.
-
-## Top 3 (do not get these wrong)
-
-1. **RLS is the only security boundary (#1, #2, #5)** — no server exists; client checks are decoration. Default-deny, test as a non-admin.
-2. **Never expose the service-role key (#4)** — `VITE_*` is public; only URL + anon key in the bundle; rotate if leaked.
-3. **Secure role assignment (#3)** — role in `app_metadata`, never user-editable `user_metadata`; bootstrap the first admin out-of-band.
+| 1 Onboarding/KYC block | P0 | Account approved, KYC done, wallet funded, rate+serviceability endpoints reachable with prod token |
+| 2 Estimate-as-promise | P0 (policy) + P2 (UI) | "Estimated" label + disclaimer present; rounding/buffer policy signed off by owner |
+| 3 Token leak | P1 | No courier token/hostname in `client/`; CI guard green |
+| 4 Anon abuse | P1 | Turnstile/rate-limit verified for logged-out caller |
+| 5 Sandbox≠prod | P1 + P4 | Prod smoke test across metro/remote/non-serviceable/COD pincodes |
+| 6 Token expiry | P1 + P4 | 401→refresh→retry path tested; failure alert wired |
+| 7 Slow/timeout | P1 | Upstream timeout + graceful fallback under induced delay |
+| 8 Cache staleness | P1 | Bounded configurable TTL; cache-hit ratio observed |
+| 9 Missing weight | P2 + P4 | Null-weight product returns fallback estimate; admin flags missing weights |
+| 10 Origin misconfig | P4 | Invalid/non-serviceable origin rejected; live preview shown |
+| 11 ETA/INR formatting | P2 | Integer ₹, working-days framing, IST-anchored, range shown |
+| 12 Vendor lock-in | P1 | Client/cache use normalized shape only; vendor parsing isolated to Edge Function |
 
 ## Sources
 
-- [Row Level Security | Supabase Docs](https://supabase.com/docs/guides/database/postgres/row-level-security) — HIGH
-- [Custom Claims & RBAC | Supabase Docs](https://supabase.com/docs/guides/database/postgres/custom-claims-and-role-based-access-control-rbac) — HIGH (`app_metadata` vs `user_metadata`, Custom Access Token Auth Hook)
-- [Token Security and Row Level Security | Supabase Docs](https://supabase.com/docs/guides/auth/oauth-server/token-security) — HIGH (`raw_app_meta_data` not user-editable)
-- [RLS Performance and Best Practices | Supabase Docs](https://supabase.com/docs/guides/troubleshooting/rls-performance-and-best-practices-Z5Jjwv) — HIGH (`(select auth.uid())` caching)
-- [Redirect URLs | Supabase Docs](https://supabase.com/docs/guides/auth/redirect-urls) — HIGH (Site URL + allowlist, wildcard paths)
-- [Why am I redirected to the wrong URL (redirectTo) | Supabase Docs](https://supabase.com/docs/guides/troubleshooting/why-am-i-being-redirected-to-the-wrong-url-when-using-auth-redirectto-option-_vqIeO) — HIGH
-- [Env Variables and Modes | Vite](https://vite.dev/guide/env-and-mode) — HIGH (`VITE_` inlined into client bundle)
-- [Environment Variables (secrets) | Supabase Docs](https://supabase.com/docs/guides/functions/secrets) — HIGH
-- [Infinite recursion using users table for RLS role · Discussion #1138](https://github.com/orgs/supabase/discussions/1138) — MEDIUM (post-mortem)
-- [Infinite recursion in Postgres RLS: a SECURITY DEFINER gotcha (DEV)](https://dev.to/bairescodeai/infinite-recursion-in-postgres-rls-a-security-definer-gotcha-1916) — MEDIUM (the `sql` vs `plpgsql` inlining trap)
-- [Supabase RLS SECURITY DEFINER: Preventing Infinite Recursion (DEV)](https://dev.to/kanta13jp1/supabase-rls-security-definer-preventing-infinite-recursion-in-admin-policies-4go2) — MEDIUM
-- [Supabase RLS Best Practices (makerkit.dev)](https://makerkit.dev/blog/tutorials/supabase-rls-best-practices) — MEDIUM
-- [Supabase Auth redirecting to base path, not subdirectory · Issue #10949](https://github.com/supabase/supabase/issues/10949) — MEDIUM (Pages sub-path redirect bug)
-- [Always redirects to localhost · Discussion #26483](https://github.com/orgs/supabase/discussions/26483) — MEDIUM
-
-**VERIFY before locking roadmap:** exact `auth.jwt()` claim-access syntax and Custom Access Token Auth Hook API; current `storage.objects` policy syntax; current Auth URL-config setting names; default email rate limits. Confirm `vite.config.ts` `base` and the `404.html` copy step against the current repo (CONCERNS/deploy workflow indicate both exist).
+- Delhivery — API Token Generation & Client Developer Portal (token constant per environment, separate testing/prod tokens; serviceability-before-rate mandatory): https://help.delhivery.com/docs/api-token-generation , https://help.delhivery.com/docs/client-developer-portal-1 , https://delhivery-express-api-doc.readme.io/reference/best-practises-to-follow-the-api-documentation
+- Delhivery — Pincode Serviceability & Rate Calculator (prepaid/COD flags, estimated cost): https://delhivery-express-api-doc.readme.io/reference/1-pincode-servicability-api , https://help.delhivery.com/docs/b2b-serviceability-rate-calculator
+- Shiprocket vs Delhivery vs alternatives — aggregator vs direct, no volume commitment for small business, Delhivery enterprise-gated: https://blog.shipway.com/shiprocket-vs-delhivery/ , https://www.clickpost.ai/shiprocket-alternatives , https://shipprime.live/resources/blogs/11-best-shiprocket-alternatives-in-2026-for-d2c-brands
+- Shiprocket — KYC (PAN/Aadhaar), 24–48 business-hour manual approval, wallet recharge required before orders: https://support.shiprocket.in/support/solutions/articles/43000607399-what-are-the-basic-details-required-to-start-shipping-with-shiprocket- , https://www.shiprocket.in/faq/
+- Supabase — Edge Functions security (auth:'none' caller responsibility, CORS, no default bot protection, service_role misuse, rate-limit via Upstash): https://supabase.com/docs/guides/functions/auth , https://supabase.com/docs/guides/functions , https://www.pentestly.io/blog/supabase-security-best-practices-2025-guide
+- Supabase — CORS troubleshooting for Edge Functions: https://corsproxy.io/blog/fix-supabase-cors-errors/
+- API rate-limit / token-expiry general best practice (exponential backoff, refresh margins): https://www.getknit.dev/blog/10-best-practices-for-api-rate-limiting-and-throttling , https://zuplo.com/learning-center/token-expiry-best-practices
+- Project context: `.planning/PROJECT.md` (v1.1 milestone), existing Turnstile/`verify-and-submit` Edge Function pattern, `product_variants` weight, admin-configurable origin pincode; MEMORY.md notes (Turnstile no-npm loader, Supabase live ops)
 
 ---
-*Pitfalls research for: Supabase-direct SPA + admin CMS + Storage on GitHub Pages*
-*Researched: 2026-05-31*
+*Pitfalls research for: Indian courier-API delivery estimator on static SPA + Supabase Edge Functions (no checkout)*
+*Researched: 2026-06-27*

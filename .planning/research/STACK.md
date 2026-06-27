@@ -1,12 +1,19 @@
-# Stack Research
+# Stack Research — Pincode Delivery Cost + ETA + COD Estimator
 
-**Domain:** Supabase-direct backend (Postgres + Auth + Storage) added to an existing React 19 / Vite 7 / Tailwind 4 / shadcn-ui static SPA on GitHub Pages
-**Researched:** 2026-05-31
-**Confidence:** HIGH (core client + auth + RLS + storage + versions verified against official Supabase docs, Context7, and the npm registry; legacy-key sunset timeline MEDIUM)
+**Domain:** Indian D2C shipping-rate / serviceability integration for a low-volume handmade-skincare brand (sutravan.in)
+**Researched:** 2026-06-27
+**Confidence:** MEDIUM-HIGH (endpoints + auth models verified against official/vendor docs; exact 2026 plan fees vary by negotiation and were not all independently verifiable)
 
-> **Scope note:** This file ONLY covers what is being *added* for the Supabase backend. The existing frontend stack (React 19.2, Vite 7.1, Tailwind 4.1, shadcn/ui, Wouter 3.3, TanStack React Query 5.x, React Hook Form 7.x, Zod) is documented in `.planning/codebase/STACK.md` and is NOT re-researched here. Recommendations below bolt onto that stack with minimal churn.
->
-> **Architecture fact that drives every choice below:** This is a **pure client-side SPA with no server runtime** (static files on GitHub Pages). There is no Node process at request time. That single fact eliminates an entire category of Supabase packages (`@supabase/ssr`, the old `auth-helpers`) and makes **Row Level Security the only real security boundary** — UI route guards are cosmetic.
+---
+
+## TL;DR Recommendation
+
+For a **pre-checkout estimate** on a **static SPA + Supabase Edge Function**, lead with a **zone-weight estimate table** (zero onboarding, instant, admin-tunable) as the **baseline**, and offer a **live courier API as an optional accuracy upgrade**.
+
+- **Primary (live API, if a courier account is wanted): Shiprocket Courier Serviceability API** — one GET call returns, per courier, the shipping **cost + estimated delivery days (ETD) + COD availability**. Free signup, no minimum volume, plain REST, callable from a Deno Edge Function. Best small-business fit of all aggregators.
+- **Fallback / default-shippable approach: an admin-configured zone-weight rate+ETA table** seeded from the dispatch pincode, with pincode validation/city-state resolution from the **data.gov.in All-India Pincode Directory** dataset. Requires **no courier account at all** — the feature can ship before the brand commits to any logistics contract.
+- **Delhivery (user-named): viable but a weaker fit.** It exposes serviceability (prepaid/COD flags) and an approximate shipping-charge API, but **no clean ETA-by-pincode API**, and onboarding requires a **GST business account + KYC + a prepaid wallet (₹500 min)**. Recommend it only as a secondary source — best if the brand already dispatches via Delhivery and wants its own contracted rates.
+- **Avoid for this milestone:** ClickPost (enterprise/contract), direct Blue Dart / DTDC APIs (corporate onboarding, volume minimums), and Pickrr (absorbed into Shiprocket — not a standalone product).
 
 ---
 
@@ -14,127 +21,94 @@
 
 ### Core Technologies
 
-| Technology | Version (verified May 2026) | Purpose | Why Recommended |
-|------------|------------------------------|---------|-----------------|
-| `@supabase/supabase-js` | `^2.106` (latest **2.106.2**; `latest` dist-tag is v2 — no v3 stable, only `3.0.0-next` preview) | The single isomorphic JS client: Postgres queries (PostgREST), Auth (GoTrue), Storage, Realtime — one `createClient()` | The official, only supported way to talk to Supabase from a browser. v2 is current/stable; it **bundles** auth/postgrest/storage/realtime sub-clients, so you do NOT install those separately. Engines: Node >=20 (CI uses Node 22 — fine). Works perfectly in a static SPA — talks directly to the hosted API. **HIGH** |
-| Supabase Postgres (hosted) | Managed (Postgres 15+) | Datastore for products, categories, profiles/roles, wishlists, questionnaire submissions, site content | Replaces hardcoded `client/src/data/products.ts`. Auto-generates a REST API (PostgREST) consumed by supabase-js — no Express layer needed. **HIGH** |
-| Supabase Auth (GoTrue, hosted) | Managed | Email/password (+ optional OAuth) for admin + customers; issues JWTs the client attaches to every DB/Storage call | Built into the same client; JWT claims drive RLS. **HIGH** |
-| Supabase Storage (hosted) | Managed | Product image upload/serve, replacing repo glob-imports | `supabase.storage.from(bucket)` is part of supabase-js; public bucket → stable CDN URLs for the public Shop; RLS on `storage.objects` restricts uploads to admins. **HIGH** |
-| Postgres RLS (authorization layer) | n/a (SQL) | The actual authorization boundary: admin writes catalog/content; customers read public data + write only their own rows | For a static SPA, **server-side RLS is the only enforcement** — no trusted server to gate writes. Enable RLS default-deny on every table. **HIGH** |
+| Technology | Version / Endpoint | Purpose | Why Recommended |
+|------------|--------------------|---------|-----------------|
+| **Zone-weight estimate table** (in Postgres) | n/a (own schema) | Deterministic cost + ETA + COD per (origin→dest, weight slab) | Zero third-party onboarding, no API keys, no rate limits, instant, admin-tunable, works offline. The customer cannot act on a "live" rate (no checkout yet), so an estimate is sufficient and removes a hard external dependency. |
+| **Supabase Edge Function (Deno)** | existing runtime | Server-side broker for any courier API call; holds the API token as a secret | Already proven in v1.0 (`verify-and-submit`). The only place a courier secret can live without leaking into the public GitHub Pages bundle. `fetch`-based, perfect for REST courier APIs. |
+| **data.gov.in — All-India Pincode Directory** | resource on data.gov.in (free API key) | Validate the 6-digit pincode and resolve it to district/state/city for zone classification + "Deliver to X" labels | Official Govt of India dataset (India Post source). ~19–20k serviceable pincodes. Distributable as a seeded Postgres table (no live dependency) or via its data.gov.in REST API. |
+| **Shiprocket Courier Serviceability API** *(optional live upgrade)* | `GET https://apiv2.shiprocket.in/v1/external/courier/serviceability/` | One call → list of couriers each with `rate`, `etd`/`estimated_delivery_days`, `cod` flag | Single endpoint covers all three required outputs (cost + ETA + COD). Free account, **no minimum volume**, REST + Bearer token — the cleanest small-business live option. |
 
-### Supporting Libraries
+### Supporting Libraries / Schema additions
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `@tanstack/react-query` | already installed (`5.x`, repo pins 5.60; latest 5.100) | Cache + loading/error state for Supabase reads; mutations for admin writes | **Already in the codebase** — reuse it. Wrap supabase-js calls in `useQuery`/`useMutation`. Do NOT add a second data layer. **HIGH** |
-| Generated DB types (`database.types.ts`) | n/a (generated by CLI) | End-to-end type safety: Postgres schema → `createClient<Database>()` → typed query results | Generate via `supabase gen types typescript`. Makes `supabase.from('products').select()` fully typed under the existing `strict: true`. **HIGH** |
-| `react-hook-form` + `@hookform/resolvers` + `zod` | already installed (`7.x` / `3.x` / repo pins zod 3.25) | Validate the native questionnaire form, admin product/category/content forms, login/register before hitting Supabase | **Already in the codebase** — reuse. Zod schemas double as the insert contract. Note: repo is on **zod 3.x**; the wider ecosystem latest is zod 4.x — stay on 3.x to avoid churn unless a deliberate upgrade is scoped. **HIGH** |
-| `sonner` | already installed (`2.x`) | Toasts for auth errors, save-success, upload feedback | **Already in the codebase** — reuse for all Supabase op feedback. **HIGH** |
+| Item | Where | Purpose | When to Use |
+|------|-------|---------|-------------|
+| `shipping_origin` config (single row or `site_content` key) | Postgres | Admin-configurable dispatch pincode (drives every estimate) | Always — required by the milestone. |
+| `shipping_zones` + `shipping_rate_slabs` tables | Postgres | Zone definitions (Local / Regional / Metro / Rest-of-India / Special: NE+J&K+islands) and per-zone weight-slab cost + ETA range + COD flag | Always (the fallback/baseline engine). |
+| `pincodes` table (seeded from data.gov.in) | Postgres | Pincode → district/state/zone-class lookup, validity check | Always — needed for both validation and zone mapping. |
+| `shipping_quote_cache` table | Postgres | Cache `(origin, dest, weight_slab) → quote` with a TTL | Only if the live API is enabled — cuts latency + API calls for the navbar widget that fires on many page views. |
+| `courier_tokens` table (or Edge Function secret + DB cache) | Postgres / Vault | Store the Shiprocket Bearer token (valid ~240h) and refresh on 401/expiry | Only if Shiprocket live API is enabled. |
+| TanStack Query hook (`useDeliveryEstimate`) | `client/src/lib/` | Client read path → calls Edge Function (live) or reads zone table (baseline) | Always — mirrors existing `catalog.ts` pattern. |
+| Persisted pincode (localStorage + context) | `client/src/` | "Deliver to [pincode]" persists site-wide | Always — navbar widget requirement. |
 
 ### Development Tools
 
-| Tool | Version | Purpose | Notes |
-|------|---------|---------|-------|
-| Supabase CLI (`supabase`) | latest **2.102.0** (May 2026) | Local Supabase stack (Docker), migrations, type generation, link to hosted project | **Install via Homebrew** (`brew install supabase/tap/supabase`) — the docs explicitly state global `npm install -g supabase` is **NOT supported**. A **project dev-dependency** (`npm i -D supabase`, run with `npx supabase`) is supported and recommended for pinning. **HIGH** |
-| `supabase init` / `start` / `stop` | (CLI) | Scaffold `supabase/`; run local Postgres+Auth+Storage in Docker for offline dev | `supabase start` prints local API URL + anon/publishable key for `.env.local`. **HIGH** |
-| `supabase migration new` / `db push` / `db diff` | (CLI) | SQL migrations in `supabase/migrations/`, applied locally then pushed to hosted | Schema (tables, RLS policies, storage buckets, auth hook) is version-controlled here — the source of truth, NOT the dashboard. **HIGH** |
-| `supabase gen types typescript` | (CLI) | Emit TS types from local/live schema | Add an npm script; regenerate after every migration. **HIGH** |
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| `supabase functions deploy` | Ship the estimator Edge Function | Same flow as v1.0 `verify-and-submit`. |
+| `supabase secrets set` | Store `SHIPROCKET_EMAIL/PASSWORD` (or Delhivery token) | Never in the client bundle; `check-no-secret.sh` already guards this. |
+| Postman (Shiprocket public workspace) | Explore/verify the live serviceability response shape before coding | `apidocs.shiprocket.in` has a "Run in Postman" collection. |
 
 ---
 
-## Installation
+## API Comparison (small-volume fit)
 
-```bash
-# Core runtime client (the ONLY Supabase runtime dependency for a SPA)
-npm install @supabase/supabase-js
+| Provider | Rate calc | Serviceability | COD flag | ETA in API | Self-serve signup | Min volume / contract | API access cost | Auth model | Edge-Function callable |
+|----------|:--:|:--:|:--:|:--:|:--:|:--:|:--:|--|:--:|
+| **Shiprocket** (aggregator) | ✅ | ✅ | ✅ | ✅ (`etd`/days) | ✅ free | **None** (free Lite plan) | Free to call; pay per shipment only when you ship | POST email+pwd → Bearer token (~240h, refresh) | ✅ |
+| **NimbusPost** (aggregator) | ✅ | ✅ | ✅ | ✅ (EDD) | ✅ self-serve creds from dashboard | None advertised | Free to call; pay per shipment | key + email + password → token | ✅ |
+| **Delhivery** (direct carrier) | ✅ (approx Invoice API) | ✅ (prepaid+COD flags) | ✅ | ⚠️ Not in serviceability/invoice API (TAT only in UI) | ⚠️ account + **GST + KYC + ₹500 wallet** | No volume min, but business KYC required | Free to call once onboarded | `Authorization: Token <api_token>` | ✅ |
+| **iThink Logistics** (aggregator) | ✅ | ✅ | ✅ | ✅ | partial (service-first, account manager) | None hard, but premium positioning | Per-shipment | token | ✅ |
+| **Shipway** (aggregator, NDR/tracking-led) | ✅ | ✅ | ✅ | ✅ | ✅ | None | Per-shipment | token | ✅ |
+| **ClickPost** (enterprise SaaS) | ✅ | ✅ | ✅ | ✅ | ❌ sales-led | **Volume/contract** | Platform SaaS fee | key | ✅ (but overkill) |
+| **Blue Dart / DTDC** (direct) | ✅ | ✅ | ✅ | partial | ❌ corporate onboarding | Account + volume | Contract | key/credentials | ✅ |
+| **India Post** | ❌ no usable live rate API | dataset only | ❌ | ❌ | n/a | n/a | Free dataset | data.gov.in API key | ✅ (dataset only) |
 
-# Dev dependency: CLI for local stack + migrations + type generation
-npm install -D supabase          # OR: brew install supabase/tap/supabase
-
-# Nothing else — TanStack Query, React Hook Form, Zod, Sonner already installed.
-# Do NOT install: @supabase/ssr, @supabase/auth-helpers-*, @supabase/auth-ui-react
-```
-
-One-time project setup:
-
-```bash
-npx supabase init                        # creates supabase/ config + migrations dir
-npx supabase login
-npx supabase link --project-ref <ref>    # connect to hosted project
-npx supabase start                       # local stack (Docker) — prints local URL + key
-```
-
-Suggested package.json scripts:
-
-```jsonc
-{
-  "scripts": {
-    "db:start": "supabase start",
-    "db:new":   "supabase migration new",
-    "db:push":  "supabase db push",
-    "db:types": "supabase gen types typescript --local > client/src/lib/database.types.ts"
-  }
-}
-```
-
-Client singleton (`client/src/lib/supabase.ts`):
-
-```ts
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from './database.types'
-
-export const supabase = createClient<Database>(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY  // new sb_publishable_... key (see key note)
-)
-```
-
-> **Vite env note:** Vite only exposes `VITE_`-prefixed vars to client code via `import.meta.env`. Use `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY` (or `..._ANON_KEY` if still on a legacy key). For GitHub Pages these are baked into the static bundle at build time — set them as Actions repo secrets/vars and inject during `vite build`. This is expected and safe (see key-safety section).
+Notes verified from docs:
+- **Shiprocket serviceability**: `GET /v1/external/courier/serviceability/?pickup_postcode=&delivery_postcode=&weight=&cod=0|1` returns an array of `available_courier_companies`, each with `rate`, `estimated_delivery_days`/`etd`, and COD support. Token via `POST /v1/external/auth/login` (`{email, password}`) → Bearer valid ~240h. (`apidocs.shiprocket.in`)
+- **Delhivery serviceability**: `GET https://track.delhivery.com/c/api/pin-codes/json/?filter_codes=<pin>` → prepaid/COD serviceability flags; `NSZ` = not serviceable. (`delhivery-express-api-doc.readme.io`)
+- **Delhivery charges**: `GET https://track.delhivery.com/api/kinko/v1/invoice/charges/.json?md=E|S&cgm=<grams>&o_pin=&d_pin=&ss=Delivered` → `gross_amount`, tax, `total_amount` (explicitly "approximate"), rate-limited ~40 req/min. `md=E` prepaid, `md=S` COD. No ETA field. Auth = `Authorization: Token <token>` from Delhivery One developer portal.
+- **Onboarding friction (Delhivery)**: Delhivery One requires GST number + GST document upload to activate a business account, ~3-min KYC, and a prepaid wallet recharge (min ₹500) to operate.
 
 ---
 
-## Role-Based Access (admin vs customer) — recommended pattern
+## Architecture fit: static SPA + Edge Function
 
-Two documented approaches; Supabase's RBAC guide **recommends the Custom Access Token Auth Hook** (role baked into the JWT) over per-policy table lookups.
+**The read path is synchronous request/response — nothing here requires a persistent server or inbound webhook.**
 
-**Approach A — Custom Access Token Auth Hook (Supabase-recommended).**
-1. A `user_roles` (or `profiles`) table maps `user_id → role` (e.g. enum `app_role` = `admin | customer`).
-2. A `public.custom_access_token_hook(event jsonb)` PL/pgSQL function injects `user_role` into the JWT `claims` before issuance (grant execute to `supabase_auth_admin`, revoke from `anon`/`authenticated`/`public`). Enable the hook in Auth settings.
-3. RLS policies read `auth.jwt() -> 'user_role'` via an `authorize()` helper — **no per-row subquery**, so policies stay fast.
-4. Role is also present in the client's decoded JWT, so the UI can show/hide admin nav without an extra fetch.
+```
+Browser (GitHub Pages SPA)
+  → useDeliveryEstimate(productWeight, destPin)
+  → supabase.functions.invoke('delivery-estimate', { destPin, weightGrams })
+      Edge Function (Deno):
+        1. validate destPin (pincodes table)
+        2. read shipping_origin (dispatch pin)
+        3. IF live API enabled:
+             - get/refresh cached courier token
+             - fetch courier serviceability (origin, dest, weight, cod)
+             - pick cheapest serviceable courier → {cost, etaDays, cod}
+             - cache in shipping_quote_cache (TTL)
+           ELSE / on failure / not serviceable:
+             - classify zone (origin vs dest state) → slab → {cost, etaRange, cod}
+  → render cost + "Delivery in N–M days" + COD badge / "Not serviceable"
+```
 
-**Approach B — `profiles.role` checked inside RLS (simpler to start).**
-1. `profiles(id uuid PK references auth.users(id) on delete cascade, role text default 'customer' check (role in ('admin','customer')), …)`.
-2. Trigger `handle_new_user()` auto-creates a `profiles` row on signup, defaulting to `customer`.
-3. RLS write policies wrap the check in a `security definer` `is_admin()` helper: `exists (select 1 from profiles where id = auth.uid() and role = 'admin')` — the `security definer` wrapper avoids recursive RLS on `profiles`.
-4. Customer-owned tables (wishlist, questionnaire history) use `auth.uid() = user_id` for read+write.
-
-**Recommendation for this milestone:** Either works for a 2-role catalog site. Start with **Approach B** for legibility and zero auth-config; migrate to **Approach A** if RLS performance degrades or you want the role in the JWT without a fetch. Promote the owner to `admin` **once via SQL/dashboard**, never from the client.
-
-> **Critical:** Never base RLS on `user_metadata` / `raw_user_meta_data` — it is **user-editable** and a privilege-escalation hole. Use `app_metadata`, a roles table, or (best) the JWT claim from the auth hook.
-
-This satisfies PROJECT.md's "Admin-only actions must be enforced server-side via Supabase RLS, not just hidden in the UI."
-
----
-
-## TanStack Query + supabase-js integration (the wiring)
-
-- **Singleton client** (one `createClient`) imported everywhere — multiple clients during React renders corrupt auth state.
-- Put each Supabase call in a `queryFn`/`mutationFn`; chain `.throwOnError()` so PostgREST errors reject and Query exposes them via `error`.
-- **queryKey** must include every variable affecting the result (e.g. `['products', categoryId]`) so filter changes refetch.
-- Set a sensible `staleTime` (e.g. 60s) for catalog reads instead of `0` to avoid refetch-on-every-mount.
-- Mutations (admin create/edit/delete, wishlist toggle, questionnaire submit) call `queryClient.invalidateQueries` on success.
-- Keep the existing `QueryClient` instance; **retire the `/api` fetch helper** in `client/src/lib/queryClient.ts` (it targets the removed Express server).
+- **Secrets**: courier token/credentials live in Edge Function env (`supabase secrets`), never in the bundle — identical to the v1.0 Turnstile pattern.
+- **No webhooks needed**: courier webhooks are for *shipment lifecycle* (tracking, NDR), which this estimate-only feature does not use. So the static-SPA constraint is fully satisfied.
+- **Token lifecycle**: Shiprocket's 10-day Bearer token must be cached server-side (a `courier_tokens` row) and re-minted on 401 — do NOT log in per request (avoids rate limits + latency). Delhivery's token is long-lived and stored as a plain secret.
+- **Caching matters**: the navbar "Deliver to [pincode]" widget can fire on many navigations. Cache quotes by `(origin, dest, weight_slab)` in Postgres with a TTL (e.g. 24h) to cut API calls and keep the widget snappy. The zone table needs no cache (it's a local read).
 
 ---
 
-## GitHub Pages / key safety (explicit, per quality gate)
+## Is a pure pincode/serviceability dataset approach viable?
 
-- The **publishable key** (`sb_publishable_...`, the current standard) — and the legacy **anon key** it replaces — is **designed to be public**. Supabase docs list "web pages, where the key is bundled in source code" as an intended use. It carries only the low-privilege `anon`/`authenticated` Postgres roles and grants **no data access on its own**; all access is gated by RLS. Shipping it in a static GitHub Pages bundle is the supported model. **HIGH.**
-- **New projects (this one) no longer get legacy `anon`/`service_role` keys** — they default to `sb_publishable_`/`sb_secret_`. Legacy JWT keys are being phased out (projects restored after Nov 2025 don't get them; monthly migration reminders; eventual deletion). Timeline specifics: **MEDIUM.**
-- One behavioral change with new keys: a publishable key **cannot** be passed in the `Authorization` header (it's not a JWT) — supabase-js handles this; pass the user's JWT or leave the header empty.
-- The **secret / `service_role` key must NEVER** reach the client — it has `BYPASSRLS` and grants full DB access. It has no place in this milestone (no server runtime). Any future privileged op must run in a Supabase **Edge Function**, not the SPA.
-- **Net:** RLS default-deny on every table is non-negotiable; with RLS on, a leaked publishable key is a non-event.
+**Yes — and it is the recommended baseline.** A live rate API gives precision the customer can't act on (no checkout), while adding KYC/contract, tokens, rate limits, latency, and a runtime dependency on a third party.
+
+- **Serviceability + validation + geo**: the **data.gov.in All-India Pincode Directory** (official, India Post sourced) resolves any pincode to office/district/state and confirms it's a real deliverable pincode. Seed it into a `pincodes` table (one-time import; ~19–20k unique pincodes). Free `data.gov.in` API key for refreshes.
+- **Cost + ETA**: dataset alone has no price/ETA, so layer a **zone-weight slab table**:
+  - Classify each quote by dispatch-state vs destination-state into zones: **Local**, **Regional (same/adjacent state)**, **Metro**, **Rest-of-India**, **Special (NE states, J&K/Ladakh, A&N + Lakshadweep islands)**.
+  - Per zone × weight-slab: an admin-set **cost**, **ETA range (min–max days)**, and **COD allowed** flag.
+  - Origin pincode is admin-configurable (milestone requirement) and selects the zone reference.
+- **Why this is the pragmatic primary**: it ships today with no external account, is fully admin-tunable in the existing portal, is deterministic and testable, and degrades gracefully ("estimate unavailable" only on an invalid pincode). The live API can be slotted in later behind the same Edge Function interface without a frontend change.
 
 ---
 
@@ -142,12 +116,10 @@ This satisfies PROJECT.md's "Admin-only actions must be enforced server-side via
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| `@supabase/supabase-js` directly in hooks | `@supabase/ssr` `0.10.x` | Only if you migrate to a server framework (Next.js, Remix, SvelteKit, Astro SSR). It manages cookie-based sessions across server/client. **Wrong tool for a static SPA** — adds cookie machinery you have no server to use. |
-| Hand-rolled login/register with shadcn + RHF | `@supabase/auth-ui-react` `0.4.7` | Only if you wanted a zero-effort drop-in widget and didn't care about brand fit. Skip it: shadcn/ui + RHF are already present, and the package is stale/unmaintained. |
-| Approach B (`profiles.role` in RLS) to start | Approach A (Custom Access Token Auth Hook) | Use the hook when RLS perf matters at scale or you need the role in the JWT client-side without a fetch. It is the documented "recommended" RBAC path. |
-| TanStack Query wrapping supabase-js | Supabase Realtime subscriptions | Use Realtime only if the admin needs live multi-user updates (not required). For an owner-managed catalog, Query cache + invalidate-on-mutation suffices. |
-| Public Storage bucket for product images | Signed URLs from a private bucket | Use signed URLs only for non-public/private customer uploads. Product images are public marketing content → public bucket + `getPublicUrl()` = cacheable CDN URLs, no token churn. |
-| Raw supabase-js + Query by hand | `@supabase/cache-helpers` (auto queryKey) | Optional convenience that auto-derives queryKeys from the Supabase query. Nice-to-have; not required for this scope and adds a dependency. |
+| Zone-weight table (baseline) | Shiprocket live API | When the brand opens a Shiprocket account and wants real per-courier rates/ETAs reflected to customers. Same Edge Function, swap the data source. |
+| Shiprocket (live primary) | NimbusPost | Equivalent small-biz fit; choose NimbusPost if the brand already uses it or prefers its self-serve dashboard credentials and COD remittance terms. Functionally interchangeable for this feature. |
+| Shiprocket | Delhivery direct | When the brand **already dispatches via Delhivery** and wants its own contracted rates + accurate serviceability. Accept the ETA gap (layer the zone ETA table on top) and the GST/KYC/wallet onboarding. |
+| Shiprocket | iThink Logistics / Shipway | If the brand already has an account there. No advantage for a tiny brand starting fresh; onboarding is heavier/service-led. |
 
 ---
 
@@ -155,43 +127,56 @@ This satisfies PROJECT.md's "Admin-only actions must be enforced server-side via
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `@supabase/auth-helpers-react` / `-nextjs` / `-shared` (all `auth-helpers-*`) | **DEPRECATED** (npm: "Package no longer supported" / "please use @supabase/ssr"). Old tutorials use these — following them pulls a dead dependency. | SPA: nothing — use `supabase.auth.*` from supabase-js directly. (SSR frameworks: `@supabase/ssr`.) |
-| `@supabase/ssr` (in this project) | Built for server-rendered frameworks with cookie sessions. **No server runtime** on GitHub Pages, so its cookie adapter buys nothing and complicates sessions. | `@supabase/supabase-js` with default `localStorage` session persistence. |
-| Express + Drizzle + Passport scaffolding (`server/`, `shared/schema.ts`, `drizzle.config.ts`, `pg`, `connect-pg-simple`, `passport*`, `memorystore`) | Never wired up; redundant under Supabase-direct. Two schema sources + two auth systems = dead maintenance and confusion. | Delete it. Schema → `supabase/migrations/`; auth → Supabase Auth; data → supabase-js. |
-| `service_role` / secret key (`sb_secret_...`) anywhere in client code or bundle | `BYPASSRLS` = full DB access; the static JS bundle is world-readable → critical breach. | Only the **publishable/anon** key in the client. Privileged ops (none this milestone) → Edge Functions. |
-| RLS based on `user_metadata` / route-guard-only "security" | `user_metadata` is user-editable; client guards in a static SPA are cosmetic (attacker-controllable JS). | Enforce writes via **RLS** using a roles table / JWT claim; client guards purely for UX. |
-| Custom `apiRequest()` fetch wrapper for backend calls | Targets the removed `/api` Express routes; no such server exists. | Call `supabase.*` inside Query `queryFn`/`mutationFn`. Keep the `QueryClient`; drop the `/api` helper. |
-| `npm install -g supabase` | Officially **unsupported** install path. | Homebrew, or a pinned `-D` dev dependency run via `npx supabase`. |
+| **ClickPost** | Enterprise multi-carrier SaaS — sales-led onboarding, platform fee, volume/contract expectation. Massive overkill for per-product estimates on a tiny brand. | Shiprocket / NimbusPost free tier, or the zone table. |
+| **Pickrr** | Acquired by Shiprocket (2022) and folded into the Shiprocket platform — not a standalone product to integrate against. | Shiprocket directly. |
+| **Direct Blue Dart / DTDC APIs** | Corporate onboarding, account managers, volume minimums; no self-serve free tier. | Aggregator (Shiprocket/NimbusPost) which fans out to these carriers anyway. |
+| **India Post live rate API** | No usable public real-time rate/serviceability API; only static datasets and a manual postage calculator. | data.gov.in pincode dataset for validation + zone table for cost/ETA. |
+| **Calling any courier API directly from the React client** | Leaks the API token into the public GitHub Pages bundle; CORS will also block it. | Always proxy through the Supabase Edge Function (server-side secret), as in v1.0. |
+| **Logging in to Shiprocket per request** | 10-day token + login rate limits; adds latency. | Cache the Bearer token server-side, refresh on 401. |
+| **Treating Delhivery Invoice `total_amount` as exact** | Docs state it is approximate. | Present as an estimate; round/buffer for display. |
 
 ---
 
-## Version Compatibility
+## Stack Patterns by Variant
 
-| Package A | Compatible With | Notes |
+**If the brand will not open a courier account this milestone (most likely):**
+- Ship the **zone-weight table + data.gov.in pincode validation** only.
+- Edge Function still used (keeps origin config + zone logic server-side and consistent), but no external calls.
+- Fastest, zero-dependency, fully admin-controlled.
+
+**If the brand opens a Shiprocket (or NimbusPost) account:**
+- Enable the live branch in the Edge Function; cache token + quotes in Postgres.
+- Keep the zone table as the automatic fallback (API down / pincode not serviceable / non-account weight edge cases).
+
+**If the brand already ships via Delhivery:**
+- Use Delhivery serviceability (prepaid/COD flags) + Invoice charges for cost.
+- Source **ETA from the zone table** (Delhivery's API doesn't return per-pincode TAT cleanly).
+- Requires GST + KYC + ₹500 wallet onboarding before the token works.
+
+---
+
+## Version Compatibility / Integration notes
+
+| Component | Integrates with | Notes |
 |-----------|-----------------|-------|
-| `@supabase/supabase-js ^2.106` | React 19.2 / Vite 7.1 | Framework-agnostic browser client; no React coupling. Reads `import.meta.env`. Node engine >=20 (CI Node 22 OK). **HIGH** |
-| `@supabase/supabase-js ^2.x` | `@tanstack/react-query 5.x` | No conflict — independent layers; Query wraps supabase-js. **HIGH** |
-| Supabase CLI `2.102.x` (dev dep) | supabase-js `2.x` | CLI-generated TS types feed `createClient<Database>()`. Regenerate after each migration to stay in sync. **HIGH** |
-| supabase-js `2.x` | `@supabase/ssr 0.10.x` | Do NOT mix here — ssr is for servers, this is a SPA. **HIGH** |
-| Publishable key (`sb_publishable_`) | supabase-js `2.x` | Supported; cannot be sent in `Authorization` header (not a JWT) — client handles this. **HIGH** |
-| Generated `Database` types | existing strict `tsconfig` | Strict-mode clean; matches `strict: true`. **HIGH** |
+| Supabase Edge Functions (Deno) | Shiprocket/NimbusPost/Delhivery REST | Native `fetch`; no SDK needed. Avoid Node-only courier npm wrappers (Deno + bundle-size). |
+| Product weight | `product_variants.weight` (existing) | Already present from v1.0 SKUs — feed grams to the rate call/slab lookup. Handle products with no variant weight (default/min weight). |
+| Pincode persistence | localStorage + React context | Mirror existing patterns; hydrate the navbar widget + product page from one source. |
+| RLS | `pincodes`, `shipping_zones`, `shipping_rate_slabs` = public read; `shipping_origin` + slabs admin-write | Same default-deny + `is_admin()` model as v1.0. |
 
 ---
 
 ## Sources
 
-- npm registry (`npm view`, May 2026) — `@supabase/supabase-js` latest **2.106.2** (dist-tags: latest=2.106.2, v3 only `3.0.0-next`); `supabase` CLI **2.102.0**; `@supabase/ssr` **0.10.3**; `@supabase/auth-ui-react` **0.4.7**; `@supabase/auth-helpers-react` **0.15.0** marked "no longer supported"; `@supabase/auth-helpers-shared` "deprecated — use @supabase/ssr". supabase-js engines node>=20. **HIGH**
-- Context7 (`/supabase/supabase`) — Custom Access Token Auth Hook SQL pattern (grants/revokes, `user_roles`, `auth.jwt()` in policies). **HIGH**
-- https://supabase.com/docs/guides/auth/quickstarts/react — official React SPA auth quickstart installs only `@supabase/supabase-js`; mentions new publishable keys; legacy keys functional through 2026. **HIGH**
-- https://supabase.com/docs/guides/auth/auth-helpers — `auth-helpers` superseded by `@supabase/ssr` (server-oriented). **HIGH**
-- https://supabase.com/docs/guides/api/api-keys — publishable key safe to bundle in web pages; relies on RLS; secret key `BYPASSRLS`, never in browser; new `sb_publishable_`/`sb_secret_` format. **HIGH**
-- https://github.com/orgs/supabase/discussions/29260 + changelog — legacy `anon`/`service_role` phase-out: new/restored projects (post-Nov-2025) lack legacy keys; eventual deletion; publishable key not usable in Authorization header. **MEDIUM (exact sunset date)**
-- https://supabase.com/docs/guides/database/postgres/custom-claims-and-role-based-access-control-rbac — RBAC: Custom Access Token Auth Hook recommended over per-policy lookups; `user_metadata` unsafe for authz. **HIGH**
-- https://supabase.com/docs/guides/local-development/cli/getting-started — CLI install via brew (global npm unsupported) or `-D` dev dep; `init`/`start`/`db diff`/migrations/`gen types`. **HIGH**
-- https://supabase.com/docs/reference/javascript/storage-from-upload — Storage `upload()` + `getPublicUrl()`; fileOptions (cacheControl, contentType, upsert). **HIGH**
-- https://github.com/supabase/cli/releases — CLI v2.102.0 (May 29 2026). **HIGH**
-- WebSearch (makerkit, TanStack discussion #5661) — supabase-js + React Query patterns: singleton client, throwOnError, queryKey variables, staleTime>0, invalidate on mutation. **MEDIUM**
+- Delhivery Express API docs — `https://delhivery-express-api-doc.readme.io/` (Pincode Serviceability API; Invoice/Shipping Charge API params `md/cgm/o_pin/d_pin/ss`, ~40 req/min, "approximate" charge) — HIGH (official)
+- Delhivery One help center — `https://help.delhivery.com/docs/` (Serviceability & Rate Calculator shows TAT in UI; API token generation; GST/KYC onboarding; ₹500 wallet) — HIGH (official)
+- Shiprocket API docs — `https://apidocs.shiprocket.in/` + Postman public workspace (courier serviceability endpoint returns rate + estimated delivery days + COD; auth login → Bearer token ~240h) — HIGH (official/vendor)
+- Shiprocket support — token validity 240h, API-user email/password generation — MEDIUM (vendor support articles)
+- NimbusPost — `nimbuspost.com` + Postman (self-serve API credentials, serviceability + EDD, 29k+ pincodes) — MEDIUM (vendor)
+- data.gov.in All-India Pincode Directory + Kaggle "All India Pincode Directory (2025)" / data.opencity.in India Pincode Maps 2025 (~19–20k pincodes, official India Post source) — HIGH (govt dataset)
+- ClickPost blog "Best 10 Shipping/Courier Aggregators in India [2026]" + comparisons (iThink/Shipway/Pickrr positioning) — MEDIUM (vendor comparison)
+- Business Insider / Sacra / Tracxn — Shiprocket acquired Pickrr (2022), integrated as a brand under Shiprocket Ltd — HIGH (multiple sources agree)
 
 ---
-*Stack research for: Supabase-direct backend on a static React/Vite SPA*
-*Researched: 2026-05-31*
+*Stack research for: Indian pincode delivery cost + ETA + COD estimator (small-volume D2C, static SPA + Supabase Edge Function)*
+*Researched: 2026-06-27*

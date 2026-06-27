@@ -1,397 +1,308 @@
 # Architecture Research
 
-**Domain:** Supabase-direct React/Vite SPA — public catalog showcase + admin CMS + auth (skincare brand, brownfield)
-**Researched:** 2026-05-31
-**Confidence:** HIGH (Supabase patterns verified against official docs + multiple sources; existing codebase inspected directly)
+**Domain:** Pincode delivery estimator integrated into an existing Supabase + static-SPA skincare app (v1.1)
+**Researched:** 2026-06-27
+**Confidence:** HIGH (grounded in the project's own shipped v1.0 patterns, read directly from source)
+
+> This is an **integration** research doc, not a greenfield design. Every recommendation below maps to a pattern v1.0 already ships and runs in production. "New" vs "modify existing" is called out explicitly. Courier *selection* (Delhivery vs alternatives) is deferred to STACK.md — this doc is courier-agnostic and treats the rate provider behind a normalizing adapter so the choice stays swappable.
+
+---
 
 ## Standard Architecture
-
-The target is a **Backend-as-a-Service (BaaS) / "thick client" architecture**: the React SPA talks directly to Supabase (Postgres via PostgREST, Auth via GoTrue, Storage) using the JS client and the public anon key. There is **no custom API server** — security lives entirely in Postgres Row Level Security (RLS). This is the right fit because (a) the existing Express/Drizzle layer was never wired, (b) the frontend already deploys as a static SPA to GitHub Pages, and (c) Supabase is hosted separately, so the static-host model is preserved.
 
 ### System Overview
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                    React SPA (Vite) — GitHub Pages                 │
-├──────────────────────────────────────────────────────────────────┤
-│  Public Pages          Admin Pages           Customer Pages        │
-│  Home / Shop /         /admin/* (gated)      Wishlist / Profile     │
-│  OurStory / Contact    products, categories  (auth-gated)           │
-│  / Questionnaire       content, inbox                               │
-│       │                     │                      │                │
-│       └──────────┬──────────┴──────────┬───────────┘                │
-│                  ▼                      ▼                            │
-│        ┌───────────────────┐  ┌──────────────────┐                  │
-│        │  Data-access layer │  │  Auth context     │                 │
-│        │  client/src/api/*  │  │  (session/role)   │                 │
-│        │  (TanStack Query)  │  │                   │                 │
-│        └─────────┬─────────┘  └────────┬──────────┘                  │
-│                  └──────────┬──────────┘                            │
-│                             ▼                                       │
-│            ┌────────────────────────────────────┐                  │
-│            │  Supabase client (anon key)         │                  │
-│            │  client/src/lib/supabase.ts         │                  │
-│            └────────────────┬───────────────────┘                  │
-└─────────────────────────────┼──────────────────────────────────────┘
-                              │ HTTPS (RLS-enforced)
-                              ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                          Supabase (hosted)                          │
-├──────────────────────┬──────────────────┬─────────────────────────┤
-│  Postgres + PostgREST │  Auth (GoTrue)   │  Storage                │
-│  tables + RLS         │  email/password  │  product-images bucket   │
-│  products, categories │  auth.users      │  site-content bucket     │
-│  site_content,        │  → profiles      │                          │
-│  customization_subs,  │     (role)       │                          │
-│  profiles, wishlists  │                  │                          │
-└──────────────────────┴──────────────────┴─────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                     STATIC SPA (GitHub Pages · sutravan.in)           │
+│                     React 19 + Vite + Wouter + TanStack Query        │
+├──────────────────────────────────────────────────────────────────────┤
+│  DeliveryProvider (NEW ctx, mirrors AuthProvider)                    │
+│   ├─ pincode state  ← localStorage + optional profiles.default_pincode│
+│   └─ exposes { pincode, setPincode }                                 │
+│        │                          │                                  │
+│  ┌─────┴──────┐            ┌──────┴───────────┐                      │
+│  │ Navbar     │            │ ProductDetail    │   (MODIFY both)      │
+│  │ widget(NEW)│            │ estimator(NEW)   │                      │
+│  └─────┬──────┘            └──────┬───────────┘                      │
+│        └──────────┬───────────────┘                                  │
+│              useDeliveryEstimate(origin, dest, weightG)  (NEW hook)  │
+│              TanStack Query · key ['delivery',o,d,bucket]           │
+└───────────────────────────┬──────────────────────────────────────────┘
+                            │ supabase.functions.invoke('delivery-estimate')
+                            │  (anon key + caller JWT; CORS allow-listed)
+                            ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│   EDGE FUNCTION delivery-estimate  (NEW · Deno · verify_jwt=false)    │
+│   1. validate dest pincode (6-digit) + read body {dest, weightG}     │
+│   2. resolve origin + default weight + free-ship threshold           │
+│        ← reads site_content (server-side)                            │
+│   3. cache lookup (origin+dest+weightBucket, not expired)           │
+│   4. on MISS → call courier rate API (RATE_API_KEY from Deno.env)   │
+│   5. normalize → {serviceable, cost, etaDays, codAvailable}        │
+│   6. upsert cache row with expires_at (TTL)                         │
+│   7. return normalized JSON                                         │
+└───────┬───────────────────────────────────────┬──────────────────────┘
+        │ service-role (cache I/O only)          │ HTTPS (secret server-side)
+        ▼                                         ▼
+┌─────────────────────────┐            ┌──────────────────────────────┐
+│ POSTGRES (Supabase)     │            │  Courier / aggregator rate   │
+│  site_content (MODIFY:  │            │  API (Delhivery etc.)        │
+│   +3 keys)              │            │  serviceability + cost + ETA │
+│  delivery_estimate_cache│            └──────────────────────────────┘
+│   (NEW, RLS deny-direct)│
+│  pincode_serviceability │
+│   (NEW, OPTIONAL)       │
+│  profiles (+default_    │
+│   pincode, OPTIONAL)    │
+└─────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| Supabase client singleton | One configured `createClient` instance shared app-wide | `client/src/lib/supabase.ts`, reads `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` |
-| Data-access layer (api/) | Typed functions wrapping Supabase queries per entity (`listProducts`, `upsertProduct`, `createSubmission`…) | `client/src/api/*.ts` — pure async functions, no React |
-| TanStack Query hooks | Cache/refetch/mutation wrappers over the api/ layer | `client/src/hooks/queries/*` (e.g. `useProducts`, `useUpsertProduct`) |
-| Auth context/provider | Holds session + resolved role, exposes `signIn/signOut`, drives route guards | `client/src/lib/auth/AuthProvider.tsx` |
-| Route guards | Wouter wrappers that redirect by auth state + role | `client/src/components/guards/RequireAuth.tsx`, `RequireAdmin.tsx` |
-| Public pages | Read-only catalog/content via anon-key queries | existing `pages/Shop.tsx`, `Home.tsx` (rewired) |
-| Admin pages | CRUD UI for products/categories/content + submissions inbox | new `pages/admin/*` |
-| Postgres + RLS | The actual security boundary; per-table policies | Supabase SQL migrations |
-| Storage buckets | Product/content image binaries | `product-images` (public read), bucket-level RLS for writes |
+| Component | Responsibility | New / Modify | Mirrors existing |
+|-----------|----------------|--------------|------------------|
+| `delivery-estimate` Edge Function | Server-side rate-API call, secret custody, normalization, cache I/O, serviceability gate | **NEW** | `verify-and-submit` |
+| `delivery_estimate_cache` table | TTL'd cache of normalized results keyed by origin+dest+weight-bucket | **NEW** | (no per-user analog) |
+| `site_content` keys (origin, default weight, free-ship threshold) | Admin-configurable estimator settings | **MODIFY** (+3 rows) | hero/email keys |
+| `useDeliveryEstimate` hook | TanStack Query wrapper over `functions.invoke`, weight-bucketing, loading/error states | **NEW** | `catalog.ts` hooks |
+| `DeliveryProvider` + `useDelivery` | Site-wide pincode state, localStorage + profile sync | **NEW** | `AuthProvider`/`useAuth` |
+| Navbar "Deliver to [pincode]" widget | Capture/edit pincode, reflect site-wide | **MODIFY** Navbar.tsx | Navbar wishlist badge |
+| ProductDetail estimator block | Per-product cost/ETA/COD using product weight + shared pincode | **MODIFY** ProductDetail.tsx | variant selector |
+| Admin settings UI | Edit origin pincode + default weight + free-ship threshold | **MODIFY** admin site-content editor | site-content form |
+| `pincode_serviceability` dataset | OPTIONAL offline serviceable/COD lookup | **NEW (optional)** | seeded catalog tables |
+
+---
 
 ## Recommended Project Structure
 
-Additions to the existing `client/src/` tree (existing folders kept; `server/`, `shared/`, `drizzle.config.ts` removed):
-
 ```
+supabase/
+├── functions/
+│   ├── verify-and-submit/          # existing template
+│   └── delivery-estimate/          # NEW
+│       └── index.ts                # CORS + Deno.env secret + adapter + cache
+├── migrations/
+│   ├── 0014_delivery_settings.sql  # NEW: +3 site_content keys (idempotent seed)
+│   ├── 0015_delivery_cache.sql     # NEW: cache table + deny-direct RLS + index
+│   ├── 0016_profile_pincode.sql    # NEW (optional): profiles.default_pincode
+│   └── 0017_pincode_serviceability.sql  # NEW (optional): dataset table
+└── config.toml                     # MODIFY: [functions.delivery-estimate] verify_jwt=false
+
 client/src/
 ├── lib/
-│   ├── supabase.ts          # createClient singleton (anon key)
-│   ├── queryClient.ts       # EXISTING — keep; drop apiRequest fetch helper
-│   └── auth/
-│       ├── AuthProvider.tsx # session + role context
-│       └── useAuth.ts       # hook to read context
-├── api/                     # NEW — data-access layer (no React)
-│   ├── products.ts          # list/get/upsert/delete products
-│   ├── categories.ts        # CRUD categories
-│   ├── siteContent.ts       # get/update keyed content blocks
-│   ├── submissions.ts       # create (public), list (admin)
-│   ├── wishlist.ts          # add/remove/list (customer, own rows)
-│   ├── storage.ts           # upload/remove/getPublicUrl helpers
-│   └── types.ts             # generated Supabase types re-exported
-├── hooks/
-│   ├── queries/             # NEW — TanStack Query wrappers
-│   │   ├── useProducts.ts
-│   │   ├── useCategories.ts
-│   │   ├── useSiteContent.ts
-│   │   ├── useSubmissions.ts
-│   │   └── useWishlist.ts
-│   ├── use-toast.ts         # EXISTING
-│   └── use-mobile.tsx       # EXISTING
-├── components/
-│   ├── guards/              # NEW
-│   │   ├── RequireAuth.tsx
-│   │   └── RequireAdmin.tsx
-│   └── admin/               # NEW — admin-only UI building blocks
-│       ├── ProductForm.tsx
-│       ├── ImageUploader.tsx
-│       └── DataTable.tsx
-├── pages/
-│   ├── Shop.tsx             # EXISTING — rewired to useProducts()
-│   ├── Login.tsx            # NEW
-│   ├── Register.tsx         # NEW
-│   ├── Wishlist.tsx         # NEW
-│   ├── Account.tsx          # NEW (profile + own submission history)
-│   └── admin/               # NEW — all behind RequireAdmin
-│       ├── AdminLayout.tsx
-│       ├── Dashboard.tsx
-│       ├── Products.tsx
-│       ├── Categories.tsx
-│       ├── SiteContent.tsx
-│       └── Submissions.tsx
-└── data/
-    └── products.ts          # DELETE after migration (kept as seed source)
-
-supabase/                    # NEW — at repo root, not shipped to client
-├── migrations/              # SQL: tables, RLS, policies, storage
-└── seed/                    # one-time import scripts (products + images)
+│   ├── delivery.ts                 # NEW: useDeliveryEstimate + types + weightBucket()
+│   └── deliverySettings.ts         # OPTIONAL: typed readers over site_content keys
+├── delivery/                       # NEW (mirrors client/src/auth/)
+│   ├── DeliveryProvider.tsx
+│   └── useDelivery.ts
+└── components/
+    ├── DeliveryWidget.tsx          # NEW: navbar pincode pill + popover input
+    └── DeliveryEstimate.tsx        # NEW: product-detail estimate block
 ```
 
 ### Structure Rationale
 
-- **`api/` separate from `hooks/queries/`:** Pure async data functions (testable, no React) are isolated from caching concerns. Components never import `supabase` directly — they go through `hooks/queries → api → supabase`. This single chokepoint makes RLS errors, retries, and type-safety uniform, and keeps the Supabase dependency swappable.
-- **`lib/auth/` as a context provider:** Role must be resolved once and shared; guards and conditional UI both read it. Avoids each component re-fetching session.
-- **`components/guards/`:** Wouter has no built-in route protection; guards are explicit wrapper components.
-- **`supabase/` at repo root:** Migrations and seed scripts are infra, never bundled into the client. Keeps the SQL schema version-controlled and reproducible.
+- **`delivery-estimate/` as a sibling Edge Function:** keeps the proven one-function-per-concern shape; reuses the exact CORS + `Deno.env` secret custody of `verify-and-submit`.
+- **`lib/delivery.ts`:** matches `catalog.ts`/`siteContent.ts` — query hook + snake→camel mapping + pure helpers (`weightBucket`) co-located, tested like `variants.test.ts`.
+- **`client/src/delivery/` provider folder:** intentionally mirrors `client/src/auth/` so site-wide pincode state has the same mental model as auth — single source of truth mounted once in `App.tsx`.
+- **Two components, one hook:** Navbar widget and ProductDetail block both read the same `DeliveryProvider` pincode and both can call the same `useDeliveryEstimate`; no duplicated fetch logic.
 
-## Database Schema (Postgres)
-
-Concrete tables. All have RLS **enabled** (mandatory — without it the anon key grants full access).
-
-```sql
--- categories (replaces the 'soap'|'scrub'|'cream' union)
-categories (
-  id          uuid pk default gen_random_uuid(),
-  slug        text unique not null,        -- 'soap','scrub','cream'
-  label       text not null,               -- 'Soaps'
-  description text,
-  image_path  text,                        -- storage path
-  sort_order  int default 0,
-  created_at  timestamptz default now()
-)
-
--- products (replaces client/src/data/products.ts)
-products (
-  id          uuid pk default gen_random_uuid(),
-  slug        text unique not null,        -- 'soap-aloe-vera' (preserve existing ids)
-  name        text not null,
-  subtitle    text,
-  category_id uuid references categories(id) on delete restrict,
-  price       numeric(10,2),               -- was empty string; now nullable numeric
-  benefits    text[] default '{}',
-  ingredients text[] default '{}',
-  tips        text[] default '{}',
-  shelf_life  text,
-  batch_note  text,
-  images      text[] default '{}',         -- storage paths, ordered
-  is_featured boolean default false,
-  is_active   boolean default true,
-  sort_order  int default 0,
-  created_at  timestamptz default now(),
-  updated_at  timestamptz default now()
-)
-
--- site_content (Our Story copy, hero text, contact/social links)
-site_content (
-  key        text pk,                      -- 'hero','our_story','contact'
-  value      jsonb not null,               -- flexible block per key
-  updated_at timestamptz default now()
-)
-
--- profiles (1:1 with auth.users, carries role)
-profiles (
-  id         uuid pk references auth.users(id) on delete cascade,
-  full_name  text,
-  role       text not null default 'customer',  -- 'customer' | 'admin'
-  created_at timestamptz default now()
-)
--- auto-created via trigger on auth.users insert (handle_new_user)
-
--- customization_submissions (native questionnaire)
-customization_submissions (
-  id         uuid pk default gen_random_uuid(),
-  user_id    uuid references auth.users(id) on delete set null, -- nullable: allow guest submit
-  answers    jsonb not null,               -- questionnaire payload
-  status     text default 'new',           -- new|reviewed|archived (admin-managed)
-  created_at timestamptz default now()
-)
-
--- wishlists (customer saved products)
-wishlists (
-  user_id    uuid references auth.users(id) on delete cascade,
-  product_id uuid references products(id) on delete cascade,
-  created_at timestamptz default now(),
-  primary key (user_id, product_id)
-)
-```
-
-**Key choices:**
-- `slug` carries the existing string IDs (`soap-aloe-vera`) so migration preserves identity and URLs.
-- `images` as `text[]` of **storage object paths** (not full URLs); the client builds public URLs at read time, so the project URL isn't baked into rows.
-- `price` becomes `numeric` (was empty string) — directly satisfies the "set price in portal" requirement.
-- `site_content` is key→jsonb to avoid a schema migration every time copy structure changes.
-
-### Role model — `profiles.role` lookup (recommended over JWT claims for v1)
-
-Verified pattern (MEDIUM-HIGH): two approaches exist — (1) a `profiles` table with a `role` column checked via a SECURITY DEFINER helper function, and (2) custom JWT claims via a Custom Access Token Auth Hook (more performant, no per-row lookup). **Recommend the profiles-table approach for this build** because the admin set is tiny (the owner), per-request lookups are negligible at this scale, and it avoids the operational complexity of auth hooks. Critically: store role in `profiles` (or `raw_app_meta_data`), **never** in `raw_user_meta_data`, which users can edit themselves.
-
-Helper to avoid recursive RLS on `profiles`:
-```sql
-create function public.is_admin() returns boolean
-language sql security definer stable set search_path = public as $$
-  select exists (select 1 from profiles where id = (select auth.uid()) and role = 'admin');
-$$;
-```
-Wrap `auth.uid()` in `(select …)` inside policies so Postgres caches it per-statement (performance best practice).
-
-## Row Level Security — per-table policies
-
-Data-flow rule: **public = read-only; customers write only their own rows; admins write everything.**
-
-| Table | SELECT (read) | INSERT / UPDATE / DELETE (write) |
-|-------|---------------|----------------------------------|
-| `products` | `anon` + `authenticated`, `is_active = true` for public; admin sees all | `is_admin()` only |
-| `categories` | public (all) | `is_admin()` only |
-| `site_content` | public (all) | `is_admin()` only |
-| `profiles` | own row (`id = auth.uid()`) + admin reads all | own row update (but **not** `role`); admin updates any |
-| `customization_submissions` | admin reads all; customer reads own (`user_id = auth.uid()`) | INSERT: `anon` + `authenticated` (allow guest/native form); UPDATE/DELETE: `is_admin()` only |
-| `wishlists` | own rows only (`user_id = auth.uid()`) | own rows only |
-
-Notes:
-- Public-read tables (products/categories/content) get a permissive `using (true)` SELECT for `anon`. Writes are locked to `is_admin()`.
-- To prevent privilege escalation on `profiles`, the self-update policy must exclude `role` (enforce via a column-level grant or a `with check` that rejects role changes; simplest: only admin can update `role`, customers update name only).
-- `customization_submissions` INSERT is intentionally open (with a `with check` constraint that `user_id` is null or equals `auth.uid()`), supporting both logged-in and guest questionnaire submission.
-
-## Storage layout
-
-Two buckets:
-
-| Bucket | Visibility | Path convention | Policies |
-|--------|-----------|-----------------|----------|
-| `product-images` | **Public** (read) | `products/{product_slug}/{n}.jpg` | SELECT: public; INSERT/UPDATE/DELETE: `is_admin()` via `storage.objects` RLS |
-| `site-content` | Public (read) | `content/{key}/{file}` | same admin-write policy |
-
-- Public bucket → client uses `supabase.storage.from('product-images').getPublicUrl(path)` to render; no signed URLs needed for a public showcase.
-- Writes are gated by RLS policies on `storage.objects` checking `bucket_id` + `is_admin()`, mirroring table writes. Public read + admin-only write is the verified standard pattern.
-- DB rows store the **path** (`products/soap-aloe-vera/1.jpg`), not the URL.
+---
 
 ## Architectural Patterns
 
-### Pattern 1: Single Supabase client + thin data-access layer
+### Pattern 1: Edge Function owns the rate-API call (NEVER client-direct)
 
-**What:** One `createClient` singleton in `lib/supabase.ts`; all queries go through `api/*` functions; components/hooks never import `supabase` directly.
-**When:** Always, in BaaS SPAs.
-**Trade-offs:** + one place to add types, error handling, and swap the backend. − a little boilerplate per entity.
+**What:** All courier-API traffic goes through `delivery-estimate`, which holds the API key in `Deno.env` and returns a normalized `{serviceable, cost, etaDays, codAvailable}`.
 
+**When to use:** Always, for this feature. This is non-negotiable given the constraints.
+
+**Why (justification against the three hard constraints):**
+1. **Secret custody.** The frontend is a *static SPA* — anything in `import.meta.env.VITE_*` is shipped in the public bundle (`supabase.ts` proves only the anon key lives there, and v1.0 ships a `check-no-secret.sh` gate). A courier API key in the bundle would be world-readable. The only place a secret can live is an Edge Function's env, set via `supabase secrets set` and read with `Deno.env.get` — exactly how `TURNSTILE_SECRET_KEY`/`RESEND_API_KEY` are handled today.
+2. **CORS.** Courier APIs are not browser-CORS-friendly and would reject/leak from `sutravan.in`. The Edge Function makes a server→server HTTPS call (no CORS) and re-exposes a tight, origin-allow-listed endpoint, copying `corsHeadersFor()` verbatim (echo allow-listed origin, never `*`).
+3. **No runtime Node server.** GitHub Pages serves static files only — there is no other server-side seam. The Edge Function *is* the backend seam, and v1.0 already established it as the pattern.
+
+**Key difference from `verify-and-submit` (the cache twist):**
+`verify-and-submit` deliberately uses the **anon key scoped to the caller's JWT** because `customization_submissions` has a per-user *ownership invariant* that RLS must enforce. The delivery cache has **no ownership invariant** — cache rows are global, non-sensitive, identical for every visitor. So `delivery-estimate` legitimately uses the **service-role key for cache reads/writes** (already available as `SUPABASE_SERVICE_ROLE_KEY` in function env). This is NOT the anti-pattern called out for submissions: there is no RLS guarantee being bypassed, and the function is the sole writer (preventing client cache-poisoning). Call this out explicitly in the function header comment so a future reader doesn't "fix" it.
+
+**Example:**
 ```typescript
-// lib/supabase.ts
-import { createClient } from '@supabase/supabase-js';
-export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
+// delivery-estimate/index.ts (shape only)
+const corsHeaders = corsHeadersFor(req.headers.get('Origin')); // copied from verify-and-submit
+// ... validate dest (6-digit), read settings from site_content, cache lookup ...
+const rated = await callCourierAdapter(origin, dest, weightG); // RATE_API_KEY = Deno.env.get(...)
+const normalized = { serviceable, cost, etaDays, codAvailable }; // courier-agnostic shape
+// upsert cache with expires_at, then return normalized
+```
+
+### Pattern 2: Settings in `site_content`, results in a dedicated cache table
+
+**What:** Admin-tunable scalars (origin pincode, default shipping weight, free-ship threshold) ride the existing `site_content` key/value table. Volatile machine-generated estimate results ride a new purpose-built table.
+
+**When to use:** This is the right split because the two have opposite lifecycles.
+
+**Trade-offs / why this split:**
+- `site_content` is the *established* owner-configurable pattern (read by `useSiteContent()` with mandatory code defaults, written by the admin upsert with `onConflict:"key"`, public-read + admin-write RLS). Adding 3 keys is a one-line idempotent seed (`on conflict (key) do nothing`, like `0006`) and the admin UI already exists — near-zero new surface.
+- Estimate results are multi-field, high-cardinality, and TTL-expiring — a wrong fit for a flat string key/value table. They need their own columns, a composite key, and an `expires_at`.
+
+**Why NOT put settings in a new table:** it would duplicate the `site_content` admin editor and RLS for three scalars. Don't.
+
+### Pattern 3: Two-tier cache (Postgres durable + TanStack Query in-session)
+
+**What:** TanStack Query caches per browser session; the Postgres cache table caches across sessions/visitors and shields the rate-limited courier API.
+
+**When to use:** Both tiers, because they solve different problems.
+
+**Trade-offs:**
+- TanStack Query alone (the default config is `staleTime: Infinity`, no refetch, `retry:false`) already dedupes within a session — but it's per-browser and lost on reload, so it does nothing for rate-limit protection across visitors.
+- The Postgres table is the real rate-limit shield: a popular pincode is fetched from the courier *once* per TTL window globally, then served from Postgres to every visitor.
+- Cost: one extra table + a cron-free TTL check inside the function. Cheap.
+
+### Pattern 4: Adapter/normalizer isolates the courier choice
+
+**What:** A single `callCourierAdapter()` inside the function maps the chosen provider's response to `{serviceable, cost, etaDays, codAvailable}`. The frontend, hook, cache schema, and UI only ever see the normalized shape.
+
+**When to use:** Always — PROJECT.md explicitly leaves Delhivery-vs-alternatives to research, so the seam must be swappable without touching the SPA. Mirrors how `catalog.ts` does snake→camel mapping "ONCE at the boundary."
+
+---
+
+## Data Model
+
+### `site_content` — ADD 3 keys (MODIFY existing table, migration `0014`)
+
+| Key | Example value | Purpose |
+|-----|---------------|---------|
+| `delivery_origin_pincode` | `"302001"` | Dispatch origin driving every estimate |
+| `delivery_default_weight_g` | `"100"` | Fallback parcel weight when a product/variant has none |
+| `delivery_free_ship_threshold` | `"999"` | Order value above which shipping shows as free (display-only; no cart yet, so this gates the per-product "free over ₹X" line) |
+
+- **RLS:** inherits the existing `site_content_public_read` (anon+auth) + `site_content_admin_write` (`is_admin()`). No new policy.
+- **Read path:** extend `SITE_CONTENT_DEFAULTS` in `siteContent.ts` with these three so the estimator never blocks on a missing row (mandatory-fallback rule D-20). The Edge Function reads them server-side via its own select with hardcoded fallbacks too.
+- **Write path:** the existing admin upsert + `['siteContent']` invalidation already covers it — just add three fields to the admin form.
+
+> **CRITICAL FINDING — weight has no numeric home today.** `product_variants.label` is free text (`"70gm"`) and there is **no `weight_grams` column anywhere** (verified across all migrations + `variants.ts`). The estimator needs grams. Recommended posture:
+> - **MVP:** use the `delivery_default_weight_g` site_content key for all products (handmade soaps cluster around one weight; good enough to ship).
+> - **Accuracy upgrade (optional, sequence later):** add `weight_g int` to `product_variants` (and/or `products`); the hook passes the selected variant's weight, falling back to the default key. Do NOT parse the `"70gm"` label string at runtime — it's lossy and locale-fragile.
+
+### `delivery_estimate_cache` — NEW table (migration `0015`)
+
+```sql
+create table public.delivery_estimate_cache (
+  id uuid primary key default gen_random_uuid(),
+  origin_pincode text not null,
+  dest_pincode   text not null,
+  weight_bucket  int  not null,          -- e.g. 250g buckets: ceil(weightG/250)
+  serviceable    boolean not null,
+  cost           numeric(10,2),          -- null when not serviceable
+  eta_days       int,
+  cod_available  boolean not null default false,
+  fetched_at     timestamptz not null default now(),
+  expires_at     timestamptz not null,   -- fetched_at + TTL
+  created_at     timestamptz default now()
 );
-
-// api/products.ts
-export async function listActiveProducts() {
-  const { data, error } = await supabase
-    .from('products').select('*, category:categories(slug,label)')
-    .eq('is_active', true).order('sort_order');
-  if (error) throw error;
-  return data;
-}
+create unique index delivery_cache_key_uniq
+  on public.delivery_estimate_cache (origin_pincode, dest_pincode, weight_bucket);
 ```
 
-### Pattern 2: Public read via TanStack Query (replaces static import)
+- **RLS posture: deny-direct.** `enable row level security` with **NO anon/authenticated policies** → the table is unreachable from the public PostgREST API. Only the Edge Function (service-role) reads/writes it. Rationale: prevents client cache-poisoning and keeps the function the single normalizer. (Estimates aren't secret, so a public-read policy would also be *safe* — but routing everything through the function keeps one code path and lets the function apply settings/serviceability consistently. Prefer deny-direct.)
+- **Invalidation:** TTL via `expires_at` (function ignores expired rows and re-fetches). Plus **on origin change**: when the admin saves a new `delivery_origin_pincode`, stale rows simply stop matching the new origin key, so they age out naturally — no explicit purge needed. Optionally add a `truncate`-style admin action later.
+- **Weight bucketing:** `weightBucket(g)` is a pure helper (in `lib/delivery.ts`, unit-tested) so 95g and 110g share a cache row, maximizing hit rate without materially changing cost.
 
-**What:** Shop/Home call `useProducts()` (a Query hook over `api/`) instead of importing `data/products.ts`. Query cache + the existing `queryClient` handle loading/staleness.
-**When:** All public catalog reads.
-**Trade-offs:** + live data, no rebuild to change catalog. − loading states + empty/error UI now required (previously instant). TanStack Query is already installed, so wiring cost is low.
+### `profiles.default_pincode` — OPTIONAL column (migration `0016`)
 
-```typescript
-// hooks/queries/useProducts.ts
-export const useProducts = () =>
-  useQuery({ queryKey: ['products'], queryFn: listActiveProducts });
-```
+- `alter table public.profiles add column default_pincode text;`
+- **RLS:** already covered — `profiles_self_update` lets a logged-in user write their own row; `profiles_self_read` reads it. No new policy.
+- **Use:** logged-in users get their pincode pre-filled and persisted across devices; anon users fall back to localStorage only. Keep this optional/last — localStorage alone satisfies the requirement.
 
-### Pattern 3: Auth context + Wouter route guards (UI gate) backed by RLS (real gate)
+### `pincode_serviceability` — OPTIONAL dataset table (migration `0017`)
 
-**What:** `AuthProvider` subscribes to `supabase.auth.onAuthStateChange`, fetches the user's `profiles.role`, and exposes `{session, role}`. `RequireAdmin` wraps admin routes and redirects non-admins. **The guard is UX only; RLS is the actual enforcement** — even if a user reaches `/admin`, every write is rejected by Postgres.
-**When:** Admin and customer-only routes.
-**Trade-offs:** + simple, no server. − role is fetched client-side (acceptable: it's never trusted for authorization, only for what UI to show).
+- Only if the chosen courier lacks a free serviceability endpoint, or to answer serviceable/COD instantly without an API round-trip. Columns: `pincode text primary key, serviceable bool, cod bool, zone text`. Seeded from a courier/India-Post CSV via a service-role script (mirrors `scripts/seed.ts`). **RLS:** public-read (`using(true)`), admin/service-role write — same posture as catalog tables.
+- **Decision:** treat as a fallback/enhancement, not core. The Edge Function can consult it before/instead of the live rate API. Sequence last; the live-API path is the baseline.
 
-```tsx
-// components/guards/RequireAdmin.tsx
-export function RequireAdmin({ children }) {
-  const { session, role, loading } = useAuth();
-  if (loading) return <Spinner/>;
-  if (!session) return <Redirect to="/login" />;
-  if (role !== 'admin') return <Redirect to="/" />;
-  return children;
-}
-// App.tsx
-<Route path="/admin/:rest*">
-  {() => <RequireAdmin><AdminLayout/></RequireAdmin>}
-</Route>
-```
-
-### Pattern 4: One-time seed/migration (products + images)
-
-**What:** A Node script in `supabase/seed/` runs **once** using the **service-role key** (server-side only, never in client). It (1) inserts categories, (2) reads the existing `client/src/data/products.ts` array, (3) uploads each product's local image files from `client/src/assets/images/products/...` to the `product-images` bucket, (4) inserts product rows with the resulting storage paths and preserved slugs.
-**When:** Once, after schema + buckets exist, before the Shop is rewired.
-**Trade-offs:** + scriptable, repeatable, idempotent if upserting by slug. − must run with service-role key locally; current data only has Soap images (84 files / 13 dirs), so scrub/cream rows seed with empty `images[]` and need images uploaded via the portal afterward.
-
-```typescript
-// supabase/seed/import.ts  (run with: tsx supabase/seed/import.ts)
-// uses SUPABASE_SERVICE_ROLE_KEY from env — bypasses RLS for the import
-for (const p of products) {
-  const paths = await uploadProductImages(p.slug, localFilesFor(p)); // [] if none
-  await admin.from('products').upsert({ slug: p.id, name: p.name, /*…*/ images: paths },
-                                      { onConflict: 'slug' });
-}
-```
-The 68-product / Soap-only-images reality means the migration cleanly covers data + soap images, while scrub/cream imagery becomes a portal task — aligns with the "admin uploads images" requirement rather than blocking on missing assets.
+---
 
 ## Data Flow
 
-### Public read flow (Shop)
+### Estimate request flow
+
 ```
-User → /shop → useProducts() → listActiveProducts() → supabase.from('products')
-                                                          ↓ RLS: anon SELECT (is_active)
-              ProductCard ← TanStack cache ← rows + getPublicUrl(image paths) ← Postgres
+User types pincode in Navbar widget (or ProductDetail)
+   ↓ setPincode()  → DeliveryProvider → localStorage (+ profiles.default_pincode if logged in)
+ProductDetail reads { pincode } + product weight
+   ↓ useDeliveryEstimate(origin?, pincode, weightG)
+TanStack Query key ['delivery', origin, pincode, weightBucket]
+   ├─ cache HIT (in-session) → return immediately
+   └─ MISS → supabase.functions.invoke('delivery-estimate', { body })
+                ↓
+         Edge Function: validate → read site_content → Postgres cache lookup
+                ├─ Postgres HIT (not expired) → return normalized
+                └─ Postgres MISS → courier adapter (secret) → normalize → upsert cache → return
+                ↓
+         { serviceable, cost, etaDays, codAvailable }
+   ↓
+DeliveryEstimate renders cost + ETA + COD, or graceful "not serviceable / estimate unavailable"
 ```
 
-### Admin write flow (edit product)
+### Pincode state flow (site-wide reflection)
+
 ```
-Admin → ProductForm submit → useUpsertProduct() mutation → upsertProduct()
-   → ImageUploader → storage.upload (RLS: is_admin) → returns path
-   → supabase.from('products').upsert (RLS: is_admin)
-   → onSuccess: queryClient.invalidateQueries(['products']) → public Shop refetches
+DeliveryProvider (mounted once in App.tsx, beside AuthProvider)
+   initial = profiles.default_pincode ?? localStorage['sutravan_pincode'] ?? null
+        ↓ context
+Navbar widget  ──setPincode──┐
+ProductDetail  ──setPincode──┤→ single source of truth → both re-render with same pincode
+                             └→ persist to localStorage (+ profile on auth)
 ```
 
-### Auth/role resolution
-```
-Login → supabase.auth.signInWithPassword → onAuthStateChange fires
-  → AuthProvider fetches profiles.role for auth.uid() → context {session, role}
-  → guards + conditional nav read context (UI); RLS enforces on every query (security)
-```
+The "global pincode reflects on product pages" requirement is satisfied purely by both surfaces reading the **same context** — no prop drilling, no duplicate storage.
 
-### Customer flows
-```
-Wishlist:    add → upsert wishlists(user_id, product_id)  [RLS: own rows]
-Questionnaire: submit → insert customization_submissions  [RLS: anon/own insert]
-Account:     read own submissions + profile               [RLS: own rows]
-```
+---
 
-## Scaling Considerations
+## Suggested Build Order
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 0–1k users | Default Supabase free/pro tier; profiles-table role lookup fine; public read uncached beyond TanStack client cache. No changes needed. |
-| 1k–100k users | Add a CDN/edge cache in front of public product reads (Supabase public Storage is already CDN-backed for images); consider switching role to JWT claims to drop the per-request profiles lookup; add DB indexes on `products(category_id, is_active, sort_order)`. |
-| 100k+ users | Cache catalog reads at the edge (it's read-mostly); paginate Shop; move heavy reporting off the primary; revisit RLS policy cost with `explain`. |
+Dependency-ordered; each step is independently shippable/testable.
 
-### Scaling Priorities
-1. **First bottleneck:** Image bandwidth — already mitigated by public Storage CDN + `getPublicUrl`; ensure images are reasonably sized on upload.
-2. **Second bottleneck:** RLS helper (`is_admin()`) per-query lookup — only matters at high write volume; switch to JWT custom claims if it shows up in `explain`.
+1. **Data + settings (migrations `0014`, `0015`; optional `0016`/`0017`).** Add the 3 `site_content` keys (idempotent seed) and the cache table with deny-direct RLS. *No dependency.* Push live first so the function has something to read. Extend `SITE_CONTENT_DEFAULTS`.
+2. **Edge Function `delivery-estimate`.** Copy `verify-and-submit` CORS scaffold; add `[functions.delivery-estimate] verify_jwt=false` to `config.toml`; implement settings read → cache lookup → courier adapter (stub/mock first) → normalize → cache upsert. Set `RATE_API_KEY` via `supabase secrets set`. *Depends on step 1.* Verify with a mock adapter before wiring the real courier.
+3. **`useDeliveryEstimate` hook + `DeliveryProvider` (`lib/delivery.ts`, `client/src/delivery/`).** Pure `weightBucket()` + typed normalized result; provider with localStorage. Mount provider in `App.tsx`. *Depends on step 2 (contract), but can develop against the mock.*
+4. **ProductDetail estimator UI (`DeliveryEstimate.tsx`).** Wire into the existing variant selector area; pass selected variant weight (or default key). Render all states incl. graceful unavailable. *Depends on steps 2–3.*
+5. **Navbar widget (`DeliveryWidget.tsx`).** "Deliver to [pincode]" pill + popover input writing the shared context; reflects on product pages automatically. *Depends on step 3.*
+6. **Admin settings UI.** Add origin pincode + default weight + free-ship threshold to the existing site-content admin form (rides existing upsert + `['siteContent']` invalidation). *Depends on step 1.*
+7. **(Optional, last) `profiles.default_pincode` sync and/or `pincode_serviceability` dataset.** Enhancements; do only if accuracy/offline-serviceability is wanted. *Depends on 3 / 2 respectively.*
+
+**Why this order:** settings/schema must exist before the function can read them; the function contract must exist before the hook; the hook/provider before the two UIs; admin settings can land any time after step 1 (parallelizable with 4/5). Mirrors v1.0's "migration → Edge Function → lib hook → UI" rhythm (e.g. `0007` → `verify-and-submit` → `questionnaire.ts` → wizard).
+
+---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Treating route guards as security
-**What people do:** Hide `/admin` behind a client-side check and assume data is safe.
-**Why it's wrong:** The anon key + table are reachable by anyone with the bundle; guards are bypassable. PROJECT.md explicitly calls this out.
-**Do this instead:** Enable RLS on every table; gate writes with `is_admin()`. Treat guards as UX only.
+### Anti-Pattern 1: Calling the courier API directly from the SPA
+**What people do:** `fetch('https://courier.api/rate', {headers:{ key: import.meta.env.VITE_RATE_KEY }})`.
+**Why it's wrong:** the key ships in the public bundle (world-readable), CORS will block/leak it, and there's no server seam on GitHub Pages. Violates the project's `check-no-secret.sh` invariant.
+**Do this instead:** Pattern 1 — Edge Function with `Deno.env` secret.
 
-### Anti-Pattern 2: Storing role in user metadata
-**What people do:** Put `role: 'admin'` in `raw_user_meta_data` / `user_metadata`.
-**Why it's wrong:** Users can update their own `user_metadata` → privilege escalation.
-**Do this instead:** Role lives in `profiles` (admin-controlled) or `raw_app_meta_data`; self-update policy excludes the `role` column.
+### Anti-Pattern 2: Reusing the caller-JWT insert pattern for the cache "to be consistent"
+**What people do:** insert cache rows under the caller's anon JWT + an anon RLS policy, copying `verify-and-submit`.
+**Why it's wrong:** an anon write policy on the cache lets any client poison it via raw PostgREST; the cache has no ownership invariant that RLS protects, so the caller-JWT discipline buys nothing here.
+**Do this instead:** deny-direct RLS + service-role cache I/O inside the function. (Document the intentional divergence.)
 
-### Anti-Pattern 3: Importing `supabase` directly in components
-**What people do:** Call `supabase.from(...)` inside page components.
-**Why it's wrong:** Scatters queries, duplicates error handling, defeats caching, hard to type/test.
-**Do this instead:** Components → `hooks/queries` → `api/*` → `supabase`. One chokepoint.
+### Anti-Pattern 3: Storing estimate results in `site_content`
+**What people do:** stuff `cost`/`eta` per pincode into key/value rows.
+**Why it's wrong:** wrong lifecycle (volatile, TTL'd, multi-field, high-cardinality) and pollutes the admin-editable content surface.
+**Do this instead:** dedicated `delivery_estimate_cache` table; `site_content` holds only the 3 admin scalars.
 
-### Anti-Pattern 4: Shipping the service-role key / disabling RLS to "make it work"
-**What people do:** Use the service-role key in the SPA or turn off RLS while debugging.
-**Why it's wrong:** Service-role bypasses all RLS; in a public bundle it's a full data breach.
-**Do this instead:** Service-role key only in the local seed script (env). RLS stays on; debug policies, not by disabling them.
+### Anti-Pattern 4: Parsing weight out of the `"70gm"` variant label
+**What people do:** regex the free-text label to get grams.
+**Why it's wrong:** lossy, locale-fragile, breaks on `"100 g"`/`"1 kg"`/`"Large"`.
+**Do this instead:** `delivery_default_weight_g` key now; optional numeric `weight_g` column later.
 
-### Anti-Pattern 5: Storing full public URLs in DB rows
-**What people do:** Save `https://xyz.supabase.co/.../1.jpg` in `images[]`.
-**Why it's wrong:** Couples rows to the project URL; breaks on project move/rename.
-**Do this instead:** Store the object path; build URLs at read time with `getPublicUrl`.
+### Anti-Pattern 5: Wildcard CORS on the new function
+**What people do:** `Access-Control-Allow-Origin: *` to "just make it work."
+**Why it's wrong:** v1.0 explicitly allow-lists origins (Pitfall 2). A wildcard invites abuse of your rate-limited courier quota.
+**Do this instead:** copy `corsHeadersFor()` (echo allow-listed origin, default to `sutravan.in`).
+
+---
 
 ## Integration Points
 
@@ -399,43 +310,25 @@ Account:     read own submissions + profile               [RLS: own rows]
 
 | Service | Integration Pattern | Notes |
 |---------|---------------------|-------|
-| Supabase Auth (GoTrue) | `supabase.auth.*` + `onAuthStateChange` | Email/password for v1; session persisted in localStorage by the client |
-| Supabase Postgres (PostgREST) | `supabase.from()` via `api/` layer | RLS is the only authz layer |
-| Supabase Storage | `storage.from(bucket)` upload + `getPublicUrl` | Public read bucket; admin-write RLS on `storage.objects` |
-| GitHub Pages | Existing static deploy | `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` injected at build (public, safe); SPA 404.html fallback already handles `/admin/*` deep links |
+| Courier/aggregator rate API | server→server HTTPS from `delivery-estimate` Edge Function; key in `Deno.env` | Provider selection deferred to STACK.md; isolate behind `callCourierAdapter()`. Watch rate limits → Postgres cache shields them. |
+| Supabase Postgres | service-role (cache I/O) + anon-read (`site_content`) from the function | Cache table deny-direct; settings public-read. |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| pages ↔ hooks/queries | React hooks | Components never touch `api/` or `supabase` directly |
-| hooks/queries ↔ api/ | async function calls | Caching/invalidation lives in hooks; raw queries in api/ |
-| api/ ↔ supabase | client SDK | Single import site for the client |
-| AuthProvider ↔ guards/UI | React context | Role for UI only; never trusted for authz |
-| seed script ↔ Supabase | service-role key (local) | Isolated from client bundle entirely |
+| SPA ↔ Edge Function | `supabase.functions.invoke('delivery-estimate')` (anon key + optional caller JWT) | Same client transport as `verify-and-submit`. |
+| Navbar widget ↔ ProductDetail | shared `DeliveryProvider` context | Single source of truth for pincode; no prop drilling. |
+| Hook ↔ Function | normalized `{serviceable,cost,etaDays,codAvailable}` JSON | The ONLY contract the SPA knows; courier shape never leaks past the function. |
+| Admin form ↔ settings | `site_content` upsert (`onConflict:"key"`) + `['siteContent']` invalidation | Reuses the shipped admin write path. |
 
-## Suggested Build Order (dependency-driven)
-
-1. **Foundation:** Remove `server/`, `shared/`, Drizzle deps. Add `@supabase/supabase-js`, create `lib/supabase.ts`, set `VITE_` env vars. *(blocks everything)*
-2. **Schema + RLS + Storage:** Write `supabase/migrations` for all tables, `is_admin()`, policies, and both buckets with policies. *(blocks all data work)*
-3. **Auth:** `AuthProvider`, `profiles` trigger, Login/Register, guards. *(blocks admin + customer features)*
-4. **Seed/migration:** Run the one-time import of 68 products + soap images. *(must precede Shop rewire so the page has data)*
-5. **Public read rewire:** Switch Shop/Home/ProductDetail from `data/products.ts` to `useProducts()`/`useCategories()`; delete static file. *(depends on 2+4)*
-6. **Admin portal:** Products/Categories/SiteContent CRUD + ImageUploader + Submissions inbox. *(depends on 2+3)*
-7. **Native questionnaire:** Replace Google Form with form → `customization_submissions`. *(depends on 2; surfaces in 6's inbox)*
-8. **Customer features:** Wishlist + Account/profile + own submission history. *(depends on 2+3)*
-
-**Critical dependencies:** Schema/RLS (2) gates all data; Auth (3) gates admin/customer; Seed (4) must precede Shop rewire (5) to avoid an empty catalog. Admin (6) and customer (8) are independent of each other and can parallelize once 2+3 land.
+---
 
 ## Sources
 
-- Supabase Row Level Security & RBAC / Custom Claims — https://supabase.com/docs/guides/database/postgres/row-level-security and https://supabase.com/docs/guides/database/postgres/custom-claims-and-role-based-access-control-rbac (HIGH)
-- Supabase Storage access control & public buckets — https://supabase.com/docs/guides/storage/security/access-control (HIGH)
-- Supabase JS client / Auth with SPAs — https://supabase.com/docs/reference/javascript and https://supabase.com/docs/guides/auth (HIGH)
-- Vite env vars (`VITE_` / `import.meta.env`) — https://vitejs.dev/guide/env-and-mode (HIGH)
-- Anon key is public-by-design; RLS is the security layer — Supabase docs + corroborated by multiple sources (HIGH)
-- Existing codebase: `.planning/PROJECT.md`, `.planning/codebase/{ARCHITECTURE,STRUCTURE,STACK}.md`, `client/src/data/products.ts`, `client/src/assets/images/products/` (HIGH, directly inspected)
+- Project source (read directly): `supabase/functions/verify-and-submit/index.ts` (Edge Function CORS + secret + caller-JWT pattern), `supabase/migrations/0002_rls_policies.sql` + `0006_seed_site_content.sql` + `0011_product_variants.sql` (RLS posture + site_content seed + variant schema confirming no weight column), `client/src/lib/siteContent.ts` + `catalog.ts` + `queryClient.ts` + `variants.ts` + `admin.ts` (hook/mapping/cache/invalidation patterns), `supabase/config.toml` (`verify_jwt=false` precedent). — HIGH
+- `.planning/PROJECT.md`, `.planning/MILESTONES.md` (milestone scope + constraints). — HIGH
 
 ---
-*Architecture research for: Supabase-direct React/Vite catalog + admin CMS (brownfield)*
-*Researched: 2026-05-31*
+*Architecture research for: pincode delivery estimator on Supabase + static SPA*
+*Researched: 2026-06-27*
