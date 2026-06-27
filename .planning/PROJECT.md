@@ -52,9 +52,13 @@ through an admin portal — no code changes, no redeploys.
 
 ### Active
 
-<!-- Next milestone. Hypotheses until shipped and validated. -->
+<!-- v1.1 Delivery Estimator. Hypotheses until shipped and validated. -->
 
-(None yet — v1.0 shipped all planned requirements. Next milestone is e-commerce: cart / checkout / payments. Run `/gsd-new-milestone` to define fresh requirements.)
+- [ ] Customer can enter a pincode on the product detail page and see estimated shipping cost, delivery ETA, and COD availability for that product
+- [ ] A global navbar "Deliver to [pincode]" widget persists the chosen pincode site-wide and reflects on product pages
+- [ ] Pincode serviceability + validation with graceful "not serviceable / estimate unavailable" states
+- [ ] Admin-configurable origin (dispatch) pincode driving the estimates
+- [ ] Courier/aggregator integration (Delhivery vs. alternatives) chosen by research for small-volume fit; any API key stays server-side (Edge Function)
 
 ### Out of Scope
 
@@ -64,6 +68,17 @@ through an admin portal — no code changes, no redeploys.
 - Order page & checkout flow — deferred to e-commerce milestone
 - Razorpay / payment integration — deferred to e-commerce milestone
 - Keeping the Express server — replaced by Supabase-direct architecture
+
+## Current Milestone: v1.1 Delivery Estimator
+
+**Goal:** A customer can enter their pincode and see estimated shipping cost, delivery ETA, and COD availability for a product — without any cart or checkout.
+
+**Target features:**
+- Pincode delivery estimator on the product detail page (cost + ETA + COD per product, using product weight)
+- Global navbar "Deliver to [pincode]" widget, persisted site-wide
+- Serviceability/validation + graceful unavailable states
+- Admin-configurable origin (dispatch) pincode
+- Courier/aggregator approach (Delhivery vs. alternatives) and live-API-vs-estimate decided by research; secrets server-side
 
 ## Context
 
@@ -119,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-27 after v1.0 milestone*
+*Last updated: 2026-06-27 — started v1.1 Delivery Estimator milestone*
