@@ -1,0 +1,77 @@
+# Requirements: Earthen Luxury Sutravan — v1.1 Delivery Estimator
+
+**Defined:** 2026-06-27
+**Core Value:** A customer can enter their pincode and see a trustworthy estimated shipping cost, delivery ETA, and COD availability for a product — before any cart or checkout exists.
+
+## v1.1 Requirements
+
+Requirements for the Delivery Estimator milestone. Each maps to a roadmap phase.
+
+### Admin Configuration
+
+- [ ] **DLVR-01**: Admin can set and edit the origin (dispatch) pincode, with validation and a live preview on save
+- [ ] **DLVR-02**: Admin can set a default fallback product weight (grams) and the dispatch lead time (working days)
+- [ ] **DLVR-03**: Admin can manage zone-weight rate slabs — estimated cost and ETA range per shipping zone × weight band
+- [ ] **DLVR-04**: Admin can configure COD rules (availability toggle, optional COD fee, optional order-value cap) and an optional free-shipping threshold
+
+### Delivery Estimate
+
+- [ ] **DLVR-05**: Customer can enter a 6-digit destination pincode and receive serviceability, an estimated shipping cost (INR), an estimated delivery ETA range, and COD availability
+- [ ] **DLVR-06**: The estimator handles all states clearly — invalid pincode format, non-serviceable pincode, fetch failure with retry, and loading
+- [ ] **DLVR-07**: Every estimate is prominently labeled as an estimate (not a guaranteed charge), shown as a range where appropriate
+
+### Placement & Persistence
+
+- [ ] **DLVR-08**: The product detail page shows a delivery estimator for that product (using the product's weight, falling back to the admin default)
+- [ ] **DLVR-09**: A global navbar "Deliver to [pincode]" widget lets the customer set/change their pincode, persisted in localStorage and shared with the product-detail estimator site-wide
+- [ ] **DLVR-10**: A logged-in customer's chosen pincode is saved to their profile and restored across devices/sessions
+
+## Future Requirements
+
+Deferred to a later release. Tracked but not in this roadmap.
+
+### Live Courier Integration
+
+- **DLVR-F1**: Live courier/aggregator (Shiprocket) rates/ETA/COD wired behind the same estimate interface, with the zone-weight table as automatic fallback (requires courier account + KYC)
+- **DLVR-F2**: Per-variant numeric weight (`weight_g`) for product-accurate estimates instead of the single default fallback
+- **DLVR-F3**: City/state echo from pincode and concrete calendar delivery-date range
+
+## Out of Scope
+
+Explicitly excluded. Documented to prevent scope creep.
+
+| Feature | Reason |
+|---------|--------|
+| Cart-level aggregated shipping | No cart/checkout exists; estimates are per-product this milestone |
+| Real shipment creation / order placement | Belongs to the e-commerce milestone |
+| Shipment tracking / tracking webhooks | No orders to track; out of scope pre-checkout |
+| Customer address book | Only a pincode is needed for an estimate |
+| Multi-courier selection matrix | Single estimate is sufficient for a small brand pre-checkout |
+| Free-shipping progress bar | Requires a cart total; only static threshold messaging is in scope |
+| Live courier API this milestone | Avoids KYC/onboarding on the critical path; zone-weight table ships now, API swaps in later (DLVR-F1) |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| DLVR-01 | TBD | Pending |
+| DLVR-02 | TBD | Pending |
+| DLVR-03 | TBD | Pending |
+| DLVR-04 | TBD | Pending |
+| DLVR-05 | TBD | Pending |
+| DLVR-06 | TBD | Pending |
+| DLVR-07 | TBD | Pending |
+| DLVR-08 | TBD | Pending |
+| DLVR-09 | TBD | Pending |
+| DLVR-10 | TBD | Pending |
+
+**Coverage:**
+- v1.1 requirements: 10 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 10 ⚠️
+
+---
+*Requirements defined: 2026-06-27*
+*Last updated: 2026-06-27 after initial definition*
