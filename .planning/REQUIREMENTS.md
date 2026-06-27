@@ -56,22 +56,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DLVR-01 | TBD | Pending |
-| DLVR-02 | TBD | Pending |
-| DLVR-03 | TBD | Pending |
-| DLVR-04 | TBD | Pending |
-| DLVR-05 | TBD | Pending |
-| DLVR-06 | TBD | Pending |
-| DLVR-07 | TBD | Pending |
-| DLVR-08 | TBD | Pending |
-| DLVR-09 | TBD | Pending |
-| DLVR-10 | TBD | Pending |
+| DLVR-01 | Phase 9 — Admin Delivery Settings & COD Rules | Pending |
+| DLVR-02 | Phase 9 — Admin Delivery Settings & COD Rules | Pending |
+| DLVR-03 | Phase 10 — Admin Zone-Weight Rate Slab Editor | Pending |
+| DLVR-04 | Phase 9 — Admin Delivery Settings & COD Rules | Pending |
+| DLVR-05 | Phase 6 — Estimate Engine (Schema, Settings & Edge Function) | Pending |
+| DLVR-06 | Phase 7 — Product Detail Delivery Estimator | Pending |
+| DLVR-07 | Phase 7 — Product Detail Delivery Estimator | Pending |
+| DLVR-08 | Phase 7 — Product Detail Delivery Estimator | Pending |
+| DLVR-09 | Phase 8 — Site-Wide Pincode (Navbar Widget & Profile Persistence) | Pending |
+| DLVR-10 | Phase 8 — Site-Wide Pincode (Navbar Widget & Profile Persistence) | Pending |
 
 **Coverage:**
 - v1.1 requirements: 10 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 10 ⚠️
+- Mapped to phases: 10 ✓
+- Unmapped: 0 ✓
+
+**Per-phase coverage:**
+- Phase 6 — Estimate Engine: DLVR-05 (1)
+- Phase 7 — Product Detail Estimator: DLVR-06, DLVR-07, DLVR-08 (3)
+- Phase 8 — Site-Wide Pincode: DLVR-09, DLVR-10 (2)
+- Phase 9 — Admin Delivery Settings & COD Rules: DLVR-01, DLVR-02, DLVR-04 (3)
+- Phase 10 — Admin Zone-Weight Rate Slab Editor: DLVR-03 (1)
 
 ---
 *Requirements defined: 2026-06-27*
-*Last updated: 2026-06-27 after initial definition*
+*Last updated: 2026-06-27 after roadmap creation (Phases 6–10 mapped, 100% coverage)*

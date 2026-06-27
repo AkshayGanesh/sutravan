@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Delivery Estimator
 status: planning
-last_updated: "2026-06-27T08:18:54.215Z"
+last_updated: "2026-06-27T09:30:00.000Z"
 last_activity: 2026-06-27
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-27)
 
 **Core value:** The owner can manage the entire product catalog (products, categories, images, prices) through an admin portal — no code changes, no redeploys.
-**Current focus:** v1.0 shipped — planning next milestone (e-commerce: cart / checkout / payments)
+**Current focus:** v1.1 Delivery Estimator — roadmap created (Phases 6–10); ready to plan Phase 6 (Estimate Engine).
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 6 — Estimate Engine — Delivery Schema, Settings & Edge Function (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-27 — Milestone v1.1 started
+Status: Roadmap created — awaiting phase planning
+Last activity: 2026-06-27 — v1.1 roadmap created: 5 phases (6–10), 10/10 requirements mapped, 100% coverage
 
 ## Performance Metrics
 
@@ -81,6 +81,13 @@ Last activity: 2026-06-27 — Milestone v1.1 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- [v1.1 roadmap]: Rate source = admin-configurable ZONE-WEIGHT estimate table only; live courier/Shiprocket API (DLVR-F1) DEFERRED — estimate compute stays behind a normalized `{serviceable,cost,etaDays,codAvailable}` contract so a live API can swap in later with no frontend change
+- [v1.1 roadmap]: COD IS in scope — estimator shows COD availability; admin configures COD rules (toggle/fee/value cap) (DLVR-04/DLVR-05)
+- [v1.1 roadmap]: Pincode persists in localStorage AND saves to a logged-in customer's profile (DLVR-10 → `profiles.default_pincode` column added in Phase 6)
+- [v1.1 roadmap]: Estimate logic lives in a new `delivery-estimate` Edge Function cloned from `verify-and-submit` (CORS allow-listed to sutravan.in, abuse-protected, server-side compute); `delivery_estimate_cache` is function-only (service-role write, deny-direct RLS); settings ride the existing `site_content` admin pattern
+- [v1.1 roadmap]: NO numeric weight column — `product_variants.label` is free text ("70gm"); use `delivery_default_weight_g` site_content fallback, NEVER regex the label. Per-variant numeric weight deferred (DLVR-F2)
+- [v1.1 roadmap]: Build order is dependency-driven — schema/settings + Edge Function (Phase 6) → client hook/provider + product-detail UI (Phase 7) → navbar widget + profile persistence (Phase 8) → admin settings/COD (Phase 9) → admin zone-weight slab editor (Phase 10)
+- [v1.1 roadmap]: New migrations start at 0014 (latest shipped is 0013); v1.0 patterns to mirror — `verify-and-submit` (Edge Function CORS+secret), `AuthProvider`/`useAuth` (DeliveryProvider), `catalog.ts`/`siteContent.ts` (hook + snake→camel + mandatory fallbacks)
 - Roadmap: Supabase-direct architecture (drop Express/Drizzle) — security lives entirely in Postgres RLS
 - Roadmap: Phase order is dependency-driven — foundation/RLS first, then live catalog (value before auth), then auth, then admin portal (core value), then customer features
 - Roadmap: Role stored in `profiles.role` (never user-editable metadata); `is_admin()` is a `plpgsql` SECURITY DEFINER helper to avoid recursive RLS
@@ -135,20 +142,19 @@ None yet.
 
 [Issues that affect future work]
 
-RESOLVED:
+Open questions to resolve during v1.1 phase discussion (from research GAPS — owner decisions):
+
+- Phase 6/10: Zone-weight rate slab values — brand decision; owner must populate (or confirm a seed) before the UI shows real numbers
+- Phase 6/9: COD fee model — fixed admin charge vs %-or-flat — decide in the schema/settings phase
+- Phase 6: `delivery_default_weight_g` seed value — owner confirms fallback (~100–150g soap, 200–300g jars)
+- Phase 7: Rounding/buffer policy — raw rates exclude GST + fuel surcharge; decide round-up before the UI phase (Pitfall 2/11)
+- v1.1 scope CONFIRMED: live courier API is OUT of scope this milestone (DLVR-F1 deferred); zone-weight table is the only rate source
+
+RESOLVED (v1.0):
 
 - (2026-05-31) Owner supplied gitignored `.env.seed.local` with SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY. Plan 02-01 Task 3 seed ran successfully (28/3, idempotent). No active blockers.
-
-Open questions to resolve during phase discussion (from REQUIREMENTS.md):
-
-- Phase 3: First admin bootstrap — manual dashboard role flip (recommended) vs seeded admin
 - ~~Phase 3: Email confirmation on (safer) vs off (smoother onboarding) for v1~~ RESOLVED 03-01: Confirm-email OFF (D-01), set in hosted Dashboard
-- Phase 2/4: Scrub/cream products have no repo images — seed empty `images[]` in Phase 2, owner uploads via portal in Phase 4
-
-VERIFY items flagged in research (confirm against current Supabase docs before writing migrations):
-
-- `storage.objects` RLS policy syntax (Phase 1)
-- ~~Auth URL-config setting names + email rate limits (Phase 3)~~ RESOLVED 03-01: Site URL + Redirect URLs allowlist set in hosted Dashboard (https://sutravan.in + /reset-password); built-in email fine at <=2/hr for owner resets
+- Phase 2/4: Scrub/cream products have no repo images — seeded empty `images[]` in Phase 2, owner uploads via portal in Phase 4
 
 ### Quick Tasks Completed
 
@@ -184,6 +190,8 @@ Items acknowledged and carried forward from previous milestone close:
 |----------|------|--------|-------------|
 | E-commerce | Cart / checkout / Razorpay / inventory (ECOM-01..04) | Deferred to next milestone | Roadmap creation |
 | Admin enhancements | Image reorder, bulk ops, multi-admin, analytics (ADME-01..04) | Deferred to v2 | Roadmap creation |
+| Delivery (v1.1) | Live courier/aggregator API (Shiprocket) behind the same contract (DLVR-F1) | Deferred to a later release | v1.1 roadmap |
+| Delivery (v1.1) | Per-variant numeric weight `weight_g` (DLVR-F2); city/state echo + calendar date range (DLVR-F3) | Deferred to a later release | v1.1 roadmap |
 
 ### Acknowledged at v1.0 close (2026-06-27)
 
@@ -198,10 +206,12 @@ Open verification/UAT sign-offs accepted as deferred tech debt when closing v1.0
 
 ## Session Continuity
 
-Last session: 2026-06-01T17:05:00.000Z
-Stopped at: Completed 05-04-PLAN.md (customer profile slice — CUST-04 delivered; all 4 Phase-5 plans complete, pending phase verification)
-Resume file: None — all Phase-5 plans complete; awaiting orchestrator phase verification/close
+Last session: 2026-06-27T09:30:00.000Z
+Stopped at: v1.1 roadmap created — Phases 6–10 written, 10/10 requirements mapped (100% coverage), STATE + REQUIREMENTS traceability updated
+Resume file: None — ready to discuss/plan Phase 6 (Estimate Engine)
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Review the v1.1 roadmap: `.planning/ROADMAP.md` (Phases 6–10)
+- Resolve the owner-decision open questions above (zone-weight slab values, COD fee model, default weight seed, rounding policy)
+- Plan the first phase: `/gsd-plan-phase 6` (or `/gsd-discuss-phase 6` first)
