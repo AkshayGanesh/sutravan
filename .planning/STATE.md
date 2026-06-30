@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: Delivery Estimator
 status: executing
 stopped_at: Phase 6 context gathered
-last_updated: "2026-06-30T14:22:21.507Z"
+last_updated: "2026-06-30T15:02:00.130Z"
 last_activity: 2026-06-30 -- Phase 06 execution started
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -75,6 +75,7 @@ Last activity: 2026-06-30 -- Phase 06 execution started
 | Phase 05 P03 | ~20min | 3 tasks | 4 files |
 | Phase 05 P04 | ~15min | 3 tasks | 7 files |
 | Phase 06 P01 | 4min | 3 tasks | 6 files |
+| Phase 06 P02 | ~12min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,8 @@ Recent decisions affecting current work:
 - [Phase 05 P04]: T-05-15 owner-scoping by RLS, not client filter — useMySubmissions() reuses the SAME admin select under a distinct ['my-submissions'] cache key and relies on customization_submissions_admin_or_owner_read to return only the caller's rows. Proven live: a different customer sees only their own rows; logged-out /profile -> /login?next=/profile.
 - [Phase 05 P04]: T-05-16 name self-update only sends { name }; the Phase-3 enforce_profile_role_lock trigger blocks any role change regardless of payload (form has no role field). submissionSnippet lifted from Submissions.tsx into lib (exported, 8/8 unit-tested) and shared by both admin + customer pages (D-15 read-only detail, admin chrome stripped; D-16 /profile + /wishlist stay distinct, both behind AuthGuard).
 - [Phase 05 P04]: CUST-04 DELIVERED — ALL Phase-5 requirements (CUST-01..CUST-04) now shipped; Phase 5 plans 4/4. Phase verification/close remains the orchestrator's job (NOT marked verified here).
+- [Phase 06]: [Phase 06 P02]: pincode seed transform drops 100 NA-only pincodes and prefers non-NA representatives for 238 recoverable ones — keeps every emitted state canonical so the Pitfall A guard holds; 19,486 rows live (idempotent onConflict pincode)
+- [Phase 06]: [Phase 06 P02]: is_metro/is_remote derived at transform time (8-prefix metro set, 12-state remote set); seed leaves serviceable to its table default true (D-16); committed pincodes.ndjson removes any runtime data.gov.in dependency
 
 ### Pending Todos
 
@@ -208,7 +211,7 @@ Open verification/UAT sign-offs accepted as deferred tech debt when closing v1.0
 
 ## Session Continuity
 
-Last session: 2026-06-30T14:22:03.589Z
+Last session: 2026-06-30T15:01:37.200Z
 Stopped at: Phase 6 context gathered
 Resume file: .planning/phases/06-estimate-engine-delivery-schema-settings-edge-function/06-CONTEXT.md
 
