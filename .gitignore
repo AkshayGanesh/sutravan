@@ -11,3 +11,7 @@ Skin Health Care Products.md
 .env*.local
 .claude/
 __pycache__/
+
+# Transient India Post pincode directory dump (Phase 6 Plan 02) — only the
+# transformed scripts/data/pincodes.ndjson is committed, not this ~22MB raw CSV.
+scripts/data/pincodes-raw.csv
