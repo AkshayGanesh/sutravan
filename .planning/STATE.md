@@ -4,14 +4,14 @@ milestone: v1.1
 milestone_name: Delivery Estimator
 status: executing
 stopped_at: Phase 6 context gathered
-last_updated: "2026-06-30T15:02:00.130Z"
+last_updated: "2026-06-30T15:11:52.269Z"
 last_activity: 2026-06-30 -- Phase 06 execution started
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 20
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-27)
 ## Current Position
 
 Phase: 06 (estimate-engine-delivery-schema-settings-edge-function) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-30 -- Phase 06 execution started
 
@@ -76,6 +76,7 @@ Last activity: 2026-06-30 -- Phase 06 execution started
 | Phase 05 P04 | ~15min | 3 tasks | 7 files |
 | Phase 06 P01 | 4min | 3 tasks | 6 files |
 | Phase 06 P02 | ~12min | 2 tasks | 4 files |
+| Phase 06 P03 | ~10min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,7 @@ Recent decisions affecting current work:
 - [Phase 05 P04]: CUST-04 DELIVERED — ALL Phase-5 requirements (CUST-01..CUST-04) now shipped; Phase 5 plans 4/4. Phase verification/close remains the orchestrator's job (NOT marked verified here).
 - [Phase 06]: [Phase 06 P02]: pincode seed transform drops 100 NA-only pincodes and prefers non-NA representatives for 238 recoverable ones — keeps every emitted state canonical so the Pitfall A guard holds; 19,486 rows live (idempotent onConflict pincode)
 - [Phase 06]: [Phase 06 P02]: is_metro/is_remote derived at transform time (8-prefix metro set, 12-state remote set); seed leaves serviceable to its table default true (D-16); committed pincodes.ndjson removes any runtime data.gov.in dependency
+- [Phase ?]: [Phase 06 P03]: delivery-estimate Edge Function deployed live (ref wfbnrcnmpcqzeyjlfflv) — service-role compute (legitimate divergence: no ownership invariant, sole writer of deny-direct cache), validates /^\d{6}$/ before Turnstile, deriveZone behind callCourierAdapter, etaDays adds dispatch_lead_days (OQ1), cache write skipped when originConfigured=false (OQ2). Token-free smoke green; compute-path (SC1/SC4-hit) is owner-only human-action (Turnstile secret write-only, unrecoverable to restore).
 
 ### Pending Todos
 
@@ -211,7 +213,7 @@ Open verification/UAT sign-offs accepted as deferred tech debt when closing v1.0
 
 ## Session Continuity
 
-Last session: 2026-06-30T15:01:37.200Z
+Last session: 2026-06-30T15:11:22.324Z
 Stopped at: Phase 6 context gathered
 Resume file: .planning/phases/06-estimate-engine-delivery-schema-settings-edge-function/06-CONTEXT.md
 
