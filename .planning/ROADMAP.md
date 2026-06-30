@@ -128,7 +128,7 @@ Full phase details, success criteria, and plan breakdowns: [milestones/v1.0-ROAD
 | 3. Authentication & Roles | v1.0 | 6/6 | Complete | 2026-06-01 |
 | 4. Admin Portal | v1.0 | 9/9 | Complete | 2026-06-01 |
 | 5. Customer Experience | v1.0 | 4/4 | Complete | 2026-06-01 |
-| 6. Estimate Engine — Schema, Settings & Edge Function | v1.1 | 0/— | Not started | - |
+| 6. Estimate Engine — Schema, Settings & Edge Function | v1.1 | 1/3 | In Progress|  |
 | 7. Product Detail Delivery Estimator | v1.1 | 0/— | Not started | - |
 | 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 0/— | Not started | - |
 | 9. Admin Delivery Settings & COD Rules | v1.1 | 0/— | Not started | - |
