@@ -379,6 +379,12 @@ allow_dynamic_registration = false
 # not platform-edge JWT verification.
 verify_jwt = false
 
+[functions.delivery-estimate]
+# Phase 6 / Plan 03 — delivery estimate engine (Turnstile siteverify + service-role compute).
+# verify_jwt = false so ANON visitors reach the function body (Pitfall 1 / D-21);
+# Turnstile siteverify is the gate, not platform-edge JWT verification.
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
