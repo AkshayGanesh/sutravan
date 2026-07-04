@@ -87,7 +87,14 @@ Plans:
   3. The chosen pincode persists in localStorage and is restored on reload for anonymous and logged-in visitors alike
   4. A logged-in customer's chosen pincode is saved to `profiles.default_pincode` and restored on a fresh login from another device/session; an anonymous visitor falls back to localStorage only
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+
+- [ ] 08-01-PLAN.md — Navbar "Deliver to [pincode]" setter widget (pill + popover) wired to the shared DeliveryProvider; format-only, no network (DLVR-09, SC1/SC2/SC3-anon)
+- [ ] 08-02-PLAN.md — Profile persistence + login-merge in DeliveryProvider (write-through on set; profile-wins/adopt-local on login) with a pure unit-tested merge helper (DLVR-10, SC4)
+- [ ] 08-03-PLAN.md — End-to-end human verification of SC1-SC4 (navbar/estimator sync, localStorage restore, cross-device profile restore)
+
 **UI hint**: yes
 
 ### Phase 9: Admin Delivery Settings & COD Rules
@@ -136,6 +143,6 @@ Plans:
 | 5. Customer Experience | v1.0 | 4/4 | Complete | 2026-06-01 |
 | 6. Estimate Engine — Schema, Settings & Edge Function | v1.1 | 3/3 | Complete    | 2026-06-30 |
 | 7. Product Detail Delivery Estimator | v1.1 | 2/2 | Complete    | 2026-07-04 |
-| 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 0/— | Not started | - |
+| 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 0/3 | Not started | - |
 | 9. Admin Delivery Settings & COD Rules | v1.1 | 0/— | Not started | - |
 | 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 0/— | Not started | - |
