@@ -1,7 +1,7 @@
 ---
 phase: 8
 slug: site-wide-pincode-navbar-widget-profile-persistence
-status: draft
+status: approved
 shadcn_initialized: true
 preset: new-york (baseColor neutral, cssVariables, lucide) — components.json
 created: 2026-07-05
