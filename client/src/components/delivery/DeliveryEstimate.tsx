@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
 import type { Product } from "@/data/products";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice } from "@/lib/format";
-import { useDeliveryEstimate } from "@/lib/delivery";
+import { EstimateError, useDeliveryEstimate } from "@/lib/delivery";
 import { useDelivery } from "@/delivery/useDelivery";
 import TurnstileWidget, {
   type TurnstileWidgetHandle,
@@ -27,10 +28,17 @@ interface DeliveryEstimateProps {
  * Per-product delivery estimate block rendered inside the ProductDetail modal
  * (D-03), between the price/variant selector and the Benefits section.
  *
- * Happy-path vertical slice (Plan 01): idle prompt + inline format guard + the
- * serviceable result (cost + ETA range + COD). The loading skeleton, the full
- * non-serviceable / fetch-failure treatment, the provisional banner, the ETA
- * sub-caption, and free-ship messaging are STUBBED here and completed in Plan 02.
+ * Five distinct, visually separable states (DLVR-06 / UI-SPEC Interaction
+ * States): idle prompt, inline invalid-format guard, loading skeleton (mirrors
+ * the result layout so there is no layout shift), the serviceable result panel
+ * (cost + ETA range + COD), a clean non-serviceable line, and the fetch-failure
+ * state with a "Try again" retry that re-solves Turnstile (single-use token).
+ *
+ * Error routing (D-13, via `EstimateError.code`):
+ *   - `"invalid-format"` (server `bad_request`) → the SAME inline invalid message,
+ *     no retry framing.
+ *   - `"retry"` (captcha_failed / network / timeout / 5xx) → the fetch-failure
+ *     line + the CTA relabeled "Try again".
  *
  * Turnstile is reused via `TurnstileWidget` (the hosted-CDN loader) — never a
  * third-party npm wrapper (its global `window.turnstile` typing collides with
@@ -49,6 +57,19 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
   const turnstileRef = useRef<TurnstileWidgetHandle | null>(null);
 
   const { data: result, isPending, error, mutate } = useDeliveryEstimate();
+
+  // Map the mutation error onto the two client outcomes (D-13). A server
+  // `bad_request` (EstimateError.code === "invalid-format") is presented exactly
+  // like the client format guard (inline invalid, NO retry framing); every other
+  // failure (captcha_failed / network / timeout / 5xx, or any non-EstimateError)
+  // is a retriable fetch failure.
+  const errorCode = error
+    ? error instanceof EstimateError
+      ? error.code
+      : "retry"
+    : null;
+  const isInvalidFormat = formatError || errorCode === "invalid-format";
+  const isRetryError = errorCode === "retry";
 
   function handleCheck() {
     const destPincode = value.trim();
@@ -73,8 +94,12 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
       {
         onSuccess: () => setPincode(destPincode),
         onSettled: () => {
-          // Single-use token (D-01/D-13) — reset the widget after every completed
-          // or failed invoke so a fresh token is issued for the next lookup.
+          // Single-use token (D-01/D-13 / T-07-06) — reset the widget after every
+          // completed or failed invoke so a fresh token is issued for the next
+          // lookup. This is the reset that runs BEFORE the next "Try again"
+          // invoke: the failed attempt's token is consumed and a new challenge is
+          // solved, so the retry press re-solves Turnstile and re-invokes with a
+          // fresh single-use token (no replay, no unbounded no-captcha retries).
           turnstileRef.current?.reset();
         },
       },
@@ -105,7 +130,7 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
           disabled={isPending}
           className="shrink-0 bg-primary text-primary-foreground py-3 px-5 text-sm uppercase tracking-wider font-medium transition-colors duration-300 hover:bg-secondary hover:text-primary disabled:opacity-60"
         >
-          {isPending ? "Checking…" : "Check delivery"}
+          {isPending ? "Checking…" : isRetryError ? "Try again" : "Check delivery"}
         </button>
       </div>
 
@@ -119,7 +144,9 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
         />
       </div>
 
-      {formatError && (
+      {/* Invalid format — inline, no panel. Covers the client guard AND a server
+          `bad_request` (D-13): both read as the same message, no retry framing. */}
+      {isInvalidFormat && (
         <p className="mt-2 text-sm text-destructive">
           Enter a valid 6-digit pincode.
         </p>
@@ -130,10 +157,22 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
         </p>
       )}
 
-      {/* Fetch-failure stub — Plan 02 adds the "Try again" relabel + full treatment. */}
-      {error && !isPending && (
+      {/* Loading — Skeleton rows mirror the serviceable panel layout (cost + ETA +
+          COD) so there is NO layout shift when the real result swaps in. */}
+      {isPending && (
+        <div className="mt-3 bg-muted/40 p-4 space-y-2" aria-hidden="true">
+          <Skeleton className="h-6 w-28" />
+          <Skeleton className="h-4 w-44" />
+          <Skeleton className="h-4 w-52" />
+        </div>
+      )}
+
+      {/* Fetch failure (D-13: captcha_failed / network / timeout / 5xx) — the CTA
+          above is relabeled "Try again"; pressing it re-solves Turnstile (the
+          onSettled reset issued a fresh token) and re-invokes. */}
+      {isRetryError && !isPending && (
         <p className="mt-3 text-sm text-destructive">
-          Couldn&rsquo;t get an estimate right now. Please try again.
+          Couldn't get an estimate right now. Please try again.
         </p>
       )}
 
@@ -161,9 +200,10 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
             </p>
           </div>
         ) : (
-          // Non-serviceable stub — plain single line (Plan 02 finalizes the state).
+          // Non-serviceable — clean single line, no cost/ETA panel; the input
+          // stays editable for a re-check.
           <p className="mt-3 text-sm text-foreground/70">
-            Sorry, we don&rsquo;t deliver to this pincode yet.
+            Sorry, we don't deliver to this pincode yet.
           </p>
         )
       )}
