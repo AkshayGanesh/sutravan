@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AuthProvider from "@/auth/AuthProvider";
+import DeliveryProvider from "@/delivery/DeliveryProvider";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Shop from "@/pages/Shop";
@@ -148,9 +149,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <SonnerToaster />
-          <Router />
+          {/* Pincode persistence for the delivery estimator (D-11). Nested
+              inside AuthProvider and QueryClientProvider so useDeliveryEstimate's
+              React Query works; Phase 8's navbar widget reads the same context. */}
+          <DeliveryProvider>
+            <Toaster />
+            <SonnerToaster />
+            <Router />
+          </DeliveryProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
