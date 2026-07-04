@@ -1,10 +1,11 @@
 ---
 phase: 7
 slug: product-detail-delivery-estimator
-status: draft
+status: approved
 shadcn_initialized: true
 preset: "new-york / neutral base / cssVariables"
 created: 2026-07-04
+reviewed_at: 2026-07-04
 ---
 
 # Phase 7 — UI Design Contract
