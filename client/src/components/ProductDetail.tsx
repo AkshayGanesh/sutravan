@@ -11,6 +11,7 @@ import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 import { CUSTOMIZATION_PRICING_CAVEAT } from "@/lib/copy";
 import { normalizeMultiline } from "@/lib/multiline";
 import WishlistButton from "@/components/WishlistButton";
+import DeliveryEstimate from "@/components/delivery/DeliveryEstimate";
 
 interface ProductDetailProps {
   product: Product | null;
@@ -202,6 +203,10 @@ export default function ProductDetail({
               </p>
             )}
             {product.inStock && <div className="mb-2" />}
+
+            {/* Per-product delivery estimate (D-03). key remounts the block on a
+                product change so its result + Turnstile token reset cleanly (D-08). */}
+            <DeliveryEstimate key={product.id} product={product} />
 
             {/* Benefits */}
             <div className="mb-3">
