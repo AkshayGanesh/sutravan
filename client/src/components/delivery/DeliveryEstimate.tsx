@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
+import { AlertCircle } from "lucide-react";
 import type { Product } from "@/data/products";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice } from "@/lib/format";
 import { EstimateError, useDeliveryEstimate } from "@/lib/delivery";
+import { useSiteContent } from "@/lib/siteContent";
 import { useDelivery } from "@/delivery/useDelivery";
 import TurnstileWidget, {
   type TurnstileWidgetHandle,
@@ -57,6 +59,17 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
   const turnstileRef = useRef<TurnstileWidgetHandle | null>(null);
 
   const { data: result, isPending, error, mutate } = useDeliveryEstimate();
+
+  // Free-ship messaging (D-12): read the public `delivery_free_ship_threshold`
+  // site_content value via the existing ['siteContent'] path. It is null/absent
+  // today (Phase 9 sets it), so this resolves to `null` and the line renders
+  // NOTHING — the display path is wired now so Phase 9 needs no Phase 7 rework.
+  const { data: siteContent } = useSiteContent();
+  const freeShipRaw = siteContent?.delivery_free_ship_threshold;
+  const freeShipThreshold =
+    freeShipRaw != null && freeShipRaw !== "" && !Number.isNaN(Number(freeShipRaw))
+      ? Number(freeShipRaw)
+      : null;
 
   // Map the mutation error onto the two client outcomes (D-13). A server
   // `bad_request` (EstimateError.code === "invalid-format") is presented exactly
@@ -128,7 +141,7 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
           type="button"
           onClick={handleCheck}
           disabled={isPending}
-          className="shrink-0 bg-primary text-primary-foreground py-3 px-5 text-sm uppercase tracking-wider font-medium transition-colors duration-300 hover:bg-secondary hover:text-primary disabled:opacity-60"
+          className="shrink-0 bg-primary text-primary-foreground py-3 px-5 text-sm uppercase tracking-wider font-semibold transition-colors duration-300 hover:bg-secondary hover:text-primary disabled:opacity-60"
         >
           {isPending ? "Checking…" : isRetryError ? "Try again" : "Check delivery"}
         </button>
@@ -161,9 +174,9 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
           COD) so there is NO layout shift when the real result swaps in. */}
       {isPending && (
         <div className="mt-3 bg-muted/40 p-4 space-y-2" aria-hidden="true">
-          <Skeleton className="h-6 w-28" />
-          <Skeleton className="h-4 w-44" />
-          <Skeleton className="h-4 w-52" />
+          <Skeleton className="h-6 w-28 rounded-none" />
+          <Skeleton className="h-4 w-44 rounded-none" />
+          <Skeleton className="h-4 w-52 rounded-none" />
         </div>
       )}
 
@@ -180,24 +193,51 @@ export default function DeliveryEstimate({ product }: DeliveryEstimateProps) {
       {result && !isPending && (
         result.serviceable ? (
           <div className="mt-3 bg-muted/40 p-4 space-y-2">
+            {/* Provisional banner (D-07): the origin is the 000000 placeholder
+                until Phase 9. NEVER hide the estimate — show the banner ABOVE the
+                numbers, then still render the computed cost/ETA/COD below. */}
+            {!result.originConfigured && (
+              <p className="flex items-start gap-1 text-xs text-foreground/60">
+                <AlertCircle
+                  className="h-4 w-4 shrink-0 mt-px"
+                  aria-hidden="true"
+                />
+                <span>Delivery estimates are provisional and will be finalized shortly.</span>
+              </p>
+            )}
             <div className="flex flex-wrap items-baseline gap-2">
               <span className="text-xl font-semibold text-primary">
                 {formatPrice(result.cost)}
               </span>
+              {/* Cost disclaimer — always adjacent to the ₹ figure (SC4 / D-04). */}
               <span className="text-xs text-foreground/50">
                 Estimated — final delivery charge may vary.
               </span>
             </div>
             {result.etaDays && (
-              <p className="text-sm text-foreground/80">
-                Arrives in {result.etaDays.min}–{result.etaDays.max} working days
-              </p>
+              <div>
+                <p className="text-sm text-foreground/80">
+                  Arrives in {result.etaDays.min}–{result.etaDays.max} working
+                  days
+                </p>
+                {/* ETA sub-caption (D-05) — the range is working days only. */}
+                <p className="text-xs text-foreground/50">
+                  Working days, excluding weekends &amp; holidays (IST).
+                </p>
+              </div>
             )}
             <p className="text-sm text-foreground/80">
               {result.codAvailable
                 ? "Cash on delivery available"
                 : "Cash on delivery not available for this pincode"}
             </p>
+            {/* Free-ship line (D-12) — gold `--secondary` accent, renders ONLY
+                when the threshold is set (null today → nothing). No progress bar. */}
+            {freeShipThreshold != null && (
+              <p className="text-sm font-semibold text-secondary">
+                Free delivery on orders over {formatPrice(freeShipThreshold)}.
+              </p>
+            )}
           </div>
         ) : (
           // Non-serviceable — clean single line, no cost/ETA panel; the input
