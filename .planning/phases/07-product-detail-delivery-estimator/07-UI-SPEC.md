@@ -58,8 +58,9 @@ Declared for this block, mirroring ProductDetail's established hierarchy. Sizes 
 | Body / helper | 14px (`text-sm`) | Regular 400 | 1.5 | ETA line, COD line, disclaimer/provisional/free-ship notes (`text-foreground/70–80`) |
 | Fine print | 12px (`text-xs`) | Regular 400 | 1.5 | "Estimated — final may vary", "working days excl. weekends & holidays (IST)" (`text-foreground/50`, italic where it matches sibling captions) |
 | Cost figure | 20px (`text-xl`) | Semibold 600 | 1.2 | The `₹X` estimated-cost number (matches the price line at L193) |
+| Button label | 14px (`text-sm`) | Semibold 600 | 1.2 | "Check delivery" / "Try again" — `uppercase tracking-wider` |
 
-**Two primary weights:** Regular 400 (body/notes) + Semibold 600 (section label, cost). Exception: the button label uses Medium 500 `uppercase tracking-wider` to match the established CTA convention in this component — inherited pattern, not a new decision.
+**Exactly two weights — no exceptions:** Regular 400 (body / helper / fine print) and Semibold 600 (section label, cost figure, button label). The button label reads as a distinct CTA — not through a third weight, but through its `uppercase tracking-wider` letterform, primary-green fill, and dedicated placement. Do NOT introduce Medium 500 or any other weight anywhere in this block.
 
 Do NOT use `--font-serif` (Samarkan) anywhere in this block.
 
