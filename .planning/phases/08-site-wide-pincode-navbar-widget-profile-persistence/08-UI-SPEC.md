@@ -60,7 +60,7 @@ Exactly 3 sizes, exactly 2 weights.
 | Micro-label | 12px (`text-xs`) | 600 (semibold) | 1.2 | Popover heading "Delivery pincode" (uppercase, `tracking-widest`, `text-foreground/50`) — mirrors the "Delivery" label in `DeliveryEstimate.tsx` |
 | Body / control | 14px (`text-sm`) | 400 (regular) | 1.5 | Pill label, helper caption, inline error text, input text (desktop) |
 | Input (mobile) | 16px (`text-base`) | 400 (regular) | 1.5 | shadcn Input renders `text-base` then `md:text-sm` — 16px on mobile prevents iOS zoom-on-focus |
-| Emphasis | 14px (`text-sm`) | 600 (semibold) | 1.5 | The set pincode value inside the pill ("Deliver to **110001**"); the Save button label |
+| Emphasis | 14px (`text-sm`) | 600 (semibold) | 1.5 | The set pincode value inside the pill ("Deliver to **110001**"); the Save pincode button label |
 
 **Weights declared:** Regular **400** + Semibold **600**. No other weights. (The pill label sits at 400 by default; when a pincode is set, the numeric value is rendered at 600 for scannability.)
 
@@ -73,14 +73,14 @@ Exactly 3 sizes, exactly 2 weights.
 | Role | Value | Usage |
 |------|-------|-------|
 | Dominant (60%) | `hsl(40 33% 96%)` light beige (`--popover` / `--background`) | Popover surface, pill background (transparent → inherits page) |
-| Secondary (30%) | `hsl(146 32% 24%)` forest green (`--primary`) | Save button fill (`bg-primary`), pill MapPin icon, set-value emphasis text (`text-primary`), default pill/label ink |
+| Secondary (30%) | `hsl(146 32% 24%)` forest green (`--primary`) | Save pincode button fill (`bg-primary`), pill MapPin icon, set-value emphasis text (`text-primary`), default pill/label ink |
 | Accent (10%) | `hsl(43 65% 60%)` soft gold (`--secondary` / `--ring`) | Reserved — see list below |
 | Destructive | `hsl(0 84% 60%)` (`--destructive`) | Inline format-validation error text ONLY |
 
 **Accent (soft gold) reserved for — explicit list, nothing else:**
 1. Focus-visible ring on the pincode `Input` (`--ring` is already gold — `focus-visible:ring-ring`).
 2. Hover color on the pill trigger (`hover:text-secondary`) — matches every other nav item's hover.
-3. Hover fill on the Save button (`hover:bg-secondary hover:text-primary`) — matches the `DeliveryEstimate` submit button.
+3. Hover fill on the Save pincode button (`hover:bg-secondary hover:text-primary`) — matches the `DeliveryEstimate` submit button.
 
 Accent is NOT used for default button fill, borders, or resting states.
 
@@ -92,7 +92,7 @@ Accent is NOT used for default button fill, borders, or resting states.
 
 | Element | Copy |
 |---------|------|
-| Primary CTA (popover submit) | **Save** |
+| Primary CTA (popover submit) | **Save pincode** |
 | Pill — empty state (desktop, `md+`) | **Set pincode** |
 | Pill — empty state (mobile, `<md`) | MapPin icon + **Set** (compact) |
 | Pill — set state (desktop) | **Deliver to 110001** (value at weight 600) |
@@ -101,7 +101,7 @@ Accent is NOT used for default button fill, borders, or resting states.
 | Popover helper caption | **We'll use this to estimate delivery across the site.** |
 | Input placeholder | **6-digit pincode** |
 | Error state (invalid format) | **Enter a valid 6-digit pincode.** (verbatim match to `DeliveryEstimate.tsx` — one error voice across the app) |
-| Destructive confirmation | none — this phase has NO destructive actions. Changing the pincode is a non-destructive overwrite (retype + Save); no clear button, no confirm dialog. |
+| Destructive confirmation | none — this phase has NO destructive actions. Changing the pincode is a non-destructive overwrite (retype + Save pincode); no clear button, no confirm dialog. |
 
 **Copy rules:**
 - Never surface serviceability, cost, ETA, or COD language in this widget (that lives on the product-detail estimator). The widget only says *where*, never *whether/how much*.
@@ -129,10 +129,10 @@ The load-bearing part of this phase. One new consumer component (Claude's-discre
 - Vertical layout (stacked, `space-y-3` or `flex flex-col gap-2`):
   1. Micro-label heading: "Delivery pincode" (`text-xs uppercase tracking-widest text-foreground/50`).
   2. Helper caption: "We'll use this to estimate delivery across the site." (`text-sm text-foreground/70`).
-  3. **A `<form>`** wrapping: the `Input` (full width) then the Save `Button` (full width, `mt-2`). Wrapping in a form makes **Enter submit** work natively.
+  3. **A `<form>`** wrapping: the `Input` (full width) then the Save pincode `Button` (full width, `mt-2`). Wrapping in a form makes **Enter submit** work natively.
   4. Inline error slot below the input (conditionally rendered).
 - Input: `inputMode="numeric"`, `maxLength={6}`, `placeholder="6-digit pincode"`, `onChange` strips non-digits (`e.target.value.replace(/\D/g, "")`) — identical sanitization to `DeliveryEstimate.tsx`. Initial value prefilled from current `pincode`.
-- Save button: `type="submit"`, full width, `bg-primary text-primary-foreground py-3 px-5 text-sm uppercase tracking-wider font-semibold hover:bg-secondary hover:text-primary transition-colors duration-300` — same visual language as the estimator's submit button.
+- Save pincode button: `type="submit"`, full width, `bg-primary text-primary-foreground py-3 px-5 text-sm uppercase tracking-wider font-semibold hover:bg-secondary hover:text-primary transition-colors duration-300` — same visual language as the estimator's submit button.
 
 ### Interaction states
 
@@ -141,8 +141,8 @@ The load-bearing part of this phase. One new consumer component (Claude's-discre
 | Idle (closed) | default | Pill shows empty or set label per `pincode`. |
 | Open | click / Enter / Space on pill | Popover opens; Radix auto-focuses the Input; input prefilled with current pincode, caret ready. |
 | Typing | keystrokes | Non-digits stripped; capped at 6 chars; any visible error clears on change. |
-| Invalid submit | Save / Enter with value not matching `/^\d{6}$/` | Show inline error "Enter a valid 6-digit pincode." (`mt-2 text-sm text-destructive`); popover stays open; NO network, NO `setPincode`. |
-| Valid submit | Save / Enter with 6 digits | Call `setPincode(value)`; close popover; pill re-renders to "Deliver to {value}". No toast. (Provider handles localStorage + best-effort silent profile write per D-03/D-08.) |
+| Invalid submit | Save pincode / Enter with value not matching `/^\d{6}$/` | Show inline error "Enter a valid 6-digit pincode." (`mt-2 text-sm text-destructive`); popover stays open; NO network, NO `setPincode`. |
+| Valid submit | Save pincode / Enter with 6 digits | Call `setPincode(value)`; close popover; pill re-renders to "Deliver to {value}". No toast. (Provider handles localStorage + best-effort silent profile write per D-03/D-08.) |
 | Cancel | Escape / click-outside | Popover closes with no change; on next open, local input resets to the current `pincode` (discard unsaved edits). |
 
 ### Focus / keyboard (accessibility)
@@ -151,7 +151,7 @@ The load-bearing part of this phase. One new consumer component (Claude's-discre
 - **Escape** closes the popover and returns focus to the pill trigger (Radix default).
 - Click-outside closes (Radix default).
 - Focus ring: `focus-visible:ring-1 focus-visible:ring-ring` (gold) on the input — the shadcn Input default; do not remove.
-- The popover traps nothing beyond Radix defaults; the only focusable elements are the input and the Save button.
+- The popover traps nothing beyond Radix defaults; the only focusable elements are the input and the Save pincode button.
 
 ### Placement & responsive (resolves D-07)
 
