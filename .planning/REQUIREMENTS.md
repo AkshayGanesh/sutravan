@@ -17,8 +17,8 @@ Requirements for the Delivery Estimator milestone. Each maps to a roadmap phase.
 ### Delivery Estimate
 
 - [x] **DLVR-05**: Customer can enter a 6-digit destination pincode and receive serviceability, an estimated shipping cost (INR), an estimated delivery ETA range, and COD availability
-- [ ] **DLVR-06**: The estimator handles all states clearly — invalid pincode format, non-serviceable pincode, fetch failure with retry, and loading
-- [ ] **DLVR-07**: Every estimate is prominently labeled as an estimate (not a guaranteed charge), shown as a range where appropriate
+- [x] **DLVR-06**: The estimator handles all states clearly — invalid pincode format, non-serviceable pincode, fetch failure with retry, and loading
+- [x] **DLVR-07**: Every estimate is prominently labeled as an estimate (not a guaranteed charge), shown as a range where appropriate
 
 ### Placement & Persistence
 
@@ -61,8 +61,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DLVR-03 | Phase 10 — Admin Zone-Weight Rate Slab Editor | Pending |
 | DLVR-04 | Phase 9 — Admin Delivery Settings & COD Rules | Pending |
 | DLVR-05 | Phase 6 — Estimate Engine (Schema, Settings & Edge Function) | Complete |
-| DLVR-06 | Phase 7 — Product Detail Delivery Estimator | Pending |
-| DLVR-07 | Phase 7 — Product Detail Delivery Estimator | Pending |
+| DLVR-06 | Phase 7 — Product Detail Delivery Estimator | Complete |
+| DLVR-07 | Phase 7 — Product Detail Delivery Estimator | Complete |
 | DLVR-08 | Phase 7 — Product Detail Delivery Estimator | Pending |
 | DLVR-09 | Phase 8 — Site-Wide Pincode (Navbar Widget & Profile Persistence) | Pending |
 | DLVR-10 | Phase 8 — Site-Wide Pincode (Navbar Widget & Profile Persistence) | Pending |
