@@ -65,7 +65,12 @@ Full phase details, success criteria, and plan breakdowns: [milestones/v1.0-ROAD
   4. The result is prominently and inline labeled as an estimate (not a guaranteed charge) — cost shown as a range / with disclaimer where appropriate, ETA framed as working days excluding weekends/holidays, anchored to IST
   5. A shared `DeliveryProvider` + `useDelivery` + `useDeliveryEstimate` client layer (mirroring `AuthProvider` / `catalog.ts`) backs the block, and the entered pincode persists (localStorage) so it survives a reload
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Happy-path estimate slice: delivery service layer + DeliveryProvider/useDelivery + estimate block (serviceable result) in ProductDetail, pincode persisted (DLVR-08, DLVR-07 core)
+- [ ] 07-02-PLAN.md — Every-state handling (loading/invalid/non-serviceable/retry) + full estimate framing (provisional banner, disclaimer, ETA caption, free-ship wiring) + human verification (DLVR-06, DLVR-07)
+
 **UI hint**: yes
 
 ### Phase 8: Site-Wide Pincode — Navbar Widget & Profile Persistence
@@ -129,7 +134,7 @@ Full phase details, success criteria, and plan breakdowns: [milestones/v1.0-ROAD
 | 4. Admin Portal | v1.0 | 9/9 | Complete | 2026-06-01 |
 | 5. Customer Experience | v1.0 | 4/4 | Complete | 2026-06-01 |
 | 6. Estimate Engine — Schema, Settings & Edge Function | v1.1 | 3/3 | Complete    | 2026-06-30 |
-| 7. Product Detail Delivery Estimator | v1.1 | 0/— | Not started | - |
+| 7. Product Detail Delivery Estimator | v1.1 | 0/2 | Not started | - |
 | 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 0/— | Not started | - |
 | 9. Admin Delivery Settings & COD Rules | v1.1 | 0/— | Not started | - |
 | 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 0/— | Not started | - |
