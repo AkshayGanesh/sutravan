@@ -17,6 +17,7 @@ import { useAuth } from "@/auth/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 import { useWishlistCount } from "@/lib/wishlist";
+import DeliveryPincodePill from "@/components/delivery/DeliveryPincodePill";
 
 const navLinks = [
   { href: "/shop", label: "Shop" },
@@ -85,6 +86,11 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Site-wide delivery pincode setter — first (primary) right-cluster
+                action on every route + breakpoint. Single mount point: the pill
+                self-handles the desktop/mobile label swap (UI-SPEC placement). */}
+            <DeliveryPincodePill />
+
             {/* Instagram */}
             <a
               href={instagramUrl}
