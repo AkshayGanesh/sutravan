@@ -349,7 +349,41 @@ Deno.serve(async (req) => {
   const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
 
   try {
-    const { token, destPincode, weightG } = await req.json()
+    // Read the request body ONCE (Phase 9 / Plan 02): the admin branch also needs
+    // body.originPincode (D-08 override) and body.purge (D-11/D-12 cache clear).
+    const body = await req.json()
+    const { token, destPincode, weightG } = body
+
+    // Service-role client (see header — legitimate divergence, NOT Pitfall 4).
+    // Built EARLY so server-side admin detection can precede the Turnstile block
+    // and gate the public captcha path behind `if (!isAdmin)`.
+    const admin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
+
+    // Server-side admin detection (D-07). supabase-js `functions.invoke` auto-attaches
+    // the logged-in session's access token as `Authorization: Bearer <jwt>`. Verify
+    // that JWT server-side with `auth.getUser(jwt)` (signature + expiry), then confirm
+    // `profiles.role='admin'` — role lives in public.profiles (migration 0004), NOT a
+    // JWT claim, so the profiles read is required. A logged-out caller sends the anon
+    // key → getUser returns no user → isAdmin stays false (safe public default;
+    // RESEARCH Pattern 3 gotcha). The trust decision is made ONLY here — a request can
+    // NEVER self-declare admin via a body field.
+    const authHeader = req.headers.get('Authorization') ?? ''
+    const jwt = authHeader.replace(/^Bearer\s+/i, '')
+    let isAdmin = false
+    if (jwt) {
+      const { data: { user } } = await admin.auth.getUser(jwt)
+      if (user) {
+        const { data: prof } = await admin
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle()
+        isAdmin = prof?.role === 'admin'
+      }
+    }
 
     // VALIDATE destPincode /^\d{6}$/ BEFORE any compute or Turnstile (D-21 / SC2).
     // A non-6-digit / non-numeric / non-string pincode is a clean 400 bad_request —
@@ -363,30 +397,28 @@ Deno.serve(async (req) => {
 
     // Turnstile siteverify — secret never leaves the function (TURNSTILE_SECRET_KEY
     // reused from verify-and-submit; read via Deno.env, never a client-bundled env var).
-    const verify = await fetch(
-      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          secret: Deno.env.get('TURNSTILE_SECRET_KEY'),
-          response: token,
-        }),
-      },
-    )
-    const outcome = await verify.json()
-    if (!outcome.success) {
-      return new Response(JSON.stringify({ error: 'captcha_failed' }), {
-        status: 400,
-        headers: jsonHeaders,
-      })
+    // Gated behind `if (!isAdmin)` (D-07): verified admins skip the captcha, but the
+    // anon path below is byte-for-byte behaviorally UNCHANGED (Pitfall 1).
+    if (!isAdmin) {
+      const verify = await fetch(
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            secret: Deno.env.get('TURNSTILE_SECRET_KEY'),
+            response: token,
+          }),
+        },
+      )
+      const outcome = await verify.json()
+      if (!outcome.success) {
+        return new Response(JSON.stringify({ error: 'captcha_failed' }), {
+          status: 400,
+          headers: jsonHeaders,
+        })
+      }
     }
-
-    // Service-role client (see header — legitimate divergence, NOT Pitfall 4).
-    const admin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    )
 
     // Bound all upstream work with an AbortController timeout so a hung dependency
     // cannot stall the request (SC3 / Pitfall 7).
