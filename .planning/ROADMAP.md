@@ -111,7 +111,14 @@ Plans:
   4. An admin can set an optional free-shipping threshold, surfaced as static "free over ₹X" messaging on the estimate (no cart progress bar)
   5. All settings ride the existing `site_content` admin pattern (upsert + `['siteContent']` cache invalidation) so edits appear in estimates with no code change or redeploy
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+
+- [ ] 09-01-PLAN.md — Test-first validation foundation: deliverySchema (D-15), COD codec, checkServiceable, previewDelivery, SITE_CONTENT_DEFAULTS keys (DLVR-01/02/04)
+- [ ] 09-02-PLAN.md — delivery-estimate admin branch: JWT Turnstile bypass (D-07), origin override (D-08), service-role cache purge (D-11/D-12) (DLVR-01/02/04)
+- [ ] 09-03-PLAN.md — /admin/delivery settings page (clone SiteContent) + useSaveDeliverySettings + nav/route; serviceability gate, COD retain, live preview (DLVR-01/02/04)
+- [ ] 09-04-PLAN.md — BLOCKING-HUMAN live deploy + end-of-phase UAT (SC1/SC2/SC3/SC4/SC5, public Turnstile path unchanged) (DLVR-01/02/04)
 **UI hint**: yes
 
 ### Phase 10: Admin Zone-Weight Rate Slab Editor
@@ -144,5 +151,5 @@ Plans:
 | 6. Estimate Engine — Schema, Settings & Edge Function | v1.1 | 3/3 | Complete    | 2026-06-30 |
 | 7. Product Detail Delivery Estimator | v1.1 | 2/2 | Complete    | 2026-07-04 |
 | 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 3/3 | Complete   | 2026-07-05 |
-| 9. Admin Delivery Settings & COD Rules | v1.1 | 0/— | Not started | - |
+| 9. Admin Delivery Settings & COD Rules | v1.1 | 0/4 | Planned | - |
 | 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 0/— | Not started | - |
