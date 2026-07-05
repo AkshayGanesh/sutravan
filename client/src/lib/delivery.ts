@@ -84,6 +84,37 @@ export async function estimateDelivery(
 }
 
 /**
+ * The ADMIN preview path (D-06/D-08). Invokes the SAME `delivery-estimate`
+ * function but with an explicit `originPincode` override and NO Turnstile `token`
+ * — the admin branch skips the captcha (D-07) and supabase-js auto-attaches the
+ * caller's session JWT (Assumption A1), which the function uses to detect admin.
+ * Reuses estimateDelivery's exact `{ error }` → `error.context.json()` →
+ * `mapEstimateError` → `throw EstimateError` boundary so both paths surface the
+ * same client outcomes.
+ */
+export async function previewDelivery(
+  originPincode: string,
+  destPincode: string,
+): Promise<DeliveryEstimateResult> {
+  const { data, error } = await supabase.functions.invoke("delivery-estimate", {
+    body: { originPincode, destPincode },
+  });
+  if (error) {
+    let code: string | null = null;
+    try {
+      const context = (error as { context?: { json?: () => Promise<unknown> } })
+        .context;
+      const body = (await context?.json?.()) as { error?: string } | undefined;
+      code = body?.error ?? null;
+    } catch {
+      code = null; // unreadable body -> retry via mapEstimateError(null)
+    }
+    throw new EstimateError(mapEstimateError(code));
+  }
+  return data as DeliveryEstimateResult;
+}
+
+/**
  * The mutation the UI presses. A mutation (not a passive query) because each
  * press is one deliberate single-use-token action — the token must never become
  * a cache key, and D-09's server-side cache already handles dedup. Exposes the
