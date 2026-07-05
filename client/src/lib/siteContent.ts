@@ -31,6 +31,15 @@ export const SITE_CONTENT_DEFAULTS: Record<string, string> = {
   email: "sutravan.in@gmail.com",
   instagram_url: "https://www.instagram.com/sutravan.in",
   youtube_url: "https://youtube.com/@sutravan?si=0ne7zUvFEh70AF6j",
+  // Delivery settings (D-03) — mirror the migration 0014 seed so the admin form
+  // and any read never render blank while ['siteContent'] loads. The origin key is
+  // the deliberately-fake 000000 placeholder (owner sets the real origin here in
+  // Phase 9); the free-ship threshold is "" (free shipping off / D-14/D-19).
+  delivery_origin_pincode: "000000",
+  delivery_default_weight_g: "250",
+  delivery_dispatch_lead_days: "1",
+  delivery_cod_rules: '{"enabled":true,"fee":30,"valueCap":5000}',
+  delivery_free_ship_threshold: "",
 };
 
 async function fetchSiteContent(): Promise<Record<string, string>> {
