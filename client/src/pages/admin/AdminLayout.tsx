@@ -9,6 +9,7 @@ import {
   LogOut,
   Package,
   Tags,
+  Truck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,6 +41,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Skin Guide", href: "/admin/questions", icon: ListChecks },
   { label: "Sections", href: "/admin/sections", icon: LayoutList },
   { label: "Site Content", href: "/admin/content", icon: FileText },
+  { label: "Delivery", href: "/admin/delivery", icon: Truck },
   { label: "Submissions", href: "/admin/submissions", icon: Inbox },
 ];
 
