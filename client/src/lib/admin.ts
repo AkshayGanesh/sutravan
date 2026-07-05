@@ -807,3 +807,45 @@ export function useSaveSiteContent() {
     onError: (e) => toast.error(mapWriteError(e)),
   });
 }
+
+/**
+ * Upsert the five delivery site_content keys (origin, default weight, dispatch
+ * lead days, COD rules JSON, free-ship threshold) in ONE save (D-02). Clones
+ * useSaveSiteContent's upsert + ['siteContent'] invalidation so the customer
+ * estimator re-reads the new settings live with no redeploy (D-03/SC5).
+ *
+ * After the upsert succeeds it invokes the edge function's service-role purge
+ * branch — supabase.functions.invoke("delivery-estimate", { body: { purge:true } })
+ * — to evict the server-side estimate cache so a changed setting is reflected
+ * immediately rather than after the 24h TTL (D-11). The purge is BEST-EFFORT:
+ * its error is logged, never thrown (the upsert already committed), and there is
+ * NO raw client DELETE on the estimate cache table — it is deny-direct under
+ * RLS and only the service-role edge branch may clear it (D-12).
+ */
+export function useSaveDeliverySettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (values: Record<string, string>) => {
+      const rows = Object.entries(values).map(([key, value]) => ({ key, value }));
+      const { error } = await supabase
+        .from("site_content")
+        .upsert(rows, { onConflict: "key" });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      qc.invalidateQueries({ queryKey: ["siteContent"] });
+      // Best-effort cache purge (D-11/D-12): tolerate any failure — the upsert
+      // already succeeded, and the 24h TTL is the fallback if the purge fails.
+      try {
+        const { error } = await supabase.functions.invoke("delivery-estimate", {
+          body: { purge: true },
+        });
+        if (error) console.warn("Delivery cache purge failed (tolerated):", error);
+      } catch (e) {
+        console.warn("Delivery cache purge failed (tolerated):", e);
+      }
+      toast.success("Delivery settings updated.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}

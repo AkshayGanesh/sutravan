@@ -26,6 +26,7 @@ import CategoriesList from "@/pages/admin/CategoriesList";
 import QuestionsList from "@/pages/admin/QuestionsList";
 import SectionsList from "@/pages/admin/SectionsList";
 import SiteContent from "@/pages/admin/SiteContent";
+import Delivery from "@/pages/admin/Delivery";
 import Submissions from "@/pages/admin/Submissions";
 import type { ReactNode } from "react";
 
@@ -120,6 +121,13 @@ function Router() {
           {() => (
             <AdminRoute>
               <SiteContent />
+            </AdminRoute>
+          )}
+        </Route>
+        <Route path="/admin/delivery">
+          {() => (
+            <AdminRoute>
+              <Delivery />
             </AdminRoute>
           )}
         </Route>
