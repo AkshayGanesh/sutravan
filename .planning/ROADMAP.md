@@ -25,7 +25,7 @@ Full phase details, success criteria, and plan breakdowns: [milestones/v1.0-ROAD
 
 - [x] **Phase 6: Estimate Engine — Delivery Schema, Settings & Edge Function** - Server-side engine computes a normalized serviceability / cost / ETA / COD estimate from an admin-tunable zone-weight table, with all delivery data structures, RLS, and seeded defaults in place (completed 2026-06-30)
 - [x] **Phase 7: Product Detail Delivery Estimator** - The product detail page shows a per-product estimator (using product weight, falling back to the admin default) with every UX state handled and the result prominently framed as an estimate (completed 2026-07-04)
-- [ ] **Phase 8: Site-Wide Pincode — Navbar Widget & Profile Persistence** - A global "Deliver to [pincode]" navbar widget persists the chosen pincode site-wide (localStorage) and syncs to a logged-in customer's profile across devices
+- [x] **Phase 8: Site-Wide Pincode — Navbar Widget & Profile Persistence** - A global "Deliver to [pincode]" navbar widget persists the chosen pincode site-wide (localStorage) and syncs to a logged-in customer's profile across devices (completed 2026-07-05)
 - [ ] **Phase 9: Admin Delivery Settings & COD Rules** - The owner configures origin pincode (validated, with live preview), default weight, dispatch lead time, COD rules, and the free-shipping threshold — no redeploy
 - [ ] **Phase 10: Admin Zone-Weight Rate Slab Editor** - The owner manages the zone-weight rate slab table (cost + ETA range per zone × weight band) that drives every estimate, behind a contract a live courier API could later replace
 
@@ -93,7 +93,7 @@ Plans:
 
 - [x] 08-01-PLAN.md — Navbar "Deliver to [pincode]" setter widget (pill + popover) wired to the shared DeliveryProvider; format-only, no network (DLVR-09, SC1/SC2/SC3-anon)
 - [x] 08-02-PLAN.md — Profile persistence + login-merge in DeliveryProvider (write-through on set; profile-wins/adopt-local on login) with a pure unit-tested merge helper (DLVR-10, SC4)
-- [ ] 08-03-PLAN.md — End-to-end human verification of SC1-SC4 (navbar/estimator sync, localStorage restore, cross-device profile restore)
+- [x] 08-03-PLAN.md — End-to-end human verification of SC1-SC4 (navbar/estimator sync, localStorage restore, cross-device profile restore)
 
 **UI hint**: yes
 
@@ -143,6 +143,6 @@ Plans:
 | 5. Customer Experience | v1.0 | 4/4 | Complete | 2026-06-01 |
 | 6. Estimate Engine — Schema, Settings & Edge Function | v1.1 | 3/3 | Complete    | 2026-06-30 |
 | 7. Product Detail Delivery Estimator | v1.1 | 2/2 | Complete    | 2026-07-04 |
-| 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 2/3 | In Progress|  |
+| 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 3/3 | Complete   | 2026-07-05 |
 | 9. Admin Delivery Settings & COD Rules | v1.1 | 0/— | Not started | - |
 | 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 0/— | Not started | - |
