@@ -119,6 +119,10 @@ None - no external service configuration required by this plan.
 - Plan 09-03 (admin Delivery page/UI) can consume `deliverySchema`, `formatPreviewLine`, `parseCodRules`/`serializeCodRules`, `checkServiceable`, and `previewDelivery` as proven contracts.
 - Plan 09-02 (edge-function admin branch) is unblocked — `previewDelivery` already sends the token-free `{originPincode,destPincode}` body the admin branch expects.
 
+## Self-Check: PASSED
+
+All 9 created/modified files exist on disk and all 7 commits (6 task + 1 docs) are present in git history.
+
 ---
 *Phase: 09-admin-delivery-settings-cod-rules*
 *Completed: 2026-07-05*
