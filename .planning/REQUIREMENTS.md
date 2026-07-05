@@ -23,8 +23,8 @@ Requirements for the Delivery Estimator milestone. Each maps to a roadmap phase.
 ### Placement & Persistence
 
 - [x] **DLVR-08**: The product detail page shows a delivery estimator for that product (using the product's weight, falling back to the admin default)
-- [ ] **DLVR-09**: A global navbar "Deliver to [pincode]" widget lets the customer set/change their pincode, persisted in localStorage and shared with the product-detail estimator site-wide
-- [ ] **DLVR-10**: A logged-in customer's chosen pincode is saved to their profile and restored across devices/sessions
+- [x] **DLVR-09**: A global navbar "Deliver to [pincode]" widget lets the customer set/change their pincode, persisted in localStorage and shared with the product-detail estimator site-wide
+- [x] **DLVR-10**: A logged-in customer's chosen pincode is saved to their profile and restored across devices/sessions
 
 ## Future Requirements
 
@@ -64,8 +64,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DLVR-06 | Phase 7 — Product Detail Delivery Estimator | Complete |
 | DLVR-07 | Phase 7 — Product Detail Delivery Estimator | Complete |
 | DLVR-08 | Phase 7 — Product Detail Delivery Estimator | Complete |
-| DLVR-09 | Phase 8 — Site-Wide Pincode (Navbar Widget & Profile Persistence) | Pending |
-| DLVR-10 | Phase 8 — Site-Wide Pincode (Navbar Widget & Profile Persistence) | Pending |
+| DLVR-09 | Phase 8 — Site-Wide Pincode (Navbar Widget & Profile Persistence) | Complete |
+| DLVR-10 | Phase 8 — Site-Wide Pincode (Navbar Widget & Profile Persistence) | Complete |
 
 **Coverage:**
 
