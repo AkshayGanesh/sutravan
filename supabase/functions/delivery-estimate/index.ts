@@ -385,6 +385,31 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Cache purge branch (D-11/D-12) — an EARLY return handled BEFORE destPincode
+    // validation (a purge call carries no destPincode). A non-admin purge is a 403;
+    // a verified admin deletes ALL delivery_estimate_cache rows via the service role.
+    // The `.neq('id', <impossible-uuid>)` is the idiomatic PostgREST "delete all"
+    // guard (cache PK is `id uuid`, migration 0017). The cache stays deny-direct RLS
+    // (0017 banner) — no client DELETE path, no new policy. A delete error is logged
+    // server-side, never thrown.
+    if (body.purge === true) {
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: 'forbidden' }), {
+          status: 403,
+          headers: jsonHeaders,
+        })
+      }
+      const { error: purgeErr } = await admin
+        .from('delivery_estimate_cache')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000')
+      if (purgeErr) console.error('delivery-estimate: cache purge failed', purgeErr)
+      return new Response(JSON.stringify({ purged: !purgeErr }), {
+        status: 200,
+        headers: jsonHeaders,
+      })
+    }
+
     // VALIDATE destPincode /^\d{6}$/ BEFORE any compute or Turnstile (D-21 / SC2).
     // A non-6-digit / non-numeric / non-string pincode is a clean 400 bad_request —
     // never a slab miss or a 500.
@@ -427,7 +452,13 @@ Deno.serve(async (req) => {
 
     try {
       const settings = await readSettings(admin)
-      const origin = settings.originPincode
+      // Origin override (D-08) — honored ONLY for a verified admin so a pre-save
+      // preview reflects the origin the owner just typed. A public caller ALWAYS uses
+      // the saved site_content origin (Pitfall 2 — otherwise a bogus origin could
+      // poison the shared cache). The override must still be a valid 6-digit pincode.
+      const origin = (isAdmin && typeof body.originPincode === 'string' && /^\d{6}$/.test(body.originPincode))
+        ? body.originPincode
+        : settings.originPincode
       const effectiveWeightG = typeof weightG === 'number' && weightG > 0
         ? weightG
         : settings.defaultWeightG
