@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import AuthProvider from "@/auth/AuthProvider";
 import DeliveryProvider from "@/delivery/DeliveryProvider";
 import DeliveryPincodePill from "@/components/delivery/DeliveryPincodePill";
 
@@ -28,9 +29,18 @@ function stubLocalStorage(initial: Record<string, string> = {}) {
   };
 }
 
+// DeliveryProvider now reads useAuth() (Plan 08-02 login-merge/write-through), so
+// it must render inside an AuthProvider — mirroring the real app tree
+// (AuthProvider > DeliveryProvider). AuthProvider only touches Supabase inside
+// effects, which do not run under renderToStaticMarkup, so the synchronous render
+// resolves to the anonymous/logged-out path (user: null) this suite asserts.
 function renderPill() {
   return renderToStaticMarkup(
-    createElement(DeliveryProvider, null, createElement(DeliveryPincodePill)),
+    createElement(
+      AuthProvider,
+      null,
+      createElement(DeliveryProvider, null, createElement(DeliveryPincodePill)),
+    ),
   );
 }
 
