@@ -26,7 +26,7 @@ Full phase details, success criteria, and plan breakdowns: [milestones/v1.0-ROAD
 - [x] **Phase 6: Estimate Engine — Delivery Schema, Settings & Edge Function** - Server-side engine computes a normalized serviceability / cost / ETA / COD estimate from an admin-tunable zone-weight table, with all delivery data structures, RLS, and seeded defaults in place (completed 2026-06-30)
 - [x] **Phase 7: Product Detail Delivery Estimator** - The product detail page shows a per-product estimator (using product weight, falling back to the admin default) with every UX state handled and the result prominently framed as an estimate (completed 2026-07-04)
 - [x] **Phase 8: Site-Wide Pincode — Navbar Widget & Profile Persistence** - A global "Deliver to [pincode]" navbar widget persists the chosen pincode site-wide (localStorage) and syncs to a logged-in customer's profile across devices (completed 2026-07-05)
-- [ ] **Phase 9: Admin Delivery Settings & COD Rules** - The owner configures origin pincode (validated, with live preview), default weight, dispatch lead time, COD rules, and the free-shipping threshold — no redeploy
+- [x] **Phase 9: Admin Delivery Settings & COD Rules** - The owner configures origin pincode (validated, with live preview), default weight, dispatch lead time, COD rules, and the free-shipping threshold — no redeploy (completed 2026-07-06)
 - [ ] **Phase 10: Admin Zone-Weight Rate Slab Editor** - The owner manages the zone-weight rate slab table (cost + ETA range per zone × weight band) that drives every estimate, behind a contract a live courier API could later replace
 
 ## Phase Details
@@ -118,7 +118,7 @@ Plans:
 - [x] 09-01-PLAN.md — Test-first validation foundation: deliverySchema (D-15), COD codec, checkServiceable, previewDelivery, SITE_CONTENT_DEFAULTS keys (DLVR-01/02/04)
 - [x] 09-02-PLAN.md — delivery-estimate admin branch: JWT Turnstile bypass (D-07), origin override (D-08), service-role cache purge (D-11/D-12) (DLVR-01/02/04)
 - [x] 09-03-PLAN.md — /admin/delivery settings page (clone SiteContent) + useSaveDeliverySettings + nav/route; serviceability gate, COD retain, live preview (DLVR-01/02/04)
-- [ ] 09-04-PLAN.md — BLOCKING-HUMAN live deploy + end-of-phase UAT (SC1/SC2/SC3/SC4/SC5, public Turnstile path unchanged) (DLVR-01/02/04)
+- [x] 09-04-PLAN.md — BLOCKING-HUMAN live deploy + end-of-phase UAT (SC1/SC2/SC3/SC4/SC5, public Turnstile path unchanged) (DLVR-01/02/04)
 
 **UI hint**: yes
 
@@ -152,5 +152,5 @@ Plans:
 | 6. Estimate Engine — Schema, Settings & Edge Function | v1.1 | 3/3 | Complete    | 2026-06-30 |
 | 7. Product Detail Delivery Estimator | v1.1 | 2/2 | Complete    | 2026-07-04 |
 | 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 3/3 | Complete   | 2026-07-05 |
-| 9. Admin Delivery Settings & COD Rules | v1.1 | 3/4 | In Progress|  |
+| 9. Admin Delivery Settings & COD Rules | v1.1 | 4/4 | Complete   | 2026-07-06 |
 | 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 0/— | Not started | - |
