@@ -23,6 +23,7 @@ import { supabase } from "./supabase";
 import { slugify } from "./slug";
 import { mapWriteError } from "./adminErrors";
 import type { QuestionFieldType } from "./questionnaire";
+import type { RateSlabUpsertRow } from "@/pages/admin/rateSlabsSchema";
 // Re-export the public image-URL resolvers so admin thumbnails resolve Storage
 // paths the SAME way the public Shop does — never hand-build URLs (Pitfall 3).
 export { productImageUrls } from "./catalog";
@@ -845,6 +846,70 @@ export function useSaveDeliverySettings() {
         console.warn("Delivery cache purge failed (tolerated):", e);
       }
       toast.success("Delivery settings updated.");
+    },
+    onError: (e) => toast.error(mapWriteError(e)),
+  });
+}
+
+// ── Rate slabs (Phase 10 — zone × weight-band rate card editor) ──────────────
+//
+// The delivery_rate_slabs table (migration 0016) is the SOLE rate source behind
+// the normalized delivery-estimate contract. The admin Rate Slabs page reads the
+// fixed 5×4 grid via useDeliveryRateSlabs and bulk-upserts all 20 rows via
+// useSaveRateSlabs. Public-read RLS lets the plain client read the grid;
+// admin-write RLS (private.is_admin(), 0016) is the real write boundary — a
+// non-admin upsert fails RLS and surfaces through mapWriteError → toast.
+
+const RATE_SLAB_COLUMNS =
+  "id, zone, weight_band, weight_min_g, weight_max_g, cost, eta_min_days, eta_max_days";
+
+async function fetchRateSlabs() {
+  const { data, error } = await supabase
+    .from("delivery_rate_slabs")
+    .select(RATE_SLAB_COLUMNS)
+    .order("zone", { ascending: true })
+    .order("weight_band", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** The full 5×4 rate-slab grid, read under the ['deliverySlabs'] key (D-10). */
+export function useDeliveryRateSlabs() {
+  return useQuery({ queryKey: ["deliverySlabs"], queryFn: fetchRateSlabs });
+}
+
+/**
+ * Bulk-upsert all 20 rate-slab rows in one call (D-10 — no dirty-row tracking;
+ * the table is tiny). onConflict targets the composite ("zone,weight_band")
+ * unique key from migration 0016 (line 29) — NOT id — so the 20 rows UPDATE in
+ * place instead of duplicating. Mirrors useSaveDeliverySettings verbatim: on
+ * success it invalidates ['deliverySlabs'], best-effort purges the estimate cache
+ * via the edge function's service-role branch (D-11 — tolerate any failure; the
+ * 24h TTL is the fallback), and toasts. onError maps through mapWriteError so an
+ * RLS-rejected non-admin write surfaces as a toast.
+ */
+export function useSaveRateSlabs() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: RateSlabUpsertRow[]) => {
+      const { error } = await supabase
+        .from("delivery_rate_slabs")
+        .upsert(rows, { onConflict: "zone,weight_band" });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      qc.invalidateQueries({ queryKey: ["deliverySlabs"] });
+      // Best-effort cache purge (D-11): tolerate any failure — the upsert
+      // already succeeded, and the 24h TTL is the fallback if the purge fails.
+      try {
+        const { error } = await supabase.functions.invoke("delivery-estimate", {
+          body: { purge: true },
+        });
+        if (error) console.warn("Delivery cache purge failed (tolerated):", error);
+      } catch (e) {
+        console.warn("Delivery cache purge failed (tolerated):", e);
+      }
+      toast.success("Rate slabs updated.");
     },
     onError: (e) => toast.error(mapWriteError(e)),
   });
