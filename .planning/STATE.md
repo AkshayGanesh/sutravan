@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: Delivery Estimator
 status: executing
 stopped_at: Phase 10 context gathered
-last_updated: "2026-07-06T04:50:22.189Z"
+last_updated: "2026-07-06T04:56:29.857Z"
 last_activity: 2026-07-06 -- Phase 10 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-27)
 ## Current Position
 
 Phase: 10 (admin-zone-weight-rate-slab-editor) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-06 -- Phase 10 execution started
 
@@ -81,6 +81,7 @@ Last activity: 2026-07-06 -- Phase 10 execution started
 | Phase 06 P02 | ~12min | 2 tasks | 4 files |
 | Phase 06 P03 | ~10min | 3 tasks | 3 files |
 | Phase 10 P01 | 5min | 2 tasks | 2 files |
+| Phase 10 P02 | 3min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,8 @@ Recent decisions affecting current work:
 - [Phase 06]: [Phase 06 P02]: is_metro/is_remote derived at transform time (8-prefix metro set, 12-state remote set); seed leaves serviceable to its table default true (D-16); committed pincodes.ndjson removes any runtime data.gov.in dependency
 - [Phase ?]: [Phase 06 P03]: delivery-estimate Edge Function deployed live (ref wfbnrcnmpcqzeyjlfflv) — service-role compute (legitimate divergence: no ownership invariant, sole writer of deny-direct cache), validates /^\d{6}$/ before Turnstile, deriveZone behind callCourierAdapter, etaDays adds dispatch_lead_days (OQ1), cache write skipped when originConfigured=false (OQ2). Token-free smoke green; compute-path (SC1/SC4-hit) is owner-only human-action (Turnstile secret write-only, unrecoverable to restore).
 - [Phase ?]: 10-01: Rate slab cost floor is min(1) so a ₹0 slab is impossible by construction (SC3, D-08); no monotonicity enforcement (D-09); per-zone ETA fanned to all 4 bands (D-06)
+- [Phase ?]: Rate Slabs editor uses query key ['deliverySlabs'] and bulk-upserts 20 rows onConflict zone,weight_band (10-02)
+- [Phase ?]: Slab save reuses the delivery-estimate {purge:true} branch best-effort for live-no-redeploy (10-02)
 
 ### Pending Todos
 
@@ -220,7 +223,7 @@ Open verification/UAT sign-offs accepted as deferred tech debt when closing v1.0
 
 ## Session Continuity
 
-Last session: 2026-07-06T04:49:53.681Z
+Last session: 2026-07-06T04:56:10.692Z
 Stopped at: Phase 10 context gathered
 Resume file: .planning/phases/10-admin-zone-weight-rate-slab-editor/10-CONTEXT.md
 

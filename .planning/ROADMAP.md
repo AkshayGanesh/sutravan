@@ -143,7 +143,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 10-02-PLAN.md — Live vertical slice: useDeliveryRateSlabs + useSaveRateSlabs (bulk upsert onConflict zone,weight_band + cache purge) + RateSlabs 5×4 grid page + nav/route wiring (D-01..D-11) (DLVR-03)
+- [x] 10-02-PLAN.md — Live vertical slice: useDeliveryRateSlabs + useSaveRateSlabs (bulk upsert onConflict zone,weight_band + cache purge) + RateSlabs 5×4 grid page + nav/route wiring (D-01..D-11) (DLVR-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -166,4 +166,4 @@ Plans:
 | 7. Product Detail Delivery Estimator | v1.1 | 2/2 | Complete    | 2026-07-04 |
 | 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 3/3 | Complete   | 2026-07-05 |
 | 9. Admin Delivery Settings & COD Rules | v1.1 | 4/4 | Complete    | 2026-07-06 |
-| 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 1/3 | In Progress|  |
+| 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 2/3 | In Progress|  |
