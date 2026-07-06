@@ -27,7 +27,7 @@ Full phase details, success criteria, and plan breakdowns: [milestones/v1.0-ROAD
 - [x] **Phase 7: Product Detail Delivery Estimator** - The product detail page shows a per-product estimator (using product weight, falling back to the admin default) with every UX state handled and the result prominently framed as an estimate (completed 2026-07-04)
 - [x] **Phase 8: Site-Wide Pincode — Navbar Widget & Profile Persistence** - A global "Deliver to [pincode]" navbar widget persists the chosen pincode site-wide (localStorage) and syncs to a logged-in customer's profile across devices (completed 2026-07-05)
 - [x] **Phase 9: Admin Delivery Settings & COD Rules** - The owner configures origin pincode (validated, with live preview), default weight, dispatch lead time, COD rules, and the free-shipping threshold — no redeploy (completed 2026-07-06)
-- [ ] **Phase 10: Admin Zone-Weight Rate Slab Editor** - The owner manages the zone-weight rate slab table (cost + ETA range per zone × weight band) that drives every estimate, behind a contract a live courier API could later replace
+- [x] **Phase 10: Admin Zone-Weight Rate Slab Editor** - The owner manages the zone-weight rate slab table (cost + ETA range per zone × weight band) that drives every estimate, behind a contract a live courier API could later replace (completed 2026-07-06)
 
 ## Phase Details
 
@@ -147,7 +147,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 10-03-PLAN.md — BLOCKING-HUMAN verify: owner edits a rate, saves, confirms live estimate reflection + validation block (SC1/SC2/SC3/SC4) (DLVR-03)
+- [x] 10-03-PLAN.md — BLOCKING-HUMAN verify: owner edits a rate, saves, confirms live estimate reflection + validation block (SC1/SC2/SC3/SC4) (DLVR-03)
 
 **UI hint**: yes
 
@@ -166,4 +166,4 @@ Plans:
 | 7. Product Detail Delivery Estimator | v1.1 | 2/2 | Complete    | 2026-07-04 |
 | 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 3/3 | Complete   | 2026-07-05 |
 | 9. Admin Delivery Settings & COD Rules | v1.1 | 4/4 | Complete    | 2026-07-06 |
-| 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 2/3 | In Progress|  |
+| 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 3/3 | Complete   | 2026-07-06 |
