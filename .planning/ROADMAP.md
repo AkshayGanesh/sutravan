@@ -136,11 +136,17 @@ Plans:
   4. Estimates continue to flow through the normalized `{ serviceable, cost, etaDays, codAvailable }` contract sourced from the slab table, keeping a future live courier API (DLVR-F1) a drop-in swap with no frontend change
 
 **Plans**: 3 plans
-
 Plans:
+**Wave 1**
 
 - [ ] 10-01-PLAN.md — Test-first pure foundation: rateSlabsSchema (cost ≥ ₹1, ETA min ≤ max ≤ 30, no monotonicity) + mapSlabsToForm/expandFormToRows grid⇄rows mapping (D-06/D-08/D-09) (DLVR-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 10-02-PLAN.md — Live vertical slice: useDeliveryRateSlabs + useSaveRateSlabs (bulk upsert onConflict zone,weight_band + cache purge) + RateSlabs 5×4 grid page + nav/route wiring (D-01..D-11) (DLVR-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 10-03-PLAN.md — BLOCKING-HUMAN verify: owner edits a rate, saves, confirms live estimate reflection + validation block (SC1/SC2/SC3/SC4) (DLVR-03)
 
 **UI hint**: yes
