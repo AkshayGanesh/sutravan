@@ -91,3 +91,78 @@ export const rateSlabsSchema = z
 // Raw string-in-field form-value type (RHF holds strings before coercion),
 // matching the DeliveryFormValues `_input` idiom.
 export type RateSlabsFormValues = typeof rateSlabsSchema._input;
+
+// ──────────────────────────────────────────────────────────────────────────
+// Grid ⇄ rows mapping (D-06). Pure — the read hook feeds fetched rows into
+// mapSlabsToForm; the save mutation sends expandFormToRows' output to the upsert.
+// ──────────────────────────────────────────────────────────────────────────
+
+// A fetched slab row (only the fields the mapping reads). Mirrors the
+// delivery_rate_slabs columns from migration 0016.
+export type SlabRow = {
+  zone: string;
+  weight_band: number;
+  cost: number;
+  eta_min_days: number;
+  eta_max_days: number;
+};
+
+// The exact upsert-row shape the save mutation (10-02) sends — every NOT NULL
+// column populated, so it satisfies the table's constraints directly.
+export type RateSlabUpsertRow = {
+  zone: Zone;
+  weight_band: WeightBand;
+  weight_min_g: number;
+  weight_max_g: number;
+  cost: number;
+  eta_min_days: number;
+  eta_max_days: number;
+};
+
+// The grid form shape: per-cell costs + per-zone ETA pairs.
+type GridForm = {
+  costs: Record<string, number>;
+  etas: Record<string, { min: number; max: number }>;
+};
+
+// Collapse the 20 fetched rows into the grid form: costs keyed `${zone}_${band}`
+// and ONE ETA pair per zone (all 4 bands share it — D-06, so the first row seen
+// per zone wins).
+export function mapSlabsToForm(rows: SlabRow[]): GridForm {
+  const costs: Record<string, number> = {};
+  const etas: Record<string, { min: number; max: number }> = {};
+  for (const row of rows) {
+    costs[`${row.zone}_${row.weight_band}`] = row.cost;
+    if (!(row.zone in etas)) {
+      etas[row.zone] = { min: row.eta_min_days, max: row.eta_max_days };
+    }
+  }
+  return { costs, etas };
+}
+
+// Expand the grid form into exactly 20 upsert rows: iterate ZONE_ORDER × bands
+// 1..4, fanning each zone's single ETA pair across all 4 bands (D-06) and always
+// emitting the fixed weight bounds. Coerce to Number(...) so the rows are numeric
+// even when the form held string inputs.
+export function expandFormToRows(
+  values: RateSlabsFormValues,
+): RateSlabUpsertRow[] {
+  const bands: WeightBand[] = [1, 2, 3, 4];
+  const rows: RateSlabUpsertRow[] = [];
+  for (const zone of ZONE_ORDER) {
+    const eta = values.etas[zone];
+    for (const band of bands) {
+      const [weightMin, weightMax] = WEIGHT_BAND_BOUNDS[band];
+      rows.push({
+        zone,
+        weight_band: band,
+        weight_min_g: weightMin,
+        weight_max_g: weightMax,
+        cost: Number(values.costs[`${zone}_${band}`]),
+        eta_min_days: Number(eta.min),
+        eta_max_days: Number(eta.max),
+      });
+    }
+  }
+  return rows;
+}
