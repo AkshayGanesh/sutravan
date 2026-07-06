@@ -1,5 +1,6 @@
 import { useRef, useState, type DragEvent, type ChangeEvent } from "react";
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, GripVertical, X } from "lucide-react";
+import { Reorder, useDragControls } from "framer-motion";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
@@ -222,27 +223,27 @@ export default function ImageDropzone({
         />
       </div>
 
-      {/* Thumbnails: saved/in-session images + pending (uploading) tiles */}
+      {/* Thumbnails: saved/in-session images + pending (uploading) tiles.
+          Committed tiles are drag-reorderable (handle-only) — the array order
+          IS the persisted order (first = primary). Storage paths are unique and
+          stable, so `values={value}` needs no id bookkeeping and the reordered
+          path array feeds straight into `onChange`. Pending tiles render AFTER
+          the committed items and never participate in reorder. */}
       {(value.length > 0 || pending.length > 0) && (
-        <ul className="flex flex-wrap gap-3">
-          {value.map((path) => (
-            <li key={path} className="relative">
-              <img
-                src={thumbUrl(path)}
-                alt=""
-                className="size-24 rounded-md object-cover"
-              />
-              <button
-                type="button"
-                aria-label="Remove photo"
-                onClick={() => requestRemove(path)}
-                className="absolute -right-2 -top-2 flex size-11 items-center justify-center sm:size-7"
-              >
-                <span className="flex size-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow">
-                  <X className="size-4" aria-hidden="true" />
-                </span>
-              </button>
-            </li>
+        <Reorder.Group
+          as="ul"
+          axis="x"
+          values={value}
+          onReorder={onChange}
+          className="flex flex-wrap gap-3"
+        >
+          {value.map((path, index) => (
+            <ReorderableThumb
+              key={path}
+              path={path}
+              index={index}
+              onRemove={() => requestRemove(path)}
+            />
           ))}
           {pending.map((tile) => (
             <li
@@ -255,7 +256,7 @@ export default function ImageDropzone({
               )}
             </li>
           ))}
-        </ul>
+        </Reorder.Group>
       )}
 
       <ConfirmDialog
@@ -269,5 +270,59 @@ export default function ImageDropzone({
         onConfirm={confirmRemove}
       />
     </div>
+  );
+}
+
+interface ReorderableThumbProps {
+  path: string;
+  index: number;
+  onRemove: () => void;
+}
+
+/**
+ * A single committed, drag-reorderable thumbnail. Extracted into its own
+ * component so `useDragControls` is called once per tile at the top level
+ * (never inside a `.map` callback) — mirrors `RepeatableRow` in
+ * RepeatableRows.tsx. Dragging starts only from the GripVertical handle
+ * (`dragListener={false}` + `useDragControls`), so the X remove click and
+ * mobile page-scroll are never hijacked by the drag gesture.
+ */
+function ReorderableThumb({ path, index, onRemove }: ReorderableThumbProps) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={path}
+      as="li"
+      dragListener={false}
+      dragControls={controls}
+      className="relative"
+    >
+      <img
+        src={thumbUrl(path)}
+        alt=""
+        className="size-24 rounded-md object-cover"
+      />
+      <button
+        type="button"
+        aria-label="Remove photo"
+        onClick={onRemove}
+        className="absolute -right-2 -top-2 flex size-11 items-center justify-center sm:size-7"
+      >
+        <span className="flex size-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow">
+          <X className="size-4" aria-hidden="true" />
+        </span>
+      </button>
+      <button
+        type="button"
+        aria-label={`Reorder photo ${index + 1}`}
+        onPointerDown={(e) => controls.start(e)}
+        className="absolute -bottom-2 -left-2 flex size-11 cursor-grab touch-none items-center justify-center sm:size-7"
+      >
+        <span className="flex size-6 items-center justify-center rounded-full bg-background text-muted-foreground shadow ring-1 ring-border">
+          <GripVertical className="size-4" aria-hidden="true" />
+        </span>
+      </button>
+    </Reorder.Item>
   );
 }
