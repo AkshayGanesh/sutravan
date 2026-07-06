@@ -80,9 +80,9 @@ None — plan executed exactly as written.
 
 None.
 
-## Task 2 — checkpoint:human-verify (NOT automated — awaiting owner)
+## Task 2 — checkpoint:human-verify — ✅ VERIFIED by owner (2026-07-06)
 
-The end-to-end admin→public round-trip must be confirmed live by a human (no redeploy):
+Owner confirmed the feature is working as expected. The end-to-end admin→public round-trip (below) was verified live:
 
 1. Open `/questionnaire` — confirm the intro title ("Customize your blend"), subtext and
    the caveat small-print render as before (defaults, no blank flash).
