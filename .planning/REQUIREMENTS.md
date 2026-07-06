@@ -9,10 +9,10 @@ Requirements for the Delivery Estimator milestone. Each maps to a roadmap phase.
 
 ### Admin Configuration
 
-- [ ] **DLVR-01**: Admin can set and edit the origin (dispatch) pincode, with validation and a live preview on save
-- [ ] **DLVR-02**: Admin can set a default fallback product weight (grams) and the dispatch lead time (working days)
+- [x] **DLVR-01**: Admin can set and edit the origin (dispatch) pincode, with validation and a live preview on save
+- [x] **DLVR-02**: Admin can set a default fallback product weight (grams) and the dispatch lead time (working days)
 - [ ] **DLVR-03**: Admin can manage zone-weight rate slabs — estimated cost and ETA range per shipping zone × weight band
-- [ ] **DLVR-04**: Admin can configure COD rules (availability toggle, optional COD fee, optional order-value cap) and an optional free-shipping threshold
+- [x] **DLVR-04**: Admin can configure COD rules (availability toggle, optional COD fee, optional order-value cap) and an optional free-shipping threshold
 
 ### Delivery Estimate
 
@@ -56,10 +56,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DLVR-01 | Phase 9 — Admin Delivery Settings & COD Rules | Pending |
-| DLVR-02 | Phase 9 — Admin Delivery Settings & COD Rules | Pending |
+| DLVR-01 | Phase 9 — Admin Delivery Settings & COD Rules | Complete |
+| DLVR-02 | Phase 9 — Admin Delivery Settings & COD Rules | Complete |
 | DLVR-03 | Phase 10 — Admin Zone-Weight Rate Slab Editor | Pending |
-| DLVR-04 | Phase 9 — Admin Delivery Settings & COD Rules | Pending |
+| DLVR-04 | Phase 9 — Admin Delivery Settings & COD Rules | Complete |
 | DLVR-05 | Phase 6 — Estimate Engine (Schema, Settings & Edge Function) | Complete |
 | DLVR-06 | Phase 7 — Product Detail Delivery Estimator | Complete |
 | DLVR-07 | Phase 7 — Product Detail Delivery Estimator | Complete |

@@ -152,5 +152,5 @@ Plans:
 | 6. Estimate Engine — Schema, Settings & Edge Function | v1.1 | 3/3 | Complete    | 2026-06-30 |
 | 7. Product Detail Delivery Estimator | v1.1 | 2/2 | Complete    | 2026-07-04 |
 | 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 3/3 | Complete   | 2026-07-05 |
-| 9. Admin Delivery Settings & COD Rules | v1.1 | 4/4 | Complete   | 2026-07-06 |
+| 9. Admin Delivery Settings & COD Rules | v1.1 | 4/4 | Complete    | 2026-07-06 |
 | 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 0/— | Not started | - |
