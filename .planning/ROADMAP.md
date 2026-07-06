@@ -135,7 +135,14 @@ Plans:
   3. The editor validates entries (cost/ETA) and surfaces coverage gaps so every serviceable destination + weight resolves to a slab or a clean non-serviceable result — no silent ₹0 or missing-slab crash
   4. Estimates continue to flow through the normalized `{ serviceable, cost, etaDays, codAvailable }` contract sourced from the slab table, keeping a future live courier API (DLVR-F1) a drop-in swap with no frontend change
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+
+- [ ] 10-01-PLAN.md — Test-first pure foundation: rateSlabsSchema (cost ≥ ₹1, ETA min ≤ max ≤ 30, no monotonicity) + mapSlabsToForm/expandFormToRows grid⇄rows mapping (D-06/D-08/D-09) (DLVR-03)
+- [ ] 10-02-PLAN.md — Live vertical slice: useDeliveryRateSlabs + useSaveRateSlabs (bulk upsert onConflict zone,weight_band + cache purge) + RateSlabs 5×4 grid page + nav/route wiring (D-01..D-11) (DLVR-03)
+- [ ] 10-03-PLAN.md — BLOCKING-HUMAN verify: owner edits a rate, saves, confirms live estimate reflection + validation block (SC1/SC2/SC3/SC4) (DLVR-03)
+
 **UI hint**: yes
 
 ## Progress
@@ -153,4 +160,4 @@ Plans:
 | 7. Product Detail Delivery Estimator | v1.1 | 2/2 | Complete    | 2026-07-04 |
 | 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 3/3 | Complete   | 2026-07-05 |
 | 9. Admin Delivery Settings & COD Rules | v1.1 | 4/4 | Complete    | 2026-07-06 |
-| 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 0/— | Not started | - |
+| 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 0/3 | Not started | - |
