@@ -36,6 +36,23 @@ const contentSchema = z.object({
     .string()
     .trim()
     .url("Enter a valid web address (starting with https://)"),
+  questionnaire_title: z.string().trim().min(1, "Enter the Skin Guide heading."),
+  questionnaire_subtitle: z
+    .string()
+    .trim()
+    .min(1, "Enter the Skin Guide subtext."),
+  questionnaire_caveat: z
+    .string()
+    .trim()
+    .min(1, "Enter the pricing caveat shown under the Skin Guide."),
+  questionnaire_thankyou_title: z
+    .string()
+    .trim()
+    .min(1, "Enter the thank-you heading."),
+  questionnaire_thankyou_body: z
+    .string()
+    .trim()
+    .min(1, "Enter the thank-you message."),
 });
 
 type ContentValues = z.infer<typeof contentSchema>;
@@ -63,6 +80,13 @@ export default function SiteContent() {
       email: SITE_CONTENT_DEFAULTS.email,
       instagram_url: SITE_CONTENT_DEFAULTS.instagram_url,
       youtube_url: SITE_CONTENT_DEFAULTS.youtube_url,
+      questionnaire_title: SITE_CONTENT_DEFAULTS.questionnaire_title,
+      questionnaire_subtitle: SITE_CONTENT_DEFAULTS.questionnaire_subtitle,
+      questionnaire_caveat: SITE_CONTENT_DEFAULTS.questionnaire_caveat,
+      questionnaire_thankyou_title:
+        SITE_CONTENT_DEFAULTS.questionnaire_thankyou_title,
+      questionnaire_thankyou_body:
+        SITE_CONTENT_DEFAULTS.questionnaire_thankyou_body,
     },
   });
 
@@ -79,6 +103,11 @@ export default function SiteContent() {
       email: valueFor(data, "email"),
       instagram_url: valueFor(data, "instagram_url"),
       youtube_url: valueFor(data, "youtube_url"),
+      questionnaire_title: valueFor(data, "questionnaire_title"),
+      questionnaire_subtitle: valueFor(data, "questionnaire_subtitle"),
+      questionnaire_caveat: valueFor(data, "questionnaire_caveat"),
+      questionnaire_thankyou_title: valueFor(data, "questionnaire_thankyou_title"),
+      questionnaire_thankyou_body: valueFor(data, "questionnaire_thankyou_body"),
     });
   }, [data, isLoading, reset]);
 
@@ -91,6 +120,11 @@ export default function SiteContent() {
       email: values.email,
       instagram_url: values.instagram_url,
       youtube_url: values.youtube_url,
+      questionnaire_title: values.questionnaire_title,
+      questionnaire_subtitle: values.questionnaire_subtitle,
+      questionnaire_caveat: values.questionnaire_caveat,
+      questionnaire_thankyou_title: values.questionnaire_thankyou_title,
+      questionnaire_thankyou_body: values.questionnaire_thankyou_body,
     });
   }
 
@@ -109,8 +143,9 @@ export default function SiteContent() {
       <div>
         <h1 className="text-2xl font-semibold">Site content</h1>
         <p className="text-muted-foreground">
-          Edit the homepage hero, Our Story, contact email and social links.
-          Changes go live across the site immediately — no redeploy.
+          Edit the homepage hero, Our Story, contact email, social links and the
+          Skin Guide copy. Changes go live across the site immediately — no
+          redeploy.
         </p>
       </div>
 
@@ -210,6 +245,85 @@ export default function SiteContent() {
             {errors.youtube_url && (
               <p role="alert" className="text-[0.8rem] font-medium text-destructive">
                 {errors.youtube_url.message}
+              </p>
+            )}
+          </div>
+        </fieldset>
+
+        {/* Skin Guide (/questionnaire) framing + thank-you copy */}
+        <fieldset className="space-y-4">
+          <legend className="text-sm font-semibold text-foreground/80">
+            Skin Guide
+          </legend>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="questionnaire_title">Intro heading</Label>
+            <Input
+              id="questionnaire_title"
+              {...form.register("questionnaire_title")}
+            />
+            {errors.questionnaire_title && (
+              <p role="alert" className="text-[0.8rem] font-medium text-destructive">
+                {errors.questionnaire_title.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="questionnaire_subtitle">Intro subtext</Label>
+            <Textarea
+              id="questionnaire_subtitle"
+              rows={3}
+              {...form.register("questionnaire_subtitle")}
+            />
+            {errors.questionnaire_subtitle && (
+              <p role="alert" className="text-[0.8rem] font-medium text-destructive">
+                {errors.questionnaire_subtitle.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="questionnaire_caveat">Pricing caveat</Label>
+            <Textarea
+              id="questionnaire_caveat"
+              rows={3}
+              {...form.register("questionnaire_caveat")}
+            />
+            {errors.questionnaire_caveat && (
+              <p role="alert" className="text-[0.8rem] font-medium text-destructive">
+                {errors.questionnaire_caveat.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="questionnaire_thankyou_title">
+              Thank-you heading
+            </Label>
+            <Input
+              id="questionnaire_thankyou_title"
+              {...form.register("questionnaire_thankyou_title")}
+            />
+            {errors.questionnaire_thankyou_title && (
+              <p role="alert" className="text-[0.8rem] font-medium text-destructive">
+                {errors.questionnaire_thankyou_title.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="questionnaire_thankyou_body">
+              Thank-you message
+            </Label>
+            <Textarea
+              id="questionnaire_thankyou_body"
+              rows={3}
+              {...form.register("questionnaire_thankyou_body")}
+            />
+            {errors.questionnaire_thankyou_body && (
+              <p role="alert" className="text-[0.8rem] font-medium text-destructive">
+                {errors.questionnaire_thankyou_body.message}
               </p>
             )}
           </div>

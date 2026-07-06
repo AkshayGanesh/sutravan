@@ -12,6 +12,7 @@
 //   const email = data?.email ?? SITE_CONTENT_DEFAULTS.email;
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./supabase";
+import { CUSTOMIZATION_PRICING_CAVEAT } from "./copy";
 
 /**
  * Code-default fallbacks for every site_content key — the current literal values
@@ -40,6 +41,17 @@ export const SITE_CONTENT_DEFAULTS: Record<string, string> = {
   delivery_dispatch_lead_days: "1",
   delivery_cod_rules: '{"enabled":true,"fee":30,"valueCap":5000}',
   delivery_free_ship_threshold: "",
+  // Questionnaire / Skin Guide — the /questionnaire intro framing copy and the
+  // post-submission thank-you wording, admin-editable via /admin/content. The
+  // caveat reuses the brand-approved CUSTOMIZATION_PRICING_CAVEAT (one source of
+  // truth; also rendered on ProductDetail from copy.ts).
+  questionnaire_title: "Customize your blend",
+  questionnaire_subtitle:
+    "Tell us about your skin and what you're looking for — we craft each batch by hand to suit you.",
+  questionnaire_caveat: CUSTOMIZATION_PRICING_CAVEAT,
+  questionnaire_thankyou_title: "Thank you — your request is in.",
+  questionnaire_thankyou_body:
+    "We'll review your customization request and get back to you by email.",
 };
 
 async function fetchSiteContent(): Promise<Record<string, string>> {

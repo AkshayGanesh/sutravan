@@ -42,7 +42,7 @@ import {
   type QuestionnaireValues,
 } from "@/lib/questionnaire";
 import { loadTurnstile } from "@/lib/turnstile";
-import { CUSTOMIZATION_PRICING_CAVEAT } from "@/lib/copy";
+import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/lib/siteContent";
 
 // Wizard steps. Step 0 is the fixed "About you" (name/email) step, in code.
 // Steps 1..G are one configurable SECTION each (G = number of non-empty
@@ -54,19 +54,21 @@ const ABOUT_STEP = 0;
 
 /** Branded intro section — shared by the loading/empty/form states. */
 function Intro() {
+  const { data } = useSiteContent();
   return (
     <section className="pt-28 pb-8 px-4 sm:px-6 lg:px-8 text-center bg-card">
       <div className="max-w-3xl mx-auto">
         <h1 className="font-serif text-4xl md:text-6xl text-primary mb-4">
-          Customize your blend
+          {data?.questionnaire_title ?? SITE_CONTENT_DEFAULTS.questionnaire_title}
         </h1>
         <div className="w-16 h-0.5 bg-secondary mx-auto mb-6" />
         <p className="text-foreground/70 max-w-xl mx-auto">
-          Tell us about your skin and what you're looking for — we craft each
-          batch by hand to suit you.
+          {data?.questionnaire_subtitle ??
+            SITE_CONTENT_DEFAULTS.questionnaire_subtitle}
         </p>
         <p className="text-xs text-foreground/50 mt-3 max-w-xl mx-auto">
-          {CUSTOMIZATION_PRICING_CAVEAT}
+          {data?.questionnaire_caveat ??
+            SITE_CONTENT_DEFAULTS.questionnaire_caveat}
         </p>
       </div>
     </section>
@@ -149,6 +151,7 @@ function QuestionnaireForm({
 }) {
   const { session, user } = useAuth();
   const isLoggedIn = !!session;
+  const { data: content } = useSiteContent();
 
   // Derived wizard model: one step per non-empty section (+ trailing bucket).
   // Stable for the mounted form (key re-inits on a question/section change).
@@ -313,10 +316,12 @@ function QuestionnaireForm({
     return (
       <div className="text-center space-y-6 py-8">
         <h2 className="font-serif text-4xl text-primary">
-          Thank you — your request is in.
+          {content?.questionnaire_thankyou_title ??
+            SITE_CONTENT_DEFAULTS.questionnaire_thankyou_title}
         </h2>
         <p className="text-foreground/70 max-w-md mx-auto">
-          We'll review your customization request and get back to you by email.
+          {content?.questionnaire_thankyou_body ??
+            SITE_CONTENT_DEFAULTS.questionnaire_thankyou_body}
         </p>
         {isLoggedIn ? (
           <Button asChild>
@@ -445,7 +450,8 @@ function QuestionnaireForm({
               </dl>
 
               <p className="text-xs text-foreground/50">
-                {CUSTOMIZATION_PRICING_CAVEAT}
+                {content?.questionnaire_caveat ??
+                  SITE_CONTENT_DEFAULTS.questionnaire_caveat}
               </p>
 
               {/* Turnstile widget — discreet block above the final CTA */}
