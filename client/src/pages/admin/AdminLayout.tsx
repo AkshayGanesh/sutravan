@@ -4,6 +4,7 @@ import {
   ExternalLink,
   FileText,
   Inbox,
+  IndianRupee,
   LayoutList,
   ListChecks,
   LogOut,
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Sections", href: "/admin/sections", icon: LayoutList },
   { label: "Site Content", href: "/admin/content", icon: FileText },
   { label: "Delivery", href: "/admin/delivery", icon: Truck },
+  { label: "Rate Slabs", href: "/admin/rates", icon: IndianRupee },
   { label: "Submissions", href: "/admin/submissions", icon: Inbox },
 ];
 
