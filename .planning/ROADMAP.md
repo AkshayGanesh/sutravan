@@ -139,7 +139,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 10-01-PLAN.md — Test-first pure foundation: rateSlabsSchema (cost ≥ ₹1, ETA min ≤ max ≤ 30, no monotonicity) + mapSlabsToForm/expandFormToRows grid⇄rows mapping (D-06/D-08/D-09) (DLVR-03)
+- [x] 10-01-PLAN.md — Test-first pure foundation: rateSlabsSchema (cost ≥ ₹1, ETA min ≤ max ≤ 30, no monotonicity) + mapSlabsToForm/expandFormToRows grid⇄rows mapping (D-06/D-08/D-09) (DLVR-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -166,4 +166,4 @@ Plans:
 | 7. Product Detail Delivery Estimator | v1.1 | 2/2 | Complete    | 2026-07-04 |
 | 8. Site-Wide Pincode — Navbar Widget & Profile Persistence | v1.1 | 3/3 | Complete   | 2026-07-05 |
 | 9. Admin Delivery Settings & COD Rules | v1.1 | 4/4 | Complete    | 2026-07-06 |
-| 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 0/3 | Not started | - |
+| 10. Admin Zone-Weight Rate Slab Editor | v1.1 | 1/3 | In Progress|  |
