@@ -6,10 +6,13 @@ import { describe, it, expect } from "vitest";
 // mirroring the deliverySchema.test.ts sibling from Phase 9.
 import {
   rateSlabsSchema,
+  mapSlabsToForm,
+  expandFormToRows,
   ZONE_ORDER,
   WEIGHT_BAND_LABELS,
   WEIGHT_BAND_BOUNDS,
 } from "@/pages/admin/rateSlabsSchema";
+import type { RateSlabUpsertRow } from "@/pages/admin/rateSlabsSchema";
 
 // A fully-valid grid the individual cases override one cell/zone at a time. All
 // 20 costs are a safe ₹50; every zone shares a valid { min: 2, max: 4 } ETA pair.
@@ -160,5 +163,134 @@ describe("rateSlabsSchema — grid constants", () => {
     expect(WEIGHT_BAND_BOUNDS[2]).toEqual([251, 500]);
     expect(WEIGHT_BAND_BOUNDS[3]).toEqual([501, 1000]);
     expect(WEIGHT_BAND_BOUNDS[4]).toEqual([1001, 2000]);
+  });
+});
+
+// The 20-row seed fixture built verbatim from migration 0016 (bands 1–4 per zone
+// share ONE eta pair — D-06 / the Phase 6 seed).
+const SEED: Array<[string, number, number, number, number, number, number]> = [
+  ["local", 1, 0, 250, 40, 1, 2],
+  ["local", 2, 251, 500, 55, 1, 2],
+  ["local", 3, 501, 1000, 75, 1, 2],
+  ["local", 4, 1001, 2000, 95, 1, 2],
+  ["regional", 1, 0, 250, 55, 2, 4],
+  ["regional", 2, 251, 500, 70, 2, 4],
+  ["regional", 3, 501, 1000, 95, 2, 4],
+  ["regional", 4, 1001, 2000, 120, 2, 4],
+  ["metro", 1, 0, 250, 65, 3, 5],
+  ["metro", 2, 251, 500, 85, 3, 5],
+  ["metro", 3, 501, 1000, 110, 3, 5],
+  ["metro", 4, 1001, 2000, 140, 3, 5],
+  ["national", 1, 0, 250, 75, 4, 7],
+  ["national", 2, 251, 500, 95, 4, 7],
+  ["national", 3, 501, 1000, 125, 4, 7],
+  ["national", 4, 1001, 2000, 160, 4, 7],
+  ["remote", 1, 0, 250, 95, 6, 10],
+  ["remote", 2, 251, 500, 120, 6, 10],
+  ["remote", 3, 501, 1000, 150, 6, 10],
+  ["remote", 4, 1001, 2000, 180, 6, 10],
+];
+
+function seedRows(): RateSlabUpsertRow[] {
+  return SEED.map(
+    ([zone, band, wMin, wMax, cost, etaMin, etaMax]) => ({
+      zone,
+      weight_band: band as 1 | 2 | 3 | 4,
+      weight_min_g: wMin,
+      weight_max_g: wMax,
+      cost,
+      eta_min_days: etaMin,
+      eta_max_days: etaMax,
+    }),
+  );
+}
+
+describe("mapSlabsToForm — 20 rows → 20 costs + 5 ETA pairs (D-06)", () => {
+  it("collapses seed rows into per-cell costs and per-zone ETA pairs", () => {
+    const form = mapSlabsToForm(seedRows());
+    expect(form.costs["local_1"]).toBe(40);
+    expect(form.costs["remote_4"]).toBe(180);
+    expect(Object.keys(form.costs)).toHaveLength(20);
+    expect(form.etas["local"]).toEqual({ min: 1, max: 2 });
+    expect(form.etas["remote"]).toEqual({ min: 6, max: 10 });
+    expect(Object.keys(form.etas)).toHaveLength(5);
+  });
+});
+
+describe("expandFormToRows — grid → 20 rows, per-zone ETA fanned to 4 bands (D-06)", () => {
+  it("emits exactly 20 rows", () => {
+    const rows = expandFormToRows(mapSlabsToForm(seedRows()));
+    expect(rows).toHaveLength(20);
+  });
+
+  it("writes each zone's single ETA pair to ALL 4 bands of that zone", () => {
+    const rows = expandFormToRows(mapSlabsToForm(seedRows()));
+    for (const zone of ZONE_ORDER) {
+      const zoneRows = rows.filter((r) => r.zone === zone);
+      expect(zoneRows).toHaveLength(4);
+      const first = zoneRows[0];
+      for (const r of zoneRows) {
+        expect(r.eta_min_days).toBe(first.eta_min_days);
+        expect(r.eta_max_days).toBe(first.eta_max_days);
+      }
+    }
+    // remote's 4 bands all carry the 6–10 pair.
+    for (const r of rows.filter((r) => r.zone === "remote")) {
+      expect(r.eta_min_days).toBe(6);
+      expect(r.eta_max_days).toBe(10);
+    }
+  });
+
+  it("carries the fixed weight_min_g/weight_max_g from WEIGHT_BAND_BOUNDS", () => {
+    const rows = expandFormToRows(mapSlabsToForm(seedRows()));
+    for (const r of rows) {
+      const [min, max] = WEIGHT_BAND_BOUNDS[r.weight_band as 1 | 2 | 3 | 4];
+      expect(r.weight_min_g).toBe(min);
+      expect(r.weight_max_g).toBe(max);
+    }
+    const band3 = rows.find((r) => r.weight_band === 3)!;
+    expect(band3.weight_min_g).toBe(501);
+    expect(band3.weight_max_g).toBe(1000);
+  });
+
+  it("emits integer (numeric) cost/eta even when the form held string inputs", () => {
+    const form = mapSlabsToForm(seedRows());
+    // Simulate RHF string inputs.
+    const strForm = {
+      costs: Object.fromEntries(
+        Object.entries(form.costs).map(([k, v]) => [k, String(v)]),
+      ),
+      etas: Object.fromEntries(
+        Object.entries(form.etas).map(([k, v]) => [
+          k,
+          { min: String(v.min), max: String(v.max) },
+        ]),
+      ),
+    };
+    const rows = expandFormToRows(strForm as never);
+    for (const r of rows) {
+      expect(typeof r.cost).toBe("number");
+      expect(typeof r.eta_min_days).toBe("number");
+      expect(typeof r.eta_max_days).toBe("number");
+    }
+    expect(rows.find((r) => r.zone === "local" && r.weight_band === 1)!.cost).toBe(
+      40,
+    );
+  });
+});
+
+describe("round-trip — expandFormToRows(mapSlabsToForm(seedRows))", () => {
+  it("reproduces the seed cost + eta values for all 20 (zone, band) pairs", () => {
+    const rows = expandFormToRows(mapSlabsToForm(seedRows()));
+    expect(rows).toHaveLength(20);
+    for (const [zone, band, , , cost, etaMin, etaMax] of SEED) {
+      const row = rows.find(
+        (r) => r.zone === zone && r.weight_band === band,
+      );
+      expect(row).toBeDefined();
+      expect(row!.cost).toBe(cost);
+      expect(row!.eta_min_days).toBe(etaMin);
+      expect(row!.eta_max_days).toBe(etaMax);
+    }
   });
 });
