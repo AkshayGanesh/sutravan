@@ -1,5 +1,6 @@
 import type { Product } from "@/data/products";
-import { displayPriceLabel } from "@/lib/variants";
+import { displayPricePair } from "@/lib/variants";
+import { productBadge, type BadgeKind } from "@/lib/badges";
 import WishlistButton from "@/components/WishlistButton";
 
 interface ProductCardProps {
@@ -7,7 +8,21 @@ interface ProductCardProps {
   onSelect: (product: Product) => void;
 }
 
+// Chip palette per badge kind — existing theme tokens only. Discount gets the
+// loudest treatment (secondary/gold), reserved for money; "Out of stock" keeps
+// the exact look it had before badges existed.
+const BADGE_CLASSES: Record<BadgeKind, string> = {
+  oos: "bg-background/90 backdrop-blur text-primary",
+  discount: "bg-secondary text-secondary-foreground",
+  bestSeller: "bg-primary text-primary-foreground",
+  new: "bg-primary text-primary-foreground",
+};
+
 export default function ProductCard({ product, onSelect }: ProductCardProps) {
+  // At most ONE badge, by priority: out of stock > discount > most sold > new.
+  const badge = productBadge(product);
+  const pair = displayPricePair(product);
+
   return (
     <div
       className="group cursor-pointer"
@@ -26,10 +41,14 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
         />
         <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-        {/* Out-of-stock marker — the product STAYS visible/clickable (QUICK-OOS-01). */}
-        {!product.inStock && (
-          <span className="absolute top-2 left-2 z-10 bg-background/90 backdrop-blur text-primary px-2.5 py-1 text-[10px] uppercase tracking-wider font-medium">
-            Out of stock
+        {/* The single merchandising chip (QUICK-260731-grz). Out-of-stock still
+            wins outright, and the product STAYS visible/clickable (QUICK-OOS-01).
+            Square corners are deliberate (--radius: 0rem) — do not round. */}
+        {badge && (
+          <span
+            className={`absolute top-2 left-2 z-10 ${BADGE_CLASSES[badge.kind]} px-2.5 py-1 text-[10px] uppercase tracking-wider font-medium`}
+          >
+            {badge.label}
           </span>
         )}
 
@@ -54,9 +73,17 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
           {product.name}
         </h3>
         <p className="text-xs text-foreground/60 mb-2">{product.subtitle}</p>
-        {/* "From ₹{lowest}" when variants exist; the single price otherwise. */}
+        {/* "From ₹{lowest}" when variants exist; the single price otherwise.
+            The struck MRP appears only while a discount is actually active —
+            pair.prefix already carries its own trailing space. */}
         <p className="text-sm font-medium">
-          {displayPriceLabel(product.price, product.variants)}
+          {pair.prefix}
+          {pair.original && (
+            <span className="line-through text-foreground/40 mr-1.5">
+              {pair.original}
+            </span>
+          )}
+          {pair.current}
         </p>
       </div>
     </div>

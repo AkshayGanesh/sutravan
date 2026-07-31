@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/lib/format";
+import { discountPercent, productBadge } from "@/lib/badges";
 import {
   Dialog,
   DialogContent,
@@ -61,6 +62,18 @@ export default function ProductDetail({
   const hasVariants = variants.length > 0;
   const selectedVariant =
     variants.find((v) => v.id === selectedVariantId) ?? null;
+
+  // The price point actually on screen (QUICK-260731-grz). Unlike the card —
+  // which always shows the CHEAPEST variant — the modal follows the SELECTED
+  // weight, so switching 70gm -> 100gm re-renders the MRP and the percentage.
+  const shownPrice = hasVariants ? selectedVariant?.price ?? null : product.price;
+  const shownOriginal = hasVariants
+    ? selectedVariant?.originalPrice ?? null
+    : product.originalPrice;
+  const shownPercent = product.showDiscount
+    ? discountPercent(shownPrice, shownOriginal)
+    : null;
+  const badge = productBadge(product);
 
   const prev = () => setActiveIndex((i) => (i - 1 + images.length) % images.length);
   const next = () => setActiveIndex((i) => (i + 1) % images.length);
@@ -192,9 +205,17 @@ export default function ProductDetail({
             )}
 
             <p className="text-xl font-semibold text-primary mb-2">
-              {hasVariants
-                ? formatPrice(selectedVariant?.price ?? null)
-                : formatPrice(product.price)}
+              {shownPercent != null && (
+                <span className="line-through text-foreground/40 text-base mr-2">
+                  {formatPrice(shownOriginal)}
+                </span>
+              )}
+              {formatPrice(shownPrice)}
+              {shownPercent != null && (
+                <span className="ml-2 align-middle bg-secondary text-secondary-foreground px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium">
+                  {shownPercent}% OFF
+                </span>
+              )}
             </p>
             {/* Out-of-stock marker — the product is still shown; just not buyable now. */}
             {!product.inStock && (
@@ -202,6 +223,15 @@ export default function ProductDetail({
                 Currently unavailable
               </p>
             )}
+            {/* "Most sold" / "New" chip, same treatment as the unavailable one.
+                Only reachable when in stock — out of stock already won the ladder
+                above, so the two chips can never appear together. */}
+            {product.inStock &&
+              (badge?.kind === "bestSeller" || badge?.kind === "new") && (
+                <p className="mb-2 inline-block self-start bg-muted text-foreground/70 px-2.5 py-1 text-xs uppercase tracking-wider font-medium">
+                  {badge.label}
+                </p>
+              )}
             {product.inStock && <div className="mb-2" />}
 
             {/* Per-product delivery estimate (D-03). key remounts the block on a
