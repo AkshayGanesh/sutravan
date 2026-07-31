@@ -12,6 +12,7 @@ function variant(overrides: Partial<Variant> = {}): Variant {
     id: "v1",
     label: "70gm",
     price: 120,
+    originalPrice: null,
     sortOrder: 0,
     ...overrides,
   };
@@ -20,7 +21,14 @@ function variant(overrides: Partial<Variant> = {}): Variant {
 describe("toVariant", () => {
   it("maps a snake_case row to a camelCase Variant", () => {
     const v = toVariant({ id: "abc", label: "200gm", price: 300, sort_order: 2 });
-    expect(v).toEqual({ id: "abc", label: "200gm", price: 300, sortOrder: 2 });
+    // original_price absent on the row -> originalPrice: null (QUICK-260731-grz).
+    expect(v).toEqual({
+      id: "abc",
+      label: "200gm",
+      price: 300,
+      originalPrice: null,
+      sortOrder: 2,
+    });
   });
 
   it("keeps price null untouched (number | null)", () => {
