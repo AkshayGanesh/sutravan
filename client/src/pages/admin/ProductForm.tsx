@@ -64,10 +64,33 @@ const productSchema = z.object({
       .nonnegative("Price can't be negative.")
       .nullable(),
   ),
+  // The MRP (QUICK-260731-grz). Same blank -> null coercion as price. Shown
+  // struck-through with a computed "% OFF" only while Show discount is on.
+  originalPrice: z.preprocess(
+    (raw) => {
+      if (raw === "" || raw === null || raw === undefined) return null;
+      if (typeof raw === "string") {
+        const n = Number(raw.trim());
+        return Number.isNaN(n) ? raw : n;
+      }
+      return raw;
+    },
+    z
+      .number({ invalid_type_error: "Enter a whole rupee amount, or leave blank." })
+      .int("Enter a whole rupee amount (no paise).")
+      .nonnegative("MRP can't be negative.")
+      .nullable(),
+  ),
   isActive: z.boolean(),
   // Carried hidden value (like isActive) so create/edit never resets stock; the
   // visible stock toggle lives on the products list, not in this form.
   inStock: z.boolean(),
+  // Visible merchandising toggles (below). All DISPLAY-only and opt-in: they
+  // default false for new products, so nothing is badged until the owner says so
+  // (QUICK-260731-grz). None of them affects visibility.
+  showDiscount: z.boolean(),
+  isNew: z.boolean(),
+  isBestSeller: z.boolean(),
   // Visible toggle (below) — when true, the public detail shows "Always patch
   // test first." Opt-in: defaults false for new products (QUICK-PTN-01).
   showPatchTestNote: z.boolean(),
@@ -94,10 +117,55 @@ const productSchema = z.object({
           .nonnegative("Price can't be negative.")
           .nullable(),
       ),
+      // Per-weight MRP, so a variant product discounts correctly per option.
+      originalPrice: z.preprocess(
+        (raw) => {
+          if (raw === "" || raw === null || raw === undefined) return null;
+          if (typeof raw === "string") {
+            const n = Number(raw.trim());
+            return Number.isNaN(n) ? raw : n;
+          }
+          return raw;
+        },
+        z
+          .number({ invalid_type_error: "Enter a whole rupee amount, or leave blank." })
+          .int("Enter a whole rupee amount (no paise).")
+          .nonnegative("MRP can't be negative.")
+          .nullable(),
+      ),
       sortOrder: z.number(),
     }),
   ),
-});
+})
+  // An MRP must be strictly HIGHER than the price it sits beside — a same-or-
+  // lower MRP is a data-entry error, not a 0% badge. Values here are
+  // post-preprocess, so both prices are already `number | null`.
+  .superRefine((v, ctx) => {
+    if (v.price != null && v.originalPrice != null && v.originalPrice <= v.price) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["originalPrice"],
+        message: "MRP must be higher than the price.",
+      });
+    }
+    v.variants.forEach((row, i) => {
+      if (
+        row.price != null &&
+        row.originalPrice != null &&
+        row.originalPrice <= row.price
+      ) {
+        // Reported at the variants ARRAY root, not the nested index: the Weight
+        // options field renders ONE <FormMessage /> for the whole array, so a
+        // per-index path would be invisible and the form would appear to
+        // silently refuse to submit.
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["variants"],
+          message: `Weight option ${i + 1}: MRP must be higher than the price.`,
+        });
+      }
+    });
+  });
 
 // The form's working value type. price is `unknown` on input (the raw field
 // value) and resolves to `number | null` after the zod preprocess.
@@ -141,6 +209,7 @@ export default function ProductForm() {
           id: string;
           label: string;
           price: number | null;
+          original_price: number | null;
           sort_order: number;
         }> }).product_variants ?? []
       )
@@ -150,8 +219,18 @@ export default function ProductForm() {
           id: vr.id,
           label: vr.label,
           price: vr.price,
+          originalPrice: vr.original_price ?? null,
           sortOrder: vr.sort_order,
         }));
+      // The badge columns arrive from the same admin select; cast locally (the
+      // established idiom here) rather than weakening the shared row types. The
+      // ?? defaults also keep this working before migration 0019 is pushed.
+      const badges = existing as {
+        original_price?: number | null;
+        show_discount?: boolean | null;
+        is_new?: boolean | null;
+        is_best_seller?: boolean | null;
+      };
       return {
         name: existing.name ?? "",
         subtitle: existing.subtitle ?? "",
@@ -162,9 +241,13 @@ export default function ProductForm() {
         shelfLife: existing.shelf_life ?? "",
         batchNote: existing.batch_note ?? "",
         price: existing.price ?? null,
+        originalPrice: badges.original_price ?? null,
         isActive: existing.is_active ?? false,
         inStock: existing.in_stock ?? true,
         showPatchTestNote: existing.show_patch_test_note ?? false,
+        showDiscount: badges.show_discount ?? false,
+        isNew: badges.is_new ?? false,
+        isBestSeller: badges.is_best_seller ?? false,
         imagePaths: existing.images ?? [],
         variants: variantRows,
       };
@@ -179,9 +262,13 @@ export default function ProductForm() {
       shelfLife: "",
       batchNote: "",
       price: null,
+      originalPrice: null, // no MRP on file until the owner sets one
       isActive: false, // D-08: new products start as draft
       inStock: true, // new products start in stock
       showPatchTestNote: false, // opt-in: note hidden until the owner enables it
+      showDiscount: false, // opt-in: no discount badge until enabled
+      isNew: false, // opt-in: no New badge until enabled
+      isBestSeller: false, // opt-in: no Most sold badge until enabled
       imagePaths: [],
       variants: [], // no variants -> single price above is used (backwards-compatible)
     };
@@ -212,9 +299,13 @@ export default function ProductForm() {
       shelfLife: parsed.shelfLife,
       batchNote: parsed.batchNote,
       price: parsed.price,
+      originalPrice: parsed.originalPrice,
       isActive: parsed.isActive,
       inStock: parsed.inStock,
       showPatchTestNote: parsed.showPatchTestNote,
+      showDiscount: parsed.showDiscount,
+      isNew: parsed.isNew,
+      isBestSeller: parsed.isBestSeller,
       imagePaths: parsed.imagePaths,
       variants: parsed.variants,
       slug: editSlug, // undefined on create -> insert with a unique slug
@@ -311,32 +402,62 @@ export default function ProductForm() {
               )}
             />
 
-            {/* Price (whole rupees, blank-allowed -> null per D-09) */}
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price (₹)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      step={1}
-                      placeholder="Leave blank for “Price on request”"
-                      {...field}
-                      value={field.value == null ? "" : String(field.value)}
-                      onChange={(e) => field.onChange(e.target.value)}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Whole rupees only. Leave blank to show “Price on request”.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Price + MRP side by side (whole rupees, blank-allowed -> null
+                per D-09). The MRP must exceed the price (superRefine). */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Price (₹)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1}
+                        placeholder="Leave blank for “Price on request”"
+                        {...field}
+                        value={field.value == null ? "" : String(field.value)}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Whole rupees only. Leave blank to show “Price on request”.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="originalPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Original price (MRP) (₹)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1}
+                        placeholder="Leave blank for no MRP"
+                        {...field}
+                        value={field.value == null ? "" : String(field.value)}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Optional. Shown struck-through with a % OFF badge when Show
+                      discount is on.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Weight/price variants (QUICK-VAR-01). Repeatable label + price +
                 sort rows. Empty -> the single price above is used. Each row's id
@@ -355,7 +476,12 @@ export default function ProductForm() {
                 const addRow = () =>
                   field.onChange([
                     ...rows,
-                    { label: "", price: null, sortOrder: rows.length },
+                    {
+                      label: "",
+                      price: null,
+                      originalPrice: null,
+                      sortOrder: rows.length,
+                    },
                   ]);
                 return (
                   <FormItem>
@@ -392,6 +518,29 @@ export default function ProductForm() {
                               onChange={(e) =>
                                 updateRow(i, {
                                   price:
+                                    e.target.value === ""
+                                      ? null
+                                      : Number(e.target.value),
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="w-28">
+                            <Input
+                              aria-label={`Variant ${i + 1} MRP`}
+                              type="number"
+                              inputMode="numeric"
+                              min={0}
+                              step={1}
+                              placeholder="₹ MRP"
+                              value={
+                                row.originalPrice == null
+                                  ? ""
+                                  : String(row.originalPrice)
+                              }
+                              onChange={(e) =>
+                                updateRow(i, {
+                                  originalPrice:
                                     e.target.value === ""
                                       ? null
                                       : Number(e.target.value),
@@ -592,6 +741,82 @@ export default function ProductForm() {
                       checked={field.value}
                       onCheckedChange={field.onChange}
                       aria-label="Show patch-test note"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {/* Merchandising badges (QUICK-260731-grz). All opt-in, all DISPLAY
+                only — none of them hides or reveals the product. At most ONE
+                badge renders on the card, by priority:
+                Out of stock > Discount > Most sold > New. */}
+            <FormField
+              control={form.control}
+              name="showDiscount"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-4 rounded-md border border-border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Show discount</FormLabel>
+                    <FormDescription>
+                      {field.value
+                        ? "Shows the MRP struck through with a % OFF badge."
+                        : "Hidden — no discount badge, even if an MRP is set."}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      aria-label="Show discount"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isNew"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-4 rounded-md border border-border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>New product</FormLabel>
+                    <FormDescription>
+                      {field.value
+                        ? 'Shows a "New" badge on the shop card.'
+                        : "Hidden — no New badge."}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      aria-label="New product"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isBestSeller"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-4 rounded-md border border-border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Most sold</FormLabel>
+                    <FormDescription>
+                      {field.value
+                        ? 'Shows a "Most sold" badge on the shop card.'
+                        : "Hidden — no Most sold badge."}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      aria-label="Most sold"
                     />
                   </FormControl>
                 </FormItem>
