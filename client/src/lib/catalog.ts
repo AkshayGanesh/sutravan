@@ -60,6 +60,14 @@ function toProduct(row: any): Product {
     // Default false so any unexpected null reads as "note hidden" (matches the
     // column default). Display-only opt-in flag; NO read filter applied on it.
     showPatchTestNote: row.show_patch_test_note ?? false,
+    // Merchandising badge inputs (QUICK-260731-grz, migration 0019). Same
+    // defensive defaults as the flags above — they match the column defaults AND
+    // keep this reader working against a DB where 0019 has not been pushed yet.
+    // Display-only: NO read filter is applied on any of them (see fetchProducts).
+    originalPrice: row.original_price ?? null,
+    showDiscount: row.show_discount ?? false,
+    isNew: row.is_new ?? false,
+    isBestSeller: row.is_best_seller ?? false,
     // Embedded product_variants (QUICK-VAR-01). Empty array -> unchanged
     // single-price behaviour. The nested select + sort ordering are wired in the
     // data layer (Task 3); a product with no variant rows gets [].
@@ -84,11 +92,15 @@ async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
     .select(
-      'slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, in_stock, show_patch_test_note, categories(slug, label, sort_order), product_variants(id, label, price, sort_order)'
+      'slug, name, subtitle, price, original_price, show_discount, is_new, is_best_seller, benefits, ingredients, tips, shelf_life, batch_note, images, in_stock, show_patch_test_note, categories(slug, label, sort_order), product_variants(id, label, price, original_price, sort_order)'
     )
     // PUB-02: published-only filter lives SERVER-SIDE. NOTE: deliberately NO
     // .eq('in_stock', ...) — out-of-stock products MUST stay visible on the Shop
     // (in_stock is not a visibility flag; it only drives the "unavailable" UI).
+    // Equally deliberate: NO equality filter on show_discount, is_new or
+    // is_best_seller either — the badge columns are merchandising DISPLAY flags,
+    // not visibility flags. Filtering on any of them would silently hide every
+    // product the owner has not badged.
     .eq('is_active', true)
     // Order the embedded variants by sort_order so the public detail selector and
     // "From ₹{lowest}" derivation see them in display order (supabase-js v2

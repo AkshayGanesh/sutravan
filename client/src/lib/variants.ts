@@ -14,15 +14,20 @@ export interface Variant {
   id: string;
   label: string;
   price: number | null; // same type/units as products.price (numeric -> number | null)
+  // The MRP for THIS weight (QUICK-260731-grz). Same type/units as price;
+  // null = no MRP on file. Display-only — the "% OFF" is always computed.
+  originalPrice: number | null;
   sortOrder: number;
 }
 
-/** snake_case product_variants row -> camelCase Variant (price kept untouched). */
+/** snake_case product_variants row -> camelCase Variant (prices kept untouched). */
 export function toVariant(row: any): Variant {
   return {
     id: row.id,
     label: row.label,
     price: row.price, // number | null — formatPrice handles null
+    // Defensive: the column may not exist yet on an un-migrated DB.
+    originalPrice: row.original_price ?? null,
     sortOrder: row.sort_order ?? 0,
   };
 }

@@ -45,6 +45,13 @@ export type ProductFormValues = {
   isActive: boolean; // draft (false) / published (true) (ADMIN-08)
   inStock: boolean; // in stock (true) / out of stock (false). NOT a visibility flag.
   showPatchTestNote: boolean; // shows "Always patch test first." on the public detail. Display-only, opt-in (default false).
+  // Merchandising badges (QUICK-260731-grz). All DISPLAY-only, none a visibility
+  // flag. originalPrice is the MRP (null = none on file); the "% OFF" is always
+  // computed from (price, originalPrice), never typed.
+  originalPrice: number | null;
+  showDiscount: boolean;
+  isNew: boolean;
+  isBestSeller: boolean;
   imagePaths: string[]; // Storage paths, NOT URLs (D-03)
   variants: VariantFormValues[]; // weight/price SKUs (QUICK-VAR-01); [] = unchanged single-price path
   slug?: string;
@@ -57,6 +64,7 @@ export type VariantFormValues = {
   id?: string;
   label: string;
   price: number | null;
+  originalPrice: number | null; // MRP for this weight (QUICK-260731-grz); null = none
   sortOrder: number;
 };
 
@@ -83,6 +91,10 @@ export type ProductRow = {
   is_active: boolean;
   in_stock: boolean;
   show_patch_test_note: boolean;
+  original_price: number | null;
+  show_discount: boolean;
+  is_new: boolean;
+  is_best_seller: boolean;
 };
 
 // ── Mapping boundary: camelCase form -> snake_case row (reverse of toProduct) ─
@@ -117,6 +129,10 @@ export function fromProductForm(
     is_active: v.isActive,
     in_stock: v.inStock,
     show_patch_test_note: v.showPatchTestNote,
+    original_price: v.originalPrice ?? null,
+    show_discount: v.showDiscount,
+    is_new: v.isNew,
+    is_best_seller: v.isBestSeller,
   };
 }
 
@@ -124,11 +140,21 @@ export function fromProductForm(
 
 // The snake_case product_variants payload this layer writes (sans id/product_id;
 // the caller adds product_id, and update keys off the existing id).
-type VariantRow = { label: string; price: number | null; sort_order: number };
+type VariantRow = {
+  label: string;
+  price: number | null;
+  original_price: number | null;
+  sort_order: number;
+};
 
 /** Map a camelCase VariantFormValues -> its snake_case row (reverse of toVariant). */
 export function fromVariantForm(v: VariantFormValues): VariantRow {
-  return { label: v.label, price: v.price, sort_order: v.sortOrder };
+  return {
+    label: v.label,
+    price: v.price,
+    original_price: v.originalPrice,
+    sort_order: v.sortOrder,
+  };
 }
 
 // The existing-row shape diffVariants compares against (straight from PostgREST).
@@ -136,6 +162,7 @@ type ExistingVariant = {
   id: string;
   label: string;
   price: number | null;
+  original_price: number | null;
   sort_order: number;
 };
 
@@ -143,7 +170,7 @@ type ExistingVariant = {
  * PURE diff of submitted variant rows against the existing DB rows.
  *  - submitted row with no id            -> toInsert
  *  - submitted id matches but a field    -> toUpdate
- *    (label/price/sortOrder) differs
+ *    (label/price/originalPrice/sortOrder) differs
  *  - submitted id matches and unchanged  -> no-op (neither array)
  *  - existing id absent from submitted   -> toDelete (its id)
  *
@@ -174,12 +201,20 @@ export function diffVariants(
     if (!prev) {
       // An id that isn't in the existing set (shouldn't normally happen) — treat
       // as an insert of a brand-new row (drop the stale id at the call site).
-      toInsert.push({ label: s.label, price: s.price, sortOrder: s.sortOrder });
+      toInsert.push({
+        label: s.label,
+        price: s.price,
+        originalPrice: s.originalPrice,
+        sortOrder: s.sortOrder,
+      });
       continue;
     }
+    // NOTE: original_price MUST be part of this comparison — without it,
+    // editing ONLY a variant's MRP would silently no-op (no update issued).
     const changed =
       prev.label !== s.label ||
       prev.price !== s.price ||
+      prev.original_price !== s.originalPrice ||
       prev.sort_order !== s.sortOrder;
     if (changed) toUpdate.push(s);
   }
@@ -206,7 +241,7 @@ export async function saveProductVariants(
 ): Promise<void> {
   const { data: existing, error: readError } = await supabase
     .from("product_variants")
-    .select("id, label, price, sort_order")
+    .select("id, label, price, original_price, sort_order")
     .eq("product_id", productId);
   if (readError) throw readError;
 
@@ -338,7 +373,7 @@ export async function insertProductWithUniqueSlug(
 // The admin product/category row shapes returned by the list queries (snake_case
 // straight from PostgREST; the admin tables render these directly).
 const ADMIN_PRODUCT_COLUMNS =
-  "slug, name, subtitle, price, benefits, ingredients, tips, shelf_life, batch_note, images, is_active, in_stock, show_patch_test_note, categories(slug, label, sort_order), product_variants(id, label, price, sort_order)";
+  "slug, name, subtitle, price, original_price, show_discount, is_new, is_best_seller, benefits, ingredients, tips, shelf_life, batch_note, images, is_active, in_stock, show_patch_test_note, categories(slug, label, sort_order), product_variants(id, label, price, original_price, sort_order)";
 
 async function fetchAdminProducts() {
   // NOTE: no .eq('is_active', true) here — admins manage drafts too (Pitfall 4).

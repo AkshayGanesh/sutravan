@@ -38,6 +38,20 @@ export interface Product {
   // shows the fixed note "Always patch test first."; not a visibility flag.
   // Defaults false.
   showPatchTestNote: boolean;
+  // ── Merchandising badges (QUICK-260731-grz) ──────────────────────────────
+  // All four are DISPLAY-only and default to off/absent; NONE of them is a
+  // visibility flag (is_active alone controls visibility, enforced by RLS).
+  // The MRP (maximum retail price) shown struck-through when a discount is
+  // active. null = no MRP on file. The "% OFF" is ALWAYS computed from
+  // (price, originalPrice) — never typed, never stored.
+  originalPrice: number | null;
+  // Explicit opt-in switch for the discount badge, so the owner can pre-fill
+  // MRPs and flip a sale on/off without retyping prices. Defaults false.
+  showDiscount: boolean;
+  // Manual "New" badge (there is no launch-date data in this app). Defaults false.
+  isNew: boolean;
+  // Manual "Most sold" badge (there is no order data in this app). Defaults false.
+  isBestSeller: boolean;
   // Weight/price variants (SKUs) (QUICK-VAR-01). An EMPTY array means the single
   // products.price path is unchanged (backwards-compatible); >=1 variant drives
   // display pricing instead.
@@ -104,6 +118,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -129,6 +147,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -153,6 +175,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -178,6 +204,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -203,6 +233,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -228,6 +262,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -253,6 +291,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -278,6 +320,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -304,6 +350,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -330,6 +380,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -354,6 +408,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -378,6 +436,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -404,6 +466,10 @@ export const products: Product[] = [
     images: [soapImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
 
@@ -432,6 +498,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -459,6 +529,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -484,6 +558,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -510,6 +588,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -535,6 +617,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -562,6 +648,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -588,6 +678,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -616,6 +710,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -642,6 +740,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -666,6 +768,10 @@ export const products: Product[] = [
     images: [scrubImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
 
@@ -692,6 +798,10 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -717,6 +827,10 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -742,6 +856,10 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -766,6 +884,10 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
   {
@@ -791,6 +913,10 @@ export const products: Product[] = [
     images: [creamImg],
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     variants: [],
   },
 
