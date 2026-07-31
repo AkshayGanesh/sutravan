@@ -24,6 +24,10 @@ function baseForm(overrides: Partial<ProductFormValues> = {}): ProductFormValues
     isActive: true,
     inStock: true,
     showPatchTestNote: false,
+    originalPrice: null,
+    showDiscount: false,
+    isNew: false,
+    isBestSeller: false,
     imagePaths: ["products/neem/1.jpg"],
     variants: [],
     slug: "neem",
@@ -147,6 +151,38 @@ describe("fromProductForm show_patch_test_note mapping", () => {
   });
 });
 
+describe("fromProductForm badge + MRP mapping (QUICK-260731-grz)", () => {
+  it("maps a numeric originalPrice -> row.original_price", () => {
+    const row = fromProductForm(baseForm({ originalPrice: 500 }), CATEGORY_ID);
+    expect(row.original_price).toBe(500);
+  });
+
+  it("maps a null originalPrice -> row.original_price === null (no MRP on file)", () => {
+    const row = fromProductForm(baseForm({ originalPrice: null }), CATEGORY_ID);
+    expect(row.original_price).toBeNull();
+  });
+
+  it("maps the three badge booleans to their snake_case columns when true", () => {
+    const row = fromProductForm(
+      baseForm({ showDiscount: true, isNew: true, isBestSeller: true }),
+      CATEGORY_ID,
+    );
+    expect(row.show_discount).toBe(true);
+    expect(row.is_new).toBe(true);
+    expect(row.is_best_seller).toBe(true);
+  });
+
+  it("maps the three badge booleans when false (the default, un-badged product)", () => {
+    const row = fromProductForm(
+      baseForm({ showDiscount: false, isNew: false, isBestSeller: false }),
+      CATEGORY_ID,
+    );
+    expect(row.show_discount).toBe(false);
+    expect(row.is_new).toBe(false);
+    expect(row.is_best_seller).toBe(false);
+  });
+});
+
 describe("imageStoragePath", () => {
   it("builds the D-08 convention products/{slug}/{filename}", () => {
     expect(imageStoragePath("neem", "1.jpg")).toBe("products/neem/1.jpg");
@@ -155,59 +191,85 @@ describe("imageStoragePath", () => {
 
 describe("fromVariantForm", () => {
   it("maps camelCase VariantFormValues -> snake_case row (sans id/product_id)", () => {
-    const row = fromVariantForm({ label: "70gm", price: 120, sortOrder: 2 });
-    expect(row).toEqual({ label: "70gm", price: 120, sort_order: 2 });
+    const row = fromVariantForm({
+      label: "70gm",
+      price: 120,
+      originalPrice: 150,
+      sortOrder: 2,
+    });
+    expect(row).toEqual({
+      label: "70gm",
+      price: 120,
+      original_price: 150,
+      sort_order: 2,
+    });
   });
 
   it("keeps a null price untouched", () => {
-    const row = fromVariantForm({ label: "200gm", price: null, sortOrder: 0 });
+    const row = fromVariantForm({
+      label: "200gm",
+      price: null,
+      originalPrice: null,
+      sortOrder: 0,
+    });
     expect(row.price).toBeNull();
+  });
+
+  it("maps a null originalPrice -> original_price === null (no MRP for this weight)", () => {
+    const row = fromVariantForm({
+      label: "200gm",
+      price: 300,
+      originalPrice: null,
+      sortOrder: 0,
+    });
+    expect(row.original_price).toBeNull();
   });
 });
 
 describe("diffVariants", () => {
   const existing = [
-    { id: "a", label: "70gm", price: 120, sort_order: 0 },
-    { id: "b", label: "200gm", price: 300, sort_order: 1 },
+    { id: "a", label: "70gm", price: 120, original_price: null, sort_order: 0 },
+    { id: "b", label: "200gm", price: 300, original_price: 400, sort_order: 1 },
   ];
+
+  // The existing rows expressed as the camelCase form shape (unchanged submit).
+  const asSubmitted = (): VariantFormValues[] =>
+    existing.map((e) => ({
+      id: e.id,
+      label: e.label,
+      price: e.price,
+      originalPrice: e.original_price,
+      sortOrder: e.sort_order,
+    }));
 
   it("flags a submitted row with no id as toInsert", () => {
     const submitted: VariantFormValues[] = [
-      ...existing.map((e) => ({
-        id: e.id,
-        label: e.label,
-        price: e.price,
-        sortOrder: e.sort_order,
-      })),
-      { label: "500gm", price: 600, sortOrder: 2 },
+      ...asSubmitted(),
+      { label: "500gm", price: 600, originalPrice: null, sortOrder: 2 },
     ];
     const { toInsert, toUpdate, toDelete } = diffVariants(existing, submitted);
-    expect(toInsert).toEqual([{ label: "500gm", price: 600, sortOrder: 2 }]);
+    expect(toInsert).toEqual([
+      { label: "500gm", price: 600, originalPrice: null, sortOrder: 2 },
+    ]);
     expect(toUpdate).toEqual([]);
     expect(toDelete).toEqual([]);
   });
 
   it("flags a submitted row whose id matches but fields differ as toUpdate", () => {
     const submitted: VariantFormValues[] = [
-      { id: "a", label: "70gm", price: 150, sortOrder: 0 }, // price changed
-      { id: "b", label: "200gm", price: 300, sortOrder: 1 }, // unchanged
+      { id: "a", label: "70gm", price: 150, originalPrice: null, sortOrder: 0 }, // price changed
+      { id: "b", label: "200gm", price: 300, originalPrice: 400, sortOrder: 1 }, // unchanged
     ];
     const { toInsert, toUpdate, toDelete } = diffVariants(existing, submitted);
     expect(toInsert).toEqual([]);
     expect(toUpdate).toEqual([
-      { id: "a", label: "70gm", price: 150, sortOrder: 0 },
+      { id: "a", label: "70gm", price: 150, originalPrice: null, sortOrder: 0 },
     ]);
     expect(toDelete).toEqual([]);
   });
 
   it("treats an unchanged matching row as a no-op (in neither insert nor update)", () => {
-    const submitted: VariantFormValues[] = existing.map((e) => ({
-      id: e.id,
-      label: e.label,
-      price: e.price,
-      sortOrder: e.sort_order,
-    }));
-    const { toInsert, toUpdate, toDelete } = diffVariants(existing, submitted);
+    const { toInsert, toUpdate, toDelete } = diffVariants(existing, asSubmitted());
     expect(toInsert).toEqual([]);
     expect(toUpdate).toEqual([]);
     expect(toDelete).toEqual([]);
@@ -215,12 +277,42 @@ describe("diffVariants", () => {
 
   it("flags an existing id absent from submitted as toDelete", () => {
     const submitted: VariantFormValues[] = [
-      { id: "a", label: "70gm", price: 120, sortOrder: 0 },
+      { id: "a", label: "70gm", price: 120, originalPrice: null, sortOrder: 0 },
     ];
     const { toInsert, toUpdate, toDelete } = diffVariants(existing, submitted);
     expect(toInsert).toEqual([]);
     expect(toUpdate).toEqual([]);
     expect(toDelete).toEqual(["b"]);
+  });
+
+  // THE key regression this change is most exposed to: without original_price in
+  // diffVariants' change check, editing ONLY an MRP would issue no UPDATE and
+  // the owner's edit would silently vanish on save.
+  it("flags an MRP-ONLY change as toUpdate (setting a first MRP on a row)", () => {
+    const submitted = asSubmitted();
+    submitted[0] = { ...submitted[0], originalPrice: 150 }; // 120/null -> 120/150
+    const { toInsert, toUpdate, toDelete } = diffVariants(existing, submitted);
+    expect(toInsert).toEqual([]);
+    expect(toUpdate).toEqual([
+      { id: "a", label: "70gm", price: 120, originalPrice: 150, sortOrder: 0 },
+    ]);
+    expect(toDelete).toEqual([]);
+  });
+
+  it("flags an MRP-ONLY change as toUpdate (clearing an existing MRP)", () => {
+    const submitted = asSubmitted();
+    submitted[1] = { ...submitted[1], originalPrice: null }; // 300/400 -> 300/null
+    const { toUpdate } = diffVariants(existing, submitted);
+    expect(toUpdate).toEqual([
+      { id: "b", label: "200gm", price: 300, originalPrice: null, sortOrder: 1 },
+    ]);
+  });
+
+  it("still reports a no-op when nothing INCLUDING the MRP changed", () => {
+    const { toInsert, toUpdate, toDelete } = diffVariants(existing, asSubmitted());
+    expect(toInsert).toEqual([]);
+    expect(toUpdate).toEqual([]);
+    expect(toDelete).toEqual([]);
   });
 
   it("empty submitted + empty existing -> all three arrays empty (0-variant product)", () => {
