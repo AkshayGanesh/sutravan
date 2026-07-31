@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-27)
 Phase: 10 — COMPLETE
 Plan: 3 of 3
 Status: Phase 10 complete
-Last activity: 2026-07-06 -- Phase 10 marked complete
+Last activity: 2026-07-31 -- Completed quick task 260731-grz: Product badges (Discount / New / Most sold) — migration 0019 pending owner `db push`
 
 ## Performance Metrics
 
@@ -188,6 +188,7 @@ RESOLVED (v1.0):
 | 260620-q5k | Google-Forms-style Skin Guide sections: questionnaire_sections table + admin CRUD + per-question section dropdown + public one-section-at-a-time wizard (progress bar, Back/Next, "More questions" bucket) | 2026-06-20 | a277034 | [260620-q5k-add-google-forms-style-sections-to-the-s](./quick/260620-q5k-add-google-forms-style-sections-to-the-s/) |
 | 260706-c73 | Make admin product-image thumbnails drag-reorderable (handle-only framer-motion Reorder; order persists via products.images array — no backend change). ✅ human-verified | 2026-07-06 | e7be148 | [260706-c73-the-images-uploaded-for-a-product-should](./quick/260706-c73-the-images-uploaded-for-a-product-should/) |
 | 260706-cl1 | Skin Guide (/questionnaire) intro title/subtext/caveat + post-submit thank-you title/message admin-editable via 5 new questionnaire_* site_content keys, edited on /admin/content (no migration). ✅ human-verified | 2026-07-06 | 45be6b9 | [260706-cl1-skin-guide-questionnaire-editable-header](./quick/260706-cl1-skin-guide-questionnaire-editable-header/) |
+| 260731-grz | Product badges: Discount / New / Most sold — per-product switches + real MRP price mechanic (products.original_price + product_variants.original_price), single badge by priority (OOS > discount > most sold > new) on card + detail. ⏳ awaits owner `db push` (0019) | 2026-07-31 | 97775a7 | [260731-grz-product-badges-discount-new-most-sold](./quick/260731-grz-product-badges-discount-new-most-sold/) |
 
 > ✅ RESOLVED (2026-06-02): live steps for c2y + co6 completed by owner —
 > `supabase db push` (applied 0008 + 0009), `supabase secrets set RESEND_API_KEY/ADMIN_NOTIFY_EMAIL`,
