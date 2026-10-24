@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2C5F3F" />
+      <stop offset="100%" style="stop-color:#1E4430" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C8A96E" />
+      <stop offset="50%" style="stop-color:#D4B87A" />
+      <stop offset="100%" style="stop-color:#B8955A" />
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" style="stop-color:#345F45;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1A3628;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="url(#bgGlow)" />
+  
+  <!-- Subtle texture dots -->
+  <g opacity="0.03" fill="white">
+    <circle cx="200" cy="300" r="80" /><circle cx="800" cy="200" r="120" />
+    <circle cx="500" cy="800" r="100" /><circle cx="900" cy="700" r="60" />
+  </g>
+  
+  <!-- Gold border frame -->
+  <rect x="40" y="40" width="1000" height="1000" rx="0" fill="none" stroke="#C8A96E" stroke-width="1" opacity="0.4"/>
+  <rect x="55" y="55" width="970" height="970" rx="0" fill="none" stroke="#C8A96E" stroke-width="0.5" opacity="0.25"/>
+  
+  <!-- Corner ornaments -->
+  <g stroke="#C8A96E" stroke-width="1" opacity="0.5" fill="none">
+    <path d="M70,70 L120,70 M70,70 L70,120"/>
+    <path d="M1010,70 L960,70 M1010,70 L1010,120"/>
+    <path d="M70,1010 L120,1010 M70,1010 L70,960"/>
+    <path d="M1010,1010 L960,1010 M1010,1010 L1010,960"/>
+  </g>
+  
+  <!-- Decorative leaves top -->
+  <g transform="translate(540, 280)" opacity="0.15" fill="#4A8A60">
+    <path d="M0,0 C-15,30 -10,70 0,90 C10,70 15,30 0,0Z" transform="rotate(-20)"/>
+    <path d="M0,0 C-15,30 -10,70 0,90 C10,70 15,30 0,0Z" transform="rotate(20) scale(-1,1)"/>
+    <path d="M0,0 C-10,25 -6,50 0,65 C6,50 10,25 0,0Z" transform="translate(-30,-10) rotate(-40)"/>
+    <path d="M0,0 C-10,25 -6,50 0,65 C6,50 10,25 0,0Z" transform="translate(30,-10) rotate(40) scale(-1,1)"/>
+  </g>
+
+  <!-- Brand name -->
+  <g fill="url(#goldGrad)">
+    <path d="M1016 965H907V586Q848 621 737 646Q633 670 557 670Q374 670 250 605Q180 568 180 508Q180 428 264 428Q315 428 397 458Q450 477 533 506Q568 518 657 518Q830 518 915 411Q956 360 956 291Q956 132 756 41Q673 3 598 -2Q670 -74 735 -74Q756 -74 780 -68L881 -233Q850 -260 754 -260Q676 -260 622 -207Q593 -178 540 -86Q495 -7 465 -6Q280 -1 180 61Q117 100 117 168Q117 252 217 252Q254 252 371.5 194.5Q489 137 565 137Q717 137 850 209Q915 244 915 295Q915 371 795 371Q758 371 556 317Q437 285 410 285Q251 285 148 435Q98 507 98 590Q97 759 329 818Q424 842 508 842Q604 842 780 795V965H-16V1085H1016Z" transform="translate(240.00, 520.00) scale(0.072798, -0.072798)" />
+    <path d="M1120 965H283V324Q283 260 310 192Q365 53 492 53Q663 53 752 196Q821 306 821 403V801H1024V-51Q1000 -37 934 -8L819 43V123Q701 37 617 14Q566 0 496 0Q274 0 149 195Q92 284 92 389V965H-29V1085H1120Z" transform="translate(313.23, 520.00) scale(0.072798, -0.072798)" />
+    <path d="M885 965H379V160Q379 126 401 94Q424 59 457 59Q606 59 606 367L807 252Q692 -3 451 -2Q311 -1 233 126Q199 181 199 236V965H-10V1085H199V1421L379 1296V1085H885Z" transform="translate(394.19, 520.00) scale(0.072798, -0.072798)" />
+    <path d="M1001 965H-10V1085H1001ZM918 606Q918 547 847 473Q787 410 721 379L571 549Q639 555 700 599Q770 649 770 713Q770 747 726 771Q688 793 651 793Q574 793 486 719Q307 569 307 387V-37L115 63V803H309V727Q352 770 487 817Q553 840 623 840Q768 840 869 729Q918 675 918 606Z" transform="translate(457.67, 520.00) scale(0.072798, -0.072798)" />
+    <path d="M977 965H311V805Q315 805 319.0 801.0Q323 797 326 797Q318 797 317 798Q317 803 466 830Q521 840 575 840Q800 840 864 714Q907 630 907 375V-10Q886 -2 748 55Q748 87 735 96Q682 65 648 49Q540 -2 397 -2Q200 -2 93 122Q41 182 41 256Q41 339 123 421Q282 580 518 580Q661 580 748 514V606Q704 662 662.5 681.0Q621 700 549 698Q388 695 254 639Q194 614 137 594V668Q150 679 175 701Q179 706 180 707V965H-25V1085H977ZM748 332Q748 376 643 411Q556 440 498 440Q287 440 160 288Q109 227 109 188Q130 115 274 115Q460 115 614 208Q748 289 748 332Z" transform="translate(529.23, 520.00) scale(0.072798, -0.072798)" />
+    <path d="M1241 1085 1239 965H1137V774Q1119 738 1053 622L698 -2Q609 -2 465 139Q307 293 307 481Q307 577 369 660Q397 698 397 717Q397 752 338 752Q294 752 253 716Q238 703 188 645L59 762Q125 818 188 831Q219 838 268 838Q539 841 539 549Q539 510 530.5 432.0Q522 354 522 315Q522 157 578 143Q609 143 651 219L956 770V965H-16V1085Z" transform="translate(600.06, 520.00) scale(0.072798, -0.072798)" />
+    <path d="M977 965H311V805Q315 805 319.0 801.0Q323 797 326 797Q318 797 317 798Q317 803 466 830Q521 840 575 840Q800 840 864 714Q907 630 907 375V-10Q886 -2 748 55Q748 87 735 96Q682 65 648 49Q540 -2 397 -2Q200 -2 93 122Q41 182 41 256Q41 339 123 421Q282 580 518 580Q661 580 748 514V606Q704 662 662.5 681.0Q621 700 549 698Q388 695 254 639Q194 614 137 594V668Q150 679 175 701Q179 706 180 707V965H-25V1085H977ZM748 332Q748 376 643 411Q556 440 498 440Q287 440 160 288Q109 227 109 188Q130 115 274 115Q460 115 614 208Q748 289 748 332Z" transform="translate(692.80, 520.00) scale(0.072798, -0.072798)" />
+    <path d="M1065 965H-10V1085H1065ZM850 526Q850 766 623 766Q455 766 342 590Q242 434 242 258V-33L78 53V805H250V686L339 753Q457 842 588 842Q766 842 883 704Q993 574 993 393Q993 166 801 -43L608 78Q698 167 761 242Q850 348 850 526Z" transform="translate(763.64, 520.00) scale(0.072798, -0.072798)" />
+  </g>
+  
+  <!-- Divider -->
+  <line x1="390" y1="545" x2="690" y2="545" stroke="#C8A96E" stroke-width="0.8" opacity="0.5"/>
+  
+  <!-- Tagline -->
+  <text x="540" y="590" text-anchor="middle" font-family="'Poppins','Helvetica Neue',sans-serif" 
+        font-size="18" font-weight="300" letter-spacing="8" fill="#C8A96E" opacity="0.9">
+    FOREST FORMULATIONS
+  </text>
+  
+  <!-- Subtext -->
+  <text x="540" y="680" text-anchor="middle" font-family="'Poppins','Helvetica Neue',sans-serif" 
+        font-size="22" font-weight="300" fill="white" opacity="0.7">
+    Handcrafted Natural Skincare
+  </text>
+  <text x="540" y="715" text-anchor="middle" font-family="'Poppins','Helvetica Neue',sans-serif" 
+        font-size="16" font-weight="300" fill="white" opacity="0.5">
+    Pure Ingredients. Rooted in Nature.
+  </text>
+  
+  <!-- Bottom website -->
+  <text x="540" y="960" text-anchor="middle" font-family="'Poppins','Helvetica Neue',sans-serif" 
+        font-size="13" font-weight="400" letter-spacing="4" fill="#C8A96E" opacity="0.6">
+    WWW.SUTRAVAN.COM
+  </text>
+</svg>

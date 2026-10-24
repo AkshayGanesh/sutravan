@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sutravan Handwrite Sticker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#173624;--muted:#6b7a70;--green:#234a35;--cream:#e8dfca;--gold:#b8923a}
+*{box-sizing:border-box}
+body{margin:0;padding:28px 16px 48px;font-family:Poppins,system-ui,sans-serif;background:#fff;color:var(--ink)}
+h1{font-size:20px;font-weight:600;margin:0 0 4px;text-align:center}
+p.sub{margin:0 0 22px;text-align:center;color:var(--muted);font-size:14px}
+.controls{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:0 auto 26px;max-width:760px}
+.controls label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:4px;flex:1 1 200px}
+.controls input{font:inherit;font-size:14px;padding:8px 10px;border:1px solid #cfd6d1;border-radius:6px;color:var(--ink);background:#fff}
+.sticker{display:block;width:100%;max-width:420px;height:auto;margin:0 auto}
+.t{font-family:Poppins,sans-serif;fill:var(--ink)}
+button{font:inherit;font-size:14px;padding:9px 18px;border:0;border-radius:6px;background:var(--green);color:#fff;cursor:pointer;display:block;margin:24px auto 0}
+@media print{h1,p.sub,button{display:none}body{padding:0}.sticker{width:76mm;max-width:none;margin:0}}
+</style></head><body>
+<h1>Sutravan handwrite sticker</h1>
+<p class="sub">No logo or product name: blank lines to hand write the ingredients and the best-enjoyed-within date</p>
+<svg class="sticker" id="s" viewBox="0 0 600 600" role="img" aria-label="Sutravan handwrite sticker">
+<defs><path id="arc" d="M 68 300 A 232 232 0 0 1 532 300"/></defs>
+<circle cx="300" cy="300" r="290" fill="var(--cream)"/>
+<circle cx="300" cy="300" r="267" fill="none" stroke="var(--gold)" stroke-width="2"/>
+<circle cx="300" cy="300" r="290" fill="none" stroke="var(--green)" stroke-width="16"/>
+<text class="t" font-size="21" font-weight="500" letter-spacing="8" text-anchor="middle"><textPath href="#arc" startOffset="50%">INGREDIENTS</textPath></text>
+<text class="t" x="300" y="452" font-size="21" font-weight="500" letter-spacing="6" text-anchor="middle">BEST ENJOYED WITHIN</text>
+<line x1="180" y1="504" x2="420" y2="504" stroke="var(--ink)" stroke-width="1.4" opacity=".5"/>
+</svg>
+<button onclick="window.print()">Print sticker</button>
+</body></html>
